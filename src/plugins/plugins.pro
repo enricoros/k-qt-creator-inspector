@@ -21,6 +21,7 @@ SUBDIRS   = plugin_coreplugin \
 #            plugin_snippets \ # buggy and annoying
             plugin_locator \
             plugin_debugger \
+            plugin_performance \
 #            plugin_qtestlib \ # this seems to be dead
 #            plugin_helloworld \ # sample plugin
             plugin_help \
@@ -135,6 +136,10 @@ plugin_debugger.subdir = debugger
 plugin_debugger.depends = plugin_projectexplorer
 plugin_debugger.depends += plugin_coreplugin
 plugin_debugger.depends += plugin_cppeditor
+
+plugin_performance.subdir = performance
+plugin_performance.depends = plugin_debugger
+plugin_performance.depends += plugin_coreplugin
 
 plugin_fakevim.subdir = fakevim
 plugin_fakevim.depends = plugin_projectexplorer
