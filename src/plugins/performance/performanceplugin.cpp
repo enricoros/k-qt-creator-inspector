@@ -35,6 +35,8 @@
 #include <coreplugin/icore.h>
 #include <coreplugin/modemanager.h>
 #include <coreplugin/uniqueidmanager.h>
+#include <debugger/debuggerconstants.h>
+#include <projectexplorer/projectexplorerconstants.h>
 
 #include <QtCore/QDebug>
 #include <QtCore/QtPlugin>
@@ -72,55 +74,40 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     Q_UNUSED(arguments)
     Q_UNUSED(error_message)
 
-    // Get the primary access point to the workbench.
+    // get the primary access point to the workbench.
     Core::ICore *core = Core::ICore::instance();
-
-    // Create a unique context id for our own view, that will be used for the
-    // menu entry later.
-    QList<int> context = QList<int>()
-        << core->uniqueIDManager()->uniqueIdentifier(
-                QLatin1String("Performance.MainView"));
-
-    // Create an action to be triggered by a menu entry
-    QAction *performanceAction = new QAction(tr("Say \"&Performance!\""), this);
-    connect(performanceAction, SIGNAL(triggered()), SLOT(sayPerformance()));
-
-    // Register the action with the action manager
     Core::ActionManager *actionManager = core->actionManager();
-    Core::Command *command =
-            actionManager->registerAction(
-                    performanceAction, "Performance.HelloWorldAction", context);
+    Core::Command *command;
 
-    // Create our own menu to place in the Tools menu
-    Core::ActionContainer *performanceMenu =
-            actionManager->createMenu("Performance.PerformanceMenu");
-    QMenu *menu = performanceMenu->menu();
-    menu->setTitle(tr("&Performance"));
-    menu->setEnabled(true);
+    // Create a unique context id for our own view, that will be used for the menu entry later
+    QList<int> contexts = QList<int>()
+//        << Core::Constants::C_GLOBAL_ID // for debug
+        << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING /*C_GDBDEBUGGE*/);
 
-    // Add the Hello World action command to the menu
-    performanceMenu->addAction(command);
+    // create the Performance Menu and add it to the Debug menu
+    Core::ActionContainer *perfContainer = actionManager->createMenu("Performance.Container");
+    QMenu *perfMenu = perfContainer->menu();
+    perfMenu->setTitle(tr("&Performance"));
+    perfMenu->setEnabled(true);
+    Core::ActionContainer *debugContainer = actionManager->actionContainer(ProjectExplorer::Constants::M_DEBUG);
+    debugContainer->addMenu(perfContainer);
 
-    // Request the Tools menu and add the Hello World menu to it
-    Core::ActionContainer *toolsMenu =
-            actionManager->actionContainer(Core::Constants::M_TOOLS);
-    toolsMenu->addMenu(performanceMenu);
-    menu->setEnabled(true);
-/*
-    // Add a mode with a push button based on BaseMode. Like the BaseView,
-    // it will unregister itself from the plugin manager when it is deleted.
-    Core::BaseMode *perfMode = new Core::BaseMode;
-    perfMode->setUniqueModeName("Performance.HelloWorldMode");
-    perfMode->setName(tr("Hello world!"));
-    perfMode->setIcon(QIcon());
-    perfMode->setPriority(0);
-    perfMode->setWidget(new QPushButton(tr("Hello World PushButton!")));
-    addAutoReleasedObject(perfMode);
+    // create (and register to the system) the actions
+    m_aPerfMonitor = new QAction(tr("Measure Performance"), this);
+    connect(m_aPerfMonitor, SIGNAL(triggered()), SLOT(slotPerformance()));
+    command = actionManager->registerAction(m_aPerfMonitor, "Performance.PerformanceMonitor", contexts);
+    perfContainer->addAction(command);
 
-    // Add the Hello World action command to the mode manager (with 0 priority)
-    Core::ModeManager *modeManager = core->modeManager();
-    modeManager->addAction(command, 0);
-*/
+    m_aLagMonitor = new QAction(tr("Transfer Function(s)"), this);
+    connect(m_aLagMonitor, SIGNAL(triggered()), SLOT(slotLag()));
+    command = actionManager->registerAction(m_aLagMonitor, "Performance.LagMonitor", contexts);
+    perfContainer->addAction(command);
+
+    m_aMemMonitor = new QAction(tr("Memory Manager"), this);
+    m_aMemMonitor->setEnabled(false);
+    command = actionManager->registerAction(m_aMemMonitor, "Performance.MemoryMonitor", contexts);
+    perfContainer->addAction(command);
+
     return true;
 }
 
@@ -139,12 +126,14 @@ void PerformancePlugin::extensionsInitialized()
 {
 }
 
-void PerformancePlugin::sayPerformance()
+void PerformancePlugin::slotPerformance()
 {
-    // When passing 0 for the parent, the message box becomes an
-    // application-global modal dialog box
-    QMessageBox::information(
-            0, tr("Performance!"), tr("Performance!! Beautiful day today, isn't it?"));
+    QMessageBox::information(0, tr("Performance!"), tr("Performance!! Beautiful day today, isn't it?"));
+}
+
+void PerformancePlugin::slotLag()
+{
+    QMessageBox::information(0, tr("Lag!"), tr("Performance!! Beautiful day today, isn't it?"));
 }
 
 Q_EXPORT_PLUGIN(PerformancePlugin)

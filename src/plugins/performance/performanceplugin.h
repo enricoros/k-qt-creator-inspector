@@ -31,6 +31,7 @@
 #define __PerformancePlugin_h__
 
 #include <extensionsystem/iplugin.h>
+class QAction;
 
 namespace Performance {
 namespace Internal {
@@ -49,9 +50,13 @@ public:
     void extensionsInitialized();
 
 private slots:
-    void sayPerformance();
+    void slotPerformance();
+    void slotLag();
 
 private:
+    QAction * m_aPerfMonitor;
+    QAction * m_aLagMonitor;
+    QAction * m_aMemMonitor;
 };
 
 } // namespace Internal
