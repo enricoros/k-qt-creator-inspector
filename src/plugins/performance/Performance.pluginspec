@@ -24,7 +24,7 @@ will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.</license>
     </dependencyList>
     <argumentList>
         <argument name="-disable-slotmon">Disable Signal/Slot monitoring</argument>
-        <argument name="-disable-eloop">Disable Event loop statiistics</argument>
+        <argument name="-disable-eloop">Disable Event loop statistics</argument>
         <argument name="-disable-mmon">Disable Memory allocations monitoring</argument>
     </argumentList>
 </plugin>

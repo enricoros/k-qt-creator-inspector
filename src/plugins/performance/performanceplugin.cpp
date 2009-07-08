@@ -108,6 +108,7 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     command = actionManager->registerAction(m_aMemMonitor, "Performance.MemoryMonitor", contexts);
     perfContainer->addAction(command);
 
+    // call (void*)__dlopen("/dati/qt/4.6.master-dev-git-32/qtc-debugging-helper/libgdbmacros.so",2)
     return true;
 }
 
