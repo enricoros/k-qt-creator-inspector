@@ -1,5 +1,6 @@
 TEMPLATE = lib
 TARGET = Performance
+QT += network
 
 include(../../qtcreatorplugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)

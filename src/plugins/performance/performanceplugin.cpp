@@ -45,6 +45,9 @@
 #include <QtGui/QMessageBox>
 #include <QtGui/QPushButton>
 
+#include <QLocalServer>
+#include <QLocalSocket>
+
 using namespace Performance::Internal;
 
 /*! Constructs the Performance plugin. Normally plugins don't do anything in
@@ -54,6 +57,9 @@ using namespace Performance::Internal;
 */
 PerformancePlugin::PerformancePlugin()
 {
+    m_server = new QLocalServer(this);
+    m_server->listen("performance1");
+    connect(m_server, SIGNAL(newConnection()), this, SLOT(slotNewConnection()));
 }
 
 /*! Plugins are responsible for deleting objects they created on the heap, and
@@ -130,6 +136,20 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
 */
 void PerformancePlugin::extensionsInitialized()
 {
+}
+
+void PerformancePlugin::slotNewConnection()
+{
+    while (m_server->hasPendingConnections()) {
+        QLocalSocket * sock = m_server->nextPendingConnection();
+        connect(sock, SIGNAL(readyRead()), this, SLOT(slotNewData()));
+    }
+}
+
+void PerformancePlugin::slotNewData()
+{
+    QLocalSocket * sock = static_cast<QLocalSocket *>(sender());
+    qWarning() << "AAAA" << QString(sock->readAll());
 }
 
 void PerformancePlugin::slotPerformance()

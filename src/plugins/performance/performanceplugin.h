@@ -32,6 +32,7 @@
 
 #include <extensionsystem/iplugin.h>
 class QAction;
+class QLocalServer;
 
 namespace Performance {
 namespace Internal {
@@ -50,10 +51,13 @@ public:
     void extensionsInitialized();
 
 private slots:
+    void slotNewConnection();
+    void slotNewData();
     void slotPerformance();
     void slotLag();
 
 private:
+    QLocalServer * m_server;
     QAction * m_aPerfMonitor;
     QAction * m_aLagMonitor;
     QAction * m_aMemMonitor;
