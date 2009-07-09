@@ -4,7 +4,7 @@ linux-* {
     CONFIG -= release
     CONFIG += debug
 }
-SOURCES = gdbmacros.cpp
+SOURCES = gdbmacros.cpp perfunction.cpp
 false {
     DEFINES += USE_QT_GUI=0
     QT = core
