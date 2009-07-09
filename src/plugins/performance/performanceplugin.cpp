@@ -103,12 +103,17 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     command = actionManager->registerAction(m_aLagMonitor, "Performance.LagMonitor", contexts);
     perfContainer->addAction(command);
 
+    m_aShowPaint = new QAction(tr("Show Painted Areas"), this);
+    m_aShowPaint->setCheckable(true);
+    connect(m_aShowPaint, SIGNAL(triggered()), SLOT(slotPerformance()));
+    command = actionManager->registerAction(m_aShowPaint, "Performance.ShowPaintedAreas", contexts);
+    perfContainer->addAction(command);
+
     m_aMemMonitor = new QAction(tr("Memory Manager"), this);
     m_aMemMonitor->setEnabled(false);
     command = actionManager->registerAction(m_aMemMonitor, "Performance.MemoryMonitor", contexts);
     perfContainer->addAction(command);
 
-    // call (void*)__dlopen("/dati/qt/4.6.master-dev-git-32/qtc-debugging-helper/libgdbmacros.so",2)
     return true;
 }
 

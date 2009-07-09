@@ -112,17 +112,33 @@ EventNotify Activation, qcoreapplication.cpp:
             return result;
         }
 */
-
+#include <QPainter>
+#include <QPaintEvent>
+#include <QWidget>
+#include <QFont>
 static bool paintInterceptorCallback(void **data)
 {
     QEvent *event = reinterpret_cast<QEvent*>(data[1]);
     if (event->type() == QEvent::Paint) {
         QObject *receiver = reinterpret_cast<QObject*>(data[0]);
+        static int stackDepth = 0;
+        ++stackDepth;
         static int i = 0;
-        qWarning("ICEpted Paint %d to %s", ++i, receiver->metaObject()->className() ? receiver->metaObject()->className() : "null");
+        int localI = ++i;
+        qWarning("<ICEpted Paint %d (%d) to %s>", localI, stackDepth, receiver->metaObject()->className() ? receiver->metaObject()->className() : "null");
         QCoreApplication::instance()->notify(receiver, event);
+        if (QWidget * widget = dynamic_cast<QWidget *>(receiver)) {
+            QPainter p(widget);
+            int hue = qrand() % 360;
+            p.setBrush(QColor::fromHsv(hue, 255, 255, 128));
+            p.drawRect(static_cast<QPaintEvent *>(event)->rect().adjusted(0, 0, -1, -1));
+            p.setFont(QFont("Arial",8));
+            p.drawText(static_cast<QPaintEvent *>(event)->rect().topLeft() + QPoint(2,10), QString::number(localI));
+        }
+        qWarning("</ICEpted Paint %d>", localI);
         bool *result = reinterpret_cast<bool*>(data[2]);
         *result = true;
+        --stackDepth;
         return true;
     }
     return false;
@@ -133,11 +149,11 @@ static bool qPerfActivated = false;
 
 // Entry Points of the Shared Library (loaded by the GDB plugin)
 extern "C"
-void qPerfActivate()
+bool qPerfActivate()
 {
     if (qPerfActivated) {
         qWarning(PP_NAME": already active");
-        return;
+        return false;
     }
     qPerfActivated = true;
 
@@ -149,6 +165,7 @@ void qPerfActivate()
     QInternal::registerCallback(QInternal::EventNotifyCallback, paintInterceptorCallback);
 
     qWarning(PP_NAME": Active");
+    return true;
 }
 
 extern "C"
