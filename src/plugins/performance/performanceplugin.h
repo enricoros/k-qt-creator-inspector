@@ -57,6 +57,7 @@ private:
     QAction * m_aPerfMonitor;
     QAction * m_aLagMonitor;
     QAction * m_aMemMonitor;
+    QAction * m_aShowPaint;
 };
 
 } // namespace Internal

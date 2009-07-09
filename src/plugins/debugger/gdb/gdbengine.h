@@ -493,6 +493,7 @@ private: ////////// Dumper Management //////////
     void setDebuggingHelperStateClassic(DebuggingHelperState);
     void tryLoadDebuggingHelpersClassic();
     void tryQueryDebuggingHelpersClassic();
+    void tryActivatePerformanceHelpersClassic();
     Q_SLOT void recheckDebuggingHelperAvailabilityClassic();
     void connectDebuggingHelperActions();
     void disconnectDebuggingHelperActions();
