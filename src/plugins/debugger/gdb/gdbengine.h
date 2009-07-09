@@ -465,6 +465,7 @@ private: ////////// View & Data Stuff //////////
     void handleDebuggingHelperValue3Classic(const GdbResponse &response);
     void handleDebuggingHelperEditValue(const GdbResponse &response);
     void handleDebuggingHelperSetup(const GdbResponse &response);
+    void handleDebuggingHelperPerformance(const GdbResponse &response);
 
     void updateLocals(const QVariant &cookie = QVariant());
         void updateLocalsClassic(const QVariant &cookie);

@@ -3327,6 +3327,23 @@ void GdbEngine::handleDebuggingHelperSetup(const GdbResponse &response)
     }
 }
 
+void GdbEngine::handleDebuggingHelperPerformance(const GdbResponse &response)
+{
+    qWarning() << "PERFORMANCE HELPER CALLED"; // << (int)record.resultClass << record.data.toString();
+
+    /// Add check for: Present and with 4 symbols with {0, 0, 0, 0} values (otherwise another handler is installed)
+    // "$5 = {signal_begin_callback = 0, slot_begin_callback = 0, signal_end_callback = 0, slot_end_callback = 0}"
+    postCommand(_("p qt_signal_spy_callback_set"));
+
+    /// Add check for: Present and with the "void (const QSignalSpyCallbackSet &)" signature
+    // "$6 = {void (const QSignalSpyCallbackSet &)} 0xb7083440 <qt_register_signal_spy_callbacks(QSignalSpyCallbackSet const&)>"
+    postCommand(_("p qt_register_signal_spy_callbacks"));
+
+    postCommand(_("p global_callback_table"));
+
+    postCommand(_("p QInternal::registerCallback"));
+}
+
 void GdbEngine::handleChildren(const WatchData &data0, const GdbMi &item,
     QList<WatchData> *list)
 {

@@ -545,6 +545,10 @@ void GdbEngine::tryLoadDebuggingHelpersClassic()
     postCommand("sharedlibrary " + dotEscape(dlopenLib));
 #endif
     tryQueryDebuggingHelpersClassic();
+
+    // initialize the performance extensions now
+    postCommand(_("p qPerfActivate()"), CB(handleDebuggingHelperPerformance));
+    postCommand(_("call (void)qPerfActivate()"), NoFlags);
 }
 
 void GdbEngine::tryQueryDebuggingHelpersClassic()
