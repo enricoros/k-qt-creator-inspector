@@ -144,7 +144,69 @@ static bool paintInterceptorCallback(void **data)
     return false;
 }
 
+#include <QLocalSocket>
+static QLocalSocket * zSock = 0;
+
+#include <QTime>
+#include <QDebug>
+#include <QThread>
+static bool fence = false;
+static bool loadInterceptorCallback(void **data)
+{
+    QEvent *event = reinterpret_cast<QEvent*>(data[1]);
+    if (!fence && event->type() >= QEvent::Timer && event->type() <= QEvent::User ) {
+        QTime time;
+        time.start();
+        static int stackDepth = 0;
+        ++stackDepth;
+        static int numE = 0;
+        int localE = ++numE;
+
+        QObject *receiver = reinterpret_cast<QObject*>(data[0]);
+
+
+        qWarning("Event %d", localE);
+        QCoreApplication::instance()->notify(receiver, event);
+        int elapsed = time.elapsed();
+        if (elapsed > 100) {
+            QString s = QString("Troppo lungo l'evento %1, tipo %2, durata %3, su %4").arg(localE).arg(event->type()).arg(elapsed).arg(receiver->metaObject()->className() ? receiver->metaObject()->className() : "null");
+            fence = true;
+            zSock->write(s.toLatin1());
+            zSock->waitForBytesWritten(1000);
+            fence = false;
+        }
+
+
+        bool *result = reinterpret_cast<bool*>(data[2]);
+        *result = true;
+        --stackDepth;
+        return true;
+    }
+    return false;
+}
+
 static bool qPerfActivated = false;
+
+#include <QMetaMethod>
+static void signalBeginCallback(QObject *caller, int method_index, void **argv)
+{
+    qWarning("sinal BEGIN: %s", caller->metaObject()->method(method_index).signature());
+}
+
+static void signalEndCallback(QObject *caller, int method_index)
+{
+    qWarning("sinal END: %s", caller->metaObject()->method(method_index).signature());
+}
+
+static void slotBeginCallback(QObject *caller, int method_index, void **argv)
+{
+    qWarning("slot BEGIN: %s", caller->metaObject()->method(method_index).signature());
+}
+
+static void slotEndCallback(QObject *caller, int method_index)
+{
+    qWarning("slot END: %s", caller->metaObject()->method(method_index).signature());
+}
 
 
 // Entry Points of the Shared Library (loaded by the GDB plugin)
@@ -157,12 +219,18 @@ bool qPerfActivate()
     }
     qPerfActivated = true;
 
+    zSock = new QLocalSocket();
+    zSock->connectToServer("performance1");
+    bool connected = zSock->waitForConnected(10000);
+    qWarning() << "conn" << connected;
+
     // signal spy callback
-    QSignalSpyCallbackSet set = {0, 0, 0, 0};
+    QSignalSpyCallbackSet set = {0, slotBeginCallback, 0, slotEndCallback};
     qt_register_signal_spy_callbacks(set);
 
     // events callback
-    QInternal::registerCallback(QInternal::EventNotifyCallback, paintInterceptorCallback);
+    //QInternal::registerCallback(QInternal::EventNotifyCallback, paintInterceptorCallback);
+    QInternal::registerCallback(QInternal::EventNotifyCallback, loadInterceptorCallback);
 
     qWarning(PP_NAME": Active");
     return true;
