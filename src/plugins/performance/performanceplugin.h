@@ -33,6 +33,7 @@
 #include <extensionsystem/iplugin.h>
 class QAction;
 class QLocalServer;
+class PerformancePane;
 
 namespace Performance {
 namespace Internal {
@@ -62,6 +63,7 @@ private:
     QAction * m_aLagMonitor;
     QAction * m_aMemMonitor;
     QAction * m_aShowPaint;
+    PerformancePane * m_pane;
 };
 
 } // namespace Internal

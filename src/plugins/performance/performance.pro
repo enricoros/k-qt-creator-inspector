@@ -5,6 +5,7 @@ QT += network
 include(../../qtcreatorplugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 
-HEADERS += performanceplugin.h
+HEADERS += performanceplugin.h performancepane.h
 
-SOURCES += performanceplugin.cpp
+SOURCES += performanceplugin.cpp performancepane.cpp
+
