@@ -47,6 +47,7 @@
 
 #include <QLocalServer>
 #include <QLocalSocket>
+#include "performancepane.h"
 
 using namespace Performance::Internal;
 
@@ -120,6 +121,10 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     command = actionManager->registerAction(m_aMemMonitor, "Performance.MemoryMonitor", contexts);
     perfContainer->addAction(command);
 
+    // Create the Pane
+    m_pane = new PerformancePane;
+    addAutoReleasedObject(m_pane);
+
     return true;
 }
 
@@ -146,10 +151,13 @@ void PerformancePlugin::slotNewConnection()
     }
 }
 
+#include <debugger/debuggerplugin.h>
 void PerformancePlugin::slotNewData()
 {
     QLocalSocket * sock = static_cast<QLocalSocket *>(sender());
-    qWarning() << "AAAA" << QString(sock->readAll());
+    QByteArray data = sock->readAll();
+
+    m_pane->addString(data);
 }
 
 void PerformancePlugin::slotPerformance()
