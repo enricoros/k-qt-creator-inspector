@@ -35,3 +35,54 @@ void PerformancePane::addString(const QString & string)
 {
     m_editWidget->appendHtml("<font color='#800'>" + string + "</font>");
 }
+
+#include <coreplugin/icore.h>
+#include <coreplugin/modemanager.h>
+#include <coreplugin/progressmanager/progresspie.h>
+#include <coreplugin/stylehelper.h>
+#include <QLabel>
+#include <QPainter>
+#include <QHBoxLayout>
+
+class WarnWidget : public QWidget {
+    public:
+        WarnWidget(QWidget * parent = 0)
+            : QWidget(parent)
+        {
+            QHBoxLayout * lay = new QHBoxLayout(this);
+
+            QLabel * label = new QLabel();
+            label->setMinimumSize(32,32);
+            label->setPixmap(QPixmap(":/performance/images/mark-32.png"));
+            label->setAlignment(Qt::AlignCenter);
+            lay->addWidget(label);
+
+
+        }
+
+        void paintEvent(QPaintEvent * event)
+        {
+            // see progresspie.cpp for drawing...
+            QPainter p(this);
+            QFont boldFont(p.font());
+            boldFont.setPointSizeF(StyleHelper::sidebarFontSize());
+            boldFont.setBold(true);
+            p.setFont(boldFont);
+            QFontMetrics fm(boldFont);
+
+            // Draw separator
+            p.setPen(QColor(0, 0, 0, 70));
+            p.drawLine(0,0, size().width(), 0);
+
+            p.setPen(QColor(255, 255, 255, 70));
+            p.drawLine(0, 1, size().width(), 1);
+
+        }
+};
+
+void PerformancePane::visibilityChanged(bool visible)
+{
+    // insert temp label into the left panel
+    WarnWidget * ww = new WarnWidget();
+    Core::ICore::instance()->modeManager()->addWidget(ww);
+}
