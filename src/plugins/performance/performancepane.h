@@ -35,7 +35,7 @@ class PerformancePane : public Core::IOutputPane
         int priorityInStatusBar() const { return 10; }
 
         void clearContents() {}
-        void visibilityChanged(bool /*visible*/) {}
+        void visibilityChanged(bool visible);
 
         void setFocus() {}
         bool hasFocus() { return true; }

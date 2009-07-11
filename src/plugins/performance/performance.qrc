@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/performance" >
+        <file>images/mark-32.png</file>
+    </qresource>
+</RCC>
