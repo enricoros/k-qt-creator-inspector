@@ -67,6 +67,9 @@
 #include <extensionsystem/pluginmanager.h>
 
 #include <coreplugin/manhattanstyle.h>
+
+#include <performance/performanceserver.h>
+
 #include <projectexplorer/projectexplorer.h>
 #include <projectexplorer/projectexplorerconstants.h>
 #include <projectexplorer/session.h>
@@ -1311,6 +1314,11 @@ void DebuggerPlugin::handleStateChanged(int state)
 #endif
     m_startRemoteAction->setEnabled(!started && !starting);
     m_detachAction->setEnabled(detachable);
+
+    // sync Performance Plugin status
+    ExtensionSystem::PluginManager::instance()
+            ->getObject<Performance::PerformanceServer>()
+            ->setDebugging(started);
 }
 
 void DebuggerPlugin::languageChanged(const QString &language)

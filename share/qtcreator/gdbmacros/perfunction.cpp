@@ -148,11 +148,11 @@ EventNotify Activation, qcoreapplication.cpp:
 #include <QLocalSocket>
 class PerfCommClient {
     public:
-        PerfCommClient()
+        PerfCommClient(const char * serverName)
             : m_fencing(false)
         {
             m_sock = new QLocalSocket();
-            m_sock->connectToServer("performance1");
+            m_sock->connectToServer(serverName);
             m_connected = m_sock->waitForConnected(10000);
             if (!m_connected)
                 writeError("can't establish connection to the performance server");
@@ -249,14 +249,14 @@ static void slotEndCallback(QObject *caller, int method_index)
 
 // Entry Points of the Shared Library (loaded by the GDB plugin)
 extern "C"
-bool qPerfActivate()
+bool qPerfActivate(const char * serverName)
 {
     // 1. comm client
     if (commClient) {
         commClient->writeError("already active");
         return false;
     } else
-        commClient = new PerfCommClient();
+        commClient = new PerfCommClient(serverName);
 
     // 2. signal spy callback
     QSignalSpyCallbackSet set = {0, slotBeginCallback, 0, slotEndCallback};

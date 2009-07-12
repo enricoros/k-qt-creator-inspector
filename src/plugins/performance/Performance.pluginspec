@@ -1,4 +1,4 @@
-<plugin name="Performance" version="1.2.80" compatVersion="1.2.80">
+<plugin name="Performance" version="1.3.80" compatVersion="1.3.80">
     <vendor>Enrico Ros</vendor>
     <copyright>(C) 2009 Enrico Ros</copyright>
     <license>
@@ -19,8 +19,7 @@ will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.</license>
     <description>Performance Monitoring plugin.</description>
     <url>http://enricoros.wordpress.com</url>
     <dependencyList>
-        <dependency name="Core" version="1.2.80"/>
-        <dependency name="Debugger" version="1.2.80"/>
+        <dependency name="Core" version="1.3.80"/>
     </dependencyList>
     <argumentList>
         <argument name="-disable-slotmon">Disable Signal/Slot monitoring</argument>

@@ -33,7 +33,7 @@
 #include <qglobal.h>
 
 extern "C" Q_DECL_EXPORT
-bool qPerfActivate();
+bool qPerfActivate(const char * serverName);
 
 extern "C" Q_DECL_EXPORT
 void qPerfDeactivate();
