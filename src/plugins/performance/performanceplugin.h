@@ -50,7 +50,6 @@ public:
     // ::ExtensionSystem::IPlugin
     bool initialize(const QStringList &arguments, QString *error_message);
     void extensionsInitialized();
-    void shutdown();
 
 private slots:
     void slotPerformance();

@@ -49,31 +49,18 @@
 
 using namespace Performance::Internal;
 
-/*! Constructs the Performance plugin. Normally plugins don't do anything in
-    their constructor except for initializing their member variables. The
-    actual work is done later, in the initialize() and extensionsInitialized()
-    methods.
-*/
 PerformancePlugin::PerformancePlugin()
     : m_server(0)
     , m_pane(0)
 {
 }
 
-/*! Plugins are responsible for deleting objects they created on the heap, and
-    to unregister objects from the plugin manager that they registered there.
-*/
 PerformancePlugin::~PerformancePlugin()
 {
-    delete m_server;
+    // objects registered with 'addAutoReleasedObject' will be removed
+    // automatically
 }
 
-/*! Initializes the plugin. Returns true on success.
-    Plugins want to register objects with the plugin manager here.
-
-    \a error_message can be used to pass an error message to the plugin system,
-       if there was any.
-*/
 bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_message)
 {
     Q_UNUSED(arguments)
@@ -87,7 +74,7 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     // Create a unique context id for our own view, that will be used for the menu entry later
     QList<int> contexts = QList<int>()
 //        << Core::Constants::C_GLOBAL_ID // for debug
-        << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING /*C_GDBDEBUGGE*/);
+        << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING /*C_GDBDEBUGGER*/);
 
     // create the Performance Menu and add it to the Debug menu
     Core::ActionContainer *perfContainer = actionManager->createMenu("Performance.Container");
@@ -141,12 +128,18 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     The PerformancePlugin doesn't need things from other plugins, so it does
     nothing here.
 */
+#include <extensionsystem/pluginmanager.h>
+#include <debugger/debuggerplugin.h>
+
 void PerformancePlugin::extensionsInitialized()
 {
-}
+    // TODO: request debugger objects here (for injection management)
+    Debugger::Internal::DebuggerPlugin * plugin = ExtensionSystem::PluginManager::instance()->getObject<Debugger::Internal::DebuggerPlugin>();
+    qWarning("dbg: %x", plugin);
+//    ExtensionSystem::PluginManager::instance()->getObject<CppTools::CppModelManagerInterface>();
+//    CppTools::CppModelManagerInterface *modelManager
+//            = ExtensionSystem::PluginManager::instance()->getObject<CppTools::CppModelManagerInterface>();
 
-void PerformancePlugin::shutdown()
-{
 }
 
 void PerformancePlugin::slotPerformance()
