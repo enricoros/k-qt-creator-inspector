@@ -28,6 +28,8 @@
 **************************************************************************/
 
 #include "performanceplugin.h"
+#include "performancepane.h"
+#include "performanceserver.h"
 
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/basemode.h>
@@ -45,10 +47,6 @@
 #include <QtGui/QMessageBox>
 #include <QtGui/QPushButton>
 
-#include <QLocalServer>
-#include <QLocalSocket>
-#include "performancepane.h"
-
 using namespace Performance::Internal;
 
 /*! Constructs the Performance plugin. Normally plugins don't do anything in
@@ -57,10 +55,9 @@ using namespace Performance::Internal;
     methods.
 */
 PerformancePlugin::PerformancePlugin()
+    : m_server(0)
+    , m_pane(0)
 {
-    m_server = new QLocalServer(this);
-    m_server->listen("performance1");
-    connect(m_server, SIGNAL(newConnection()), this, SLOT(slotNewConnection()));
 }
 
 /*! Plugins are responsible for deleting objects they created on the heap, and
@@ -68,6 +65,7 @@ PerformancePlugin::PerformancePlugin()
 */
 PerformancePlugin::~PerformancePlugin()
 {
+    delete m_server;
 }
 
 /*! Initializes the plugin. Returns true on success.
@@ -125,6 +123,10 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     m_pane = new PerformancePane;
     addAutoReleasedObject(m_pane);
 
+    // Create the Server
+    m_server = new PerformanceServer(m_pane);
+    addAutoReleasedObject(m_server);
+
     return true;
 }
 
@@ -143,21 +145,8 @@ void PerformancePlugin::extensionsInitialized()
 {
 }
 
-void PerformancePlugin::slotNewConnection()
+void PerformancePlugin::shutdown()
 {
-    while (m_server->hasPendingConnections()) {
-        QLocalSocket * sock = m_server->nextPendingConnection();
-        connect(sock, SIGNAL(readyRead()), this, SLOT(slotNewData()));
-    }
-}
-
-#include <debugger/debuggerplugin.h>
-void PerformancePlugin::slotNewData()
-{
-    QLocalSocket * sock = static_cast<QLocalSocket *>(sender());
-    QByteArray data = sock->readAll();
-
-    m_pane->addString(data);
 }
 
 void PerformancePlugin::slotPerformance()
