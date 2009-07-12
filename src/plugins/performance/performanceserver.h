@@ -15,6 +15,7 @@
 
 #include <QObject>
 class QLocalServer;
+class QLocalSocket;
 
 namespace Performance {
 namespace Internal {
@@ -30,13 +31,16 @@ public:
     PerformanceServer(PerformancePane * view, QObject * parent = 0);
     ~PerformanceServer();
 
+    QString serverName() const;
+
 private slots:
     void slotMiniClicked();
-    void slotNewConnection();
-    void slotNewData();
+    void slotIncomingConnection();
+    void slotReadConnection();
 
 private:
     QLocalServer * m_localServer;
+    QLocalSocket * m_socket;
     PerformancePane * m_view;
     PerformanceMiniWidget * m_mini;
 };
