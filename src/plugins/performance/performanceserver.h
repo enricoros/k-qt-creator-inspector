@@ -1,7 +1,7 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2009-2009 by Enrico Ros <enrico.ros@gmail.com>        *
- *   Started on 10 Jul 2009 by root.
+ *   Copyright (C) 2009-2009 by Enrico Ros <enrico.ros@gmail.com>          *
+ *   Started on 10 Jul 2009 by root.                                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -13,10 +13,35 @@
 #ifndef PERFORMANCESERVER_H
 #define PERFORMANCESERVER_H
 
+#include <QObject>
+class QLocalServer;
+
+namespace Performance {
+namespace Internal {
+class PerformancePane;
+class PerformanceMiniWidget;
+
 class PerformanceServer
+  : public QObject
 {
+    Q_OBJECT
+
 public:
-    PerformanceServer();
+    PerformanceServer(PerformancePane * view, QObject * parent = 0);
+    ~PerformanceServer();
+
+private slots:
+    void slotMiniClicked();
+    void slotNewConnection();
+    void slotNewData();
+
+private:
+    QLocalServer * m_localServer;
+    PerformancePane * m_view;
+    PerformanceMiniWidget * m_mini;
 };
 
-#endif // PERFORMANCESERVER_H
+} // namespace Internal
+} // namespace Performance
+
+#endif

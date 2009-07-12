@@ -14,11 +14,17 @@
 #define PERFORMANCEPANE_H
 
 #include <coreplugin/ioutputpane.h>
+#include <QPixmap>
 #include <QPlainTextEdit>
 
-class PerformancePane : public Core::IOutputPane
+namespace Performance {
+namespace Internal {
+
+class PerformancePane
+  : public Core::IOutputPane
 {
     Q_OBJECT
+
     public:
         PerformancePane(QObject *parent = 0);
         ~PerformancePane() {}
@@ -35,7 +41,7 @@ class PerformancePane : public Core::IOutputPane
         int priorityInStatusBar() const { return 10; }
 
         void clearContents() {}
-        void visibilityChanged(bool visible);
+        void visibilityChanged(bool /*visible*/) {}
 
         void setFocus() {}
         bool hasFocus() { return true; }
@@ -51,5 +57,34 @@ class PerformancePane : public Core::IOutputPane
     private:
         QPlainTextEdit * m_editWidget;
 };
+
+class PerformanceMiniWidget
+  : public QWidget
+{
+    Q_OBJECT
+    Q_PROPERTY(qreal signOpacity READ signOpacity WRITE setSignOpacity)
+
+public:
+    PerformanceMiniWidget(QWidget * parent = 0);
+
+    void addWarning();
+
+    // ::QWidget
+    void paintEvent(QPaintEvent * event);
+    void mousePressEvent(QMouseEvent * event);
+
+signals:
+    void clicked();
+
+private:
+    qreal signOpacity() const;
+    void setSignOpacity(qreal opacity);
+    qreal m_signOpacity;
+    QPixmap m_pixmap;
+    int m_cWarnings;
+};
+
+} // namespace Internal
+} // namespace Performance
 
 #endif

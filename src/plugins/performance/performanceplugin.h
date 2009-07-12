@@ -32,11 +32,11 @@
 
 #include <extensionsystem/iplugin.h>
 class QAction;
-class QLocalServer;
-class PerformancePane;
 
 namespace Performance {
 namespace Internal {
+class PerformanceServer;
+class PerformancePane;
 
 class PerformancePlugin
   : public ExtensionSystem::IPlugin
@@ -47,23 +47,22 @@ public:
     PerformancePlugin();
     ~PerformancePlugin();
 
+    // ::ExtensionSystem::IPlugin
     bool initialize(const QStringList &arguments, QString *error_message);
-
     void extensionsInitialized();
+    void shutdown();
 
 private slots:
-    void slotNewConnection();
-    void slotNewData();
     void slotPerformance();
     void slotLag();
 
 private:
-    QLocalServer * m_server;
+    PerformanceServer * m_server;
+    PerformancePane * m_pane;
     QAction * m_aPerfMonitor;
     QAction * m_aLagMonitor;
     QAction * m_aMemMonitor;
     QAction * m_aShowPaint;
-    PerformancePane * m_pane;
 };
 
 } // namespace Internal
