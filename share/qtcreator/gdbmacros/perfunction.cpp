@@ -116,7 +116,7 @@ EventNotify Activation, qcoreapplication.cpp:
 #include <QPaintEvent>
 #include <QWidget>
 #include <QFont>
-static bool paintInterceptorCallback(void **data)
+/*static bool paintInterceptorCallback(void **data)
 {
     QEvent *event = reinterpret_cast<QEvent*>(data[1]);
     if (event->type() == QEvent::Paint) {
@@ -143,49 +143,87 @@ static bool paintInterceptorCallback(void **data)
     }
     return false;
 }
+*/
 
 #include <QLocalSocket>
-static QLocalSocket * zSock = 0;
+class PerfCommClient {
+    public:
+        PerfCommClient()
+            : m_fencing(false)
+        {
+            m_sock = new QLocalSocket();
+            m_sock->connectToServer("performance1");
+            m_connected = m_sock->waitForConnected(10000);
+            if (!m_connected)
+                writeError("can't establish connection to the performance server");
+        }
+
+        ~PerfCommClient()
+        {
+            delete m_sock;
+        }
+
+        bool isConnected() const
+        {
+            return m_connected;
+        }
+
+        bool writeData(const QString & string)
+        {
+            if (m_fencing) {
+                writeError("writeData during fence!");
+                return false;
+            }
+            m_fencing = true;
+            m_sock->write(string.toLatin1());
+            m_sock->waitForBytesWritten(1000);
+            m_fencing = false;
+            return true;
+        }
+
+        void writeError(const QString & string)
+        {
+            qWarning(PP_NAME": %s", qPrintable(string));
+        }
+
+        inline bool fencing() const
+        {
+            return m_fencing;
+        }
+
+    private:
+        QLocalSocket * m_sock;
+        bool m_connected;
+        bool m_fencing;
+};
+static PerfCommClient * commClient = 0;
+
 
 #include <QTime>
-#include <QDebug>
-#include <QThread>
-static bool fence = false;
 static bool loadInterceptorCallback(void **data)
 {
     QEvent *event = reinterpret_cast<QEvent*>(data[1]);
-    if (!fence && event->type() >= QEvent::Timer && event->type() <= QEvent::User ) {
-        QTime time;
-        time.start();
+    if (!commClient->fencing() && event->type() >= QEvent::Timer && event->type() <= QEvent::User ) {
         static int stackDepth = 0;
         ++stackDepth;
         static int numE = 0;
         int localE = ++numE;
-
         QObject *receiver = reinterpret_cast<QObject*>(data[0]);
-
-
-        qWarning("Event %d", localE);
-        QCoreApplication::instance()->notify(receiver, event);
+        bool *resultValue = reinterpret_cast<bool*>(data[2]);
+        QTime time;
+        time.start();
+        *resultValue = QCoreApplication::instance()->notify(receiver, event);
         int elapsed = time.elapsed();
-        if (elapsed > 100) {
+        if (elapsed > 200) {
             QString s = QString("Troppo lungo l'evento %1, tipo %2, durata %3, su %4").arg(localE).arg(event->type()).arg(elapsed).arg(receiver->metaObject()->className() ? receiver->metaObject()->className() : "null");
-            fence = true;
-            zSock->write(s.toLatin1());
-            zSock->waitForBytesWritten(1000);
-            fence = false;
+            commClient->writeData(s);
         }
-
-
-        bool *result = reinterpret_cast<bool*>(data[2]);
-        *result = true;
         --stackDepth;
         return true;
     }
     return false;
 }
 
-static bool qPerfActivated = false;
 
 #include <QMetaMethod>
 static void signalBeginCallback(QObject *caller, int method_index, void **argv)
@@ -213,40 +251,39 @@ static void slotEndCallback(QObject *caller, int method_index)
 extern "C"
 bool qPerfActivate()
 {
-    if (qPerfActivated) {
-        qWarning(PP_NAME": already active");
+    // 1. comm client
+    if (commClient) {
+        commClient->writeError("already active");
         return false;
-    }
-    qPerfActivated = true;
+    } else
+        commClient = new PerfCommClient();
 
-    zSock = new QLocalSocket();
-    zSock->connectToServer("performance1");
-    bool connected = zSock->waitForConnected(10000);
-    qWarning() << "conn" << connected;
-
-    // signal spy callback
+    // 2. signal spy callback
     QSignalSpyCallbackSet set = {0, slotBeginCallback, 0, slotEndCallback};
     qt_register_signal_spy_callbacks(set);
 
-    // events callback
+    // 3. events callback
     //QInternal::registerCallback(QInternal::EventNotifyCallback, paintInterceptorCallback);
     QInternal::registerCallback(QInternal::EventNotifyCallback, loadInterceptorCallback);
 
-    qWarning(PP_NAME": Active");
+    qWarning(PP_NAME": Activated");
+    commClient->writeData("Active");
     return true;
 }
 
 extern "C"
 void qPerfDeactivate()
 {
-    qWarning(PP_NAME": Deactivating");
+    qWarning(PP_NAME": Deactivated");
 
-    // signal spy callback
+    // 3. events callback
+    QInternal::unregisterCallback(QInternal::EventNotifyCallback, loadInterceptorCallback);
+
+    // 2. signal spy callback
     QSignalSpyCallbackSet set = {0, 0, 0, 0};
     qt_register_signal_spy_callbacks(set);
 
-    // events callback
-    QInternal::unregisterCallback(QInternal::EventNotifyCallback, paintInterceptorCallback);
-
-    qPerfActivated = false;
+    // 1. comm client
+    delete commClient;
+    commClient = 0;
 }
