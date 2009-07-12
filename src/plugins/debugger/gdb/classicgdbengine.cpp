@@ -36,6 +36,8 @@
 #include "stackhandler.h"
 #include "watchhandler.h"
 
+#include <extensionsystem/pluginmanager.h>
+#include <performance/performanceserver.h>
 #include <utils/qtcassert.h>
 
 #include <QtCore/QFile>
@@ -559,8 +561,20 @@ void GdbEngine::tryQueryDebuggingHelpersClassic()
 
 void GdbEngine::tryActivatePerformanceHelpersClassic()
 {
-    //postCommand(_("p qPerfActivate()"), CB(handleDebuggingHelperPerformance));
-    postCommand(_("call qPerfActivate()"), CB(handleDebuggingHelperPerformance));
+    // get the listening socket name
+    Performance::PerformanceServer * perfServer = ExtensionSystem::PluginManager::instance()->getObject<Performance::PerformanceServer>();
+    QString serverName = perfServer->serverName();
+
+    // disable the performance plugin if no server name
+    if (serverName.isNull()) {
+        perfServer->setHelpersPresent(false);
+        return;
+    }
+
+    //postCommand(_("p qPerfActivate"), CB(handleDebuggingHelperPerformance));
+
+    postCommand(_("call qPerfActivate(\"%1\")").arg(serverName));
+    perfServer->setHelpersInjected(true);
 }
 
 void GdbEngine::recheckDebuggingHelperAvailabilityClassic()

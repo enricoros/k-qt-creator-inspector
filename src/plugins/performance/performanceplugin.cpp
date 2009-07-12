@@ -72,38 +72,44 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     Core::Command *command;
 
     // Create a unique context id for our own view, that will be used for the menu entry later
-    QList<int> contexts = QList<int>()
-//        << Core::Constants::C_GLOBAL_ID // for debug
-        << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING /*C_GDBDEBUGGER*/);
+    QList<int> globalContext = QList<int>() << Core::Constants::C_GLOBAL_ID;
+    QList<int> debuggerContext = QList<int>()
+        << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING);
 
     // create the Performance Menu and add it to the Debug menu
     Core::ActionContainer *perfContainer = actionManager->createMenu("Performance.Container");
     QMenu *perfMenu = perfContainer->menu();
     perfMenu->setTitle(tr("&Performance"));
+    perfMenu->setIcon(QIcon(":/performance/images/menu-icon.png"));
     perfMenu->setEnabled(true);
     Core::ActionContainer *debugContainer = actionManager->actionContainer(ProjectExplorer::Constants::M_DEBUG);
     debugContainer->addMenu(perfContainer);
 
     // create (and register to the system) the actions
+    QAction * infoAction = new QAction(tr("Information..."), this);
+    connect(infoAction, SIGNAL(triggered()), SLOT(slotInformation()));
+    command = actionManager->registerAction(infoAction, "Performance.Information", globalContext);
+    perfContainer->addAction(command);
+
     m_aPerfMonitor = new QAction(tr("Measure Performance"), this);
     connect(m_aPerfMonitor, SIGNAL(triggered()), SLOT(slotPerformance()));
-    command = actionManager->registerAction(m_aPerfMonitor, "Performance.PerformanceMonitor", contexts);
+    command = actionManager->registerAction(m_aPerfMonitor, "Performance.PerformanceMonitor", debuggerContext);
     perfContainer->addAction(command);
 
     m_aLagMonitor = new QAction(tr("Transfer Function(s)"), this);
     connect(m_aLagMonitor, SIGNAL(triggered()), SLOT(slotLag()));
-    command = actionManager->registerAction(m_aLagMonitor, "Performance.LagMonitor", contexts);
+    command = actionManager->registerAction(m_aLagMonitor, "Performance.LagMonitor", debuggerContext);
     perfContainer->addAction(command);
 
     m_aShowPaint = new QAction(tr("Show Painted Areas"), this);
     m_aShowPaint->setCheckable(true);
     connect(m_aShowPaint, SIGNAL(triggered()), SLOT(slotPerformance()));
-    command = actionManager->registerAction(m_aShowPaint, "Performance.ShowPaintedAreas", contexts);
+    command = actionManager->registerAction(m_aShowPaint, "Performance.ShowPaintedAreas", debuggerContext);
     perfContainer->addAction(command);
 
     m_aMemMonitor = new QAction(tr("Memory Manager"), this);
     m_aMemMonitor->setEnabled(false);
-    command = actionManager->registerAction(m_aMemMonitor, "Performance.MemoryMonitor", contexts);
+    command = actionManager->registerAction(m_aMemMonitor, "Performance.MemoryMonitor", debuggerContext);
     perfContainer->addAction(command);
 
     // Create the Pane
@@ -111,7 +117,7 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     addAutoReleasedObject(m_pane);
 
     // Create the Server
-    m_server = new PerformanceServer(m_pane);
+    m_server = new Performance::PerformanceServer(m_pane);
     addAutoReleasedObject(m_server);
 
     return true;
@@ -128,18 +134,13 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     The PerformancePlugin doesn't need things from other plugins, so it does
     nothing here.
 */
-#include <extensionsystem/pluginmanager.h>
-#include <debugger/debuggerplugin.h>
-
 void PerformancePlugin::extensionsInitialized()
 {
-    // TODO: request debugger objects here (for injection management)
-    Debugger::Internal::DebuggerPlugin * plugin = ExtensionSystem::PluginManager::instance()->getObject<Debugger::Internal::DebuggerPlugin>();
-    qWarning("dbg: %x", plugin);
-//    ExtensionSystem::PluginManager::instance()->getObject<CppTools::CppModelManagerInterface>();
-//    CppTools::CppModelManagerInterface *modelManager
-//            = ExtensionSystem::PluginManager::instance()->getObject<CppTools::CppModelManagerInterface>();
+}
 
+void PerformancePlugin::slotInformation()
+{
+    // TODO: show the information widget here
 }
 
 void PerformancePlugin::slotPerformance()

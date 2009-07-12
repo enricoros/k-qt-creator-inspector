@@ -20,7 +20,10 @@
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QMessageBox>
+#include <QDateTime>
+#include <QTime>
 
+using namespace Performance;
 using namespace Performance::Internal;
 
 PerformanceServer::PerformanceServer(PerformancePane * view, QObject * parent)
@@ -28,10 +31,20 @@ PerformanceServer::PerformanceServer(PerformancePane * view, QObject * parent)
     , m_socket(0)
     , m_view(view)
     , m_mini(0)
+    , m_sEnabled(false)
+    , m_sRunning(false)
+    , m_sHelpers(false)
+    , m_sInjected(false)
 {
     m_localServer = new QLocalServer;
-    m_localServer->listen("performance-" + QString::number(qrand()));
+    int uniqueCode = QDateTime::currentDateTime().toTime_t() + QTime::currentTime().msec() + (qrand() % 1000);
+    if (!m_localServer->listen(QString("creator_perf_%1").arg(uniqueCode))) {
+        // TODO: make this a state, disable the plugin, remove the messagebox
+        QMessageBox::information(0, tr("Performance Plugin Connection"), tr("The Performance Plugin server can't be started\nerror: %1").arg(m_localServer->errorString()));
+        return;
+    }
     connect(m_localServer, SIGNAL(newConnection()), this, SLOT(slotIncomingConnection()));
+    m_sEnabled = true;
 }
 
 PerformanceServer::~PerformanceServer()
@@ -40,9 +53,29 @@ PerformanceServer::~PerformanceServer()
     delete m_mini;
 }
 
+bool PerformanceServer::enabled() const
+{
+    return m_sEnabled;
+}
+
 QString PerformanceServer::serverName() const
 {
     return m_localServer->serverName();
+}
+
+void PerformanceServer::setDebugging(bool on)
+{
+    m_sRunning = on;
+}
+
+void PerformanceServer::setHelpersPresent(bool on)
+{
+    m_sHelpers = on;
+}
+
+void PerformanceServer::setHelpersInjected(bool on)
+{
+    m_sInjected = on;
 }
 
 void PerformanceServer::slotMiniClicked()

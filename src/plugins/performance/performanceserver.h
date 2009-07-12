@@ -19,19 +19,26 @@ class QLocalSocket;
 
 namespace Performance {
 namespace Internal {
-class PerformancePane;
-class PerformanceMiniWidget;
+    class PerformancePane;
+    class PerformanceMiniWidget;
+}
 
-class PerformanceServer
+class Q_DECL_EXPORT PerformanceServer
   : public QObject
 {
     Q_OBJECT
 
 public:
-    PerformanceServer(PerformancePane * view, QObject * parent = 0);
+    PerformanceServer(Internal::PerformancePane * view, QObject * parent = 0);
     ~PerformanceServer();
 
+    bool enabled() const;
     QString serverName() const;
+
+    // externally set information
+    void setDebugging(bool on);
+    void setHelpersPresent(bool on);
+    void setHelpersInjected(bool on);
 
 private slots:
     void slotMiniClicked();
@@ -41,11 +48,15 @@ private slots:
 private:
     QLocalServer * m_localServer;
     QLocalSocket * m_socket;
-    PerformancePane * m_view;
-    PerformanceMiniWidget * m_mini;
+    Internal::PerformancePane * m_view;
+    Internal::PerformanceMiniWidget * m_mini;
+
+    bool m_sEnabled;
+    bool m_sRunning;
+    bool m_sHelpers;
+    bool m_sInjected;
 };
 
-} // namespace Internal
 } // namespace Performance
 
 #endif

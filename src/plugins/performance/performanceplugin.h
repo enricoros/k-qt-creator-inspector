@@ -34,8 +34,8 @@
 class QAction;
 
 namespace Performance {
-namespace Internal {
 class PerformanceServer;
+namespace Internal {
 class PerformancePane;
 
 class PerformancePlugin
@@ -52,6 +52,7 @@ public:
     void extensionsInitialized();
 
 private slots:
+    void slotInformation();
     void slotPerformance();
     void slotLag();
 

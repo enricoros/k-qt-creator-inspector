@@ -3,8 +3,7 @@ TARGET = Performance
 QT += network
 
 include(../../qtcreatorplugin.pri)
-include(../../plugins/coreplugin/coreplugin.pri)
-include(../../plugins/debugger/debugger.pri)
+include(performance_dependencies.pri)
 
 HEADERS += performanceplugin.h performancepane.h performanceserver.h
 
