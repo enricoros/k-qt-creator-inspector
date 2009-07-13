@@ -30,6 +30,7 @@ class PerformancePane
         ~PerformancePane() {}
 
         void addString(const QString & string);
+        void clearCurrent() {}
 
         // ::Core::IOutputPane
         QWidget *outputWidget(QWidget *parent);
@@ -38,9 +39,9 @@ class PerformancePane
 
         // -1 don't show in statusBar
         // 100...0 show at front...end
-        int priorityInStatusBar() const { return 10; }
+        int priorityInStatusBar() const {return -1;}
 
-        void clearContents() {}
+        void clearContents() {clearCurrent();}
         void visibilityChanged(bool /*visible*/) {}
 
         void setFocus() {}

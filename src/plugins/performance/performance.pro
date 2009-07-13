@@ -5,9 +5,11 @@ QT += network
 include(../../qtcreatorplugin.pri)
 include(performance_dependencies.pri)
 
-HEADERS += performanceplugin.h performancepane.h performanceserver.h
+HEADERS += performanceplugin.h performancepane.h performanceserver.h performanceinformation.h
 
-SOURCES += performanceplugin.cpp performancepane.cpp performanceserver.cpp
+SOURCES += performanceplugin.cpp performancepane.cpp performanceserver.cpp performanceinformation.cpp
+
+FORMS += performanceinformation.ui
 
 RESOURCES += performance.qrc
 

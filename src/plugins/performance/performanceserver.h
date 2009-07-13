@@ -21,6 +21,7 @@ namespace Performance {
 namespace Internal {
     class PerformancePane;
     class PerformanceMiniWidget;
+    class PerformanceInformation;
 }
 
 class Q_DECL_EXPORT PerformanceServer
@@ -34,6 +35,8 @@ public:
 
     bool enabled() const;
     QString serverName() const;
+
+    Internal::PerformanceInformation * createInformationWidget() const;
 
     // externally set information
     void setDebugging(bool on);

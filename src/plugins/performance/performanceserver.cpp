@@ -11,6 +11,7 @@
  ***************************************************************************/
 
 #include "performanceserver.h"
+#include "performanceinformation.h"
 #include "performancepane.h"
 
 #include <coreplugin/coreconstants.h>
@@ -61,6 +62,11 @@ bool PerformanceServer::enabled() const
 QString PerformanceServer::serverName() const
 {
     return m_localServer->serverName();
+}
+
+Internal::PerformanceInformation * PerformanceServer::createInformationWidget() const
+{
+    return new Internal::PerformanceInformation();
 }
 
 void PerformanceServer::setDebugging(bool on)

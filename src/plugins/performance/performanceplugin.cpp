@@ -28,6 +28,7 @@
 **************************************************************************/
 
 #include "performanceplugin.h"
+#include "performanceinformation.h"
 #include "performancepane.h"
 #include "performanceserver.h"
 
@@ -140,7 +141,9 @@ void PerformancePlugin::extensionsInitialized()
 
 void PerformancePlugin::slotInformation()
 {
-    // TODO: show the information widget here
+    PerformanceInformation * infoWidget = m_server->createInformationWidget();
+    infoWidget->setWindowModality(Qt::ApplicationModal);
+    infoWidget->show();
 }
 
 void PerformancePlugin::slotPerformance()
