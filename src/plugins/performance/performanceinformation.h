@@ -14,22 +14,24 @@
 #define PERFORMANCEINFORMATION_H
 
 #include <QWidget>
-
-namespace Ui {
-    class PerformanceInformation;
-}
+#include "ui_performanceinformation.h"
 
 namespace Performance {
 namespace Internal {
 
-class PerformanceInformation : public QWidget {
+class PerformanceInformation
+  : public QWidget, public Ui::PerformanceInformation
+{
     Q_OBJECT
+
 public:
     PerformanceInformation(QWidget *parent = 0);
-    ~PerformanceInformation();
+
+    void setFieldState(QWidget * field, int state);
 
 private:
-    Ui::PerformanceInformation *m_ui;
+    QPixmap m_pOk;
+    QPixmap m_pErr;
 };
 
 } // namespace Internal

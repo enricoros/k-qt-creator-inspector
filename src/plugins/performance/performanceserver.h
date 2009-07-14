@@ -59,7 +59,7 @@ private:
     Internal::PerformanceMiniWidget * m_mini;
 
     bool m_sEnabled;
-    bool m_sRunning;
+    bool m_sDebugging;
     bool m_sHelpers;
     bool m_sInjected;
     bool m_sConnected;
