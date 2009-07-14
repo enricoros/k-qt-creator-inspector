@@ -32,8 +32,17 @@
 
 #include <qglobal.h>
 
+namespace Performance {
+    namespace Internal {
+        enum ActivationFlags {
+            AF_None        = 0x0000,
+            AF_PaintDebug  = 0x0001,
+        };
+    }
+}
+
 extern "C" Q_DECL_EXPORT
-bool qPerfActivate(const char * serverName);
+bool qPerfActivate(const char * serverName, int flags = Performance::Internal::AF_None);
 
 extern "C" Q_DECL_EXPORT
 void qPerfDeactivate();

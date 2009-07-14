@@ -21,6 +21,7 @@ class PerformanceServer;
 namespace Internal {
 class PerformanceMiniWidget;
 class PerformancePane;
+class PerformancePlugin;
 }
 
 class Q_DECL_EXPORT PerformanceManager : public QObject
@@ -28,11 +29,12 @@ class Q_DECL_EXPORT PerformanceManager : public QObject
     Q_OBJECT
 
 public:
-    PerformanceManager(QObject *parent = 0);
+    PerformanceManager(Internal::PerformancePlugin *plugin, QObject *parent = 0);
     ~PerformanceManager();
 
     Internal::PerformancePane *pane() const;
     PerformanceServer *defaultServer() const;
+    int activationFlags() const; //TEMP relocate
 
 public slots:
     void slotShowInformation();
@@ -44,6 +46,7 @@ private slots:
 
 private:
     QList<PerformanceServer*> m_servers;
+    Internal::PerformancePlugin *m_plugin;
     Internal::PerformancePane *m_pane;
     Internal::PerformanceMiniWidget *m_mini;
 };

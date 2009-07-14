@@ -22,8 +22,7 @@ namespace Ui {
 namespace Performance {
 namespace Internal {
 
-class PerformanceWindow
-  : public QWidget
+class PerformanceWindow : public QWidget
 {
     Q_OBJECT
 

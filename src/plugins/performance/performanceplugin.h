@@ -45,12 +45,12 @@ public:
     PerformancePlugin();
     ~PerformancePlugin();
 
+    // TODO: relocate
+    bool showPaint() const;
+
     // ::ExtensionSystem::IPlugin
     bool initialize(const QStringList &arguments, QString *error_message);
     void extensionsInitialized();
-
-private slots:
-    void slotShowPaint(bool show);
 
 private:
     PerformanceManager * m_manager;
