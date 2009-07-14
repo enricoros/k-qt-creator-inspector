@@ -36,6 +36,7 @@ PerformanceServer::PerformanceServer(PerformancePane * view, QObject * parent)
     , m_sRunning(false)
     , m_sHelpers(false)
     , m_sInjected(false)
+    , m_sConnected(false)
 {
     m_localServer = new QLocalServer;
     int uniqueCode = QDateTime::currentDateTime().toTime_t() + QTime::currentTime().msec() + (qrand() % 1000);
@@ -94,12 +95,18 @@ void PerformanceServer::slotMiniClicked()
 void PerformanceServer::slotIncomingConnection()
 {
     while (m_localServer->hasPendingConnections()) {
+        QLocalSocket * nextConnection = m_localServer->nextPendingConnection();
         if (m_socket) {
             QMessageBox::information(0, tr("Performance Plugin Connection"), tr("A client is already connected and another is trying to... something wrong?"));
             continue;
         }
-        m_socket = m_localServer->nextPendingConnection();
+
+        // set the connection
+        m_socket = nextConnection;
+        m_sConnected = true;
         connect(m_socket, SIGNAL(readyRead()), this, SLOT(slotReadConnection()));
+        connect(m_socket, SIGNAL(disconnected()), this, SLOT(slotDisconnected()));
+        connect(m_socket, SIGNAL(error(QLocalSocket::LocalSocketError)), this, SLOT(slotConnError(QLocalSocket::LocalSocketError)));
     }
 }
 
@@ -118,4 +125,17 @@ void PerformanceServer::slotReadConnection()
         Core::ICore::instance()->modeManager()->addWidget(m_mini);
     }
     m_mini->addWarning();
+}
+
+void PerformanceServer::slotDisconnected()
+{
+    m_socket->deleteLater();
+    m_socket = 0;
+    m_sConnected = false;
+}
+
+#include <QDebug>
+void PerformanceServer::slotConnError(QLocalSocket::LocalSocketError error)
+{
+    qWarning() << "Performance Plugin Debug: error" << error;
 }

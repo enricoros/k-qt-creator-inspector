@@ -14,8 +14,8 @@
 #define PERFORMANCESERVER_H
 
 #include <QObject>
+#include <QLocalSocket>
 class QLocalServer;
-class QLocalSocket;
 
 namespace Performance {
 namespace Internal {
@@ -33,6 +33,8 @@ public:
     PerformanceServer(Internal::PerformancePane * view, QObject * parent = 0);
     ~PerformanceServer();
 
+    // TODO 1 server per Debuggee
+
     bool enabled() const;
     QString serverName() const;
 
@@ -47,6 +49,8 @@ private slots:
     void slotMiniClicked();
     void slotIncomingConnection();
     void slotReadConnection();
+    void slotDisconnected();
+    void slotConnError(QLocalSocket::LocalSocketError error);
 
 private:
     QLocalServer * m_localServer;
@@ -58,6 +62,7 @@ private:
     bool m_sRunning;
     bool m_sHelpers;
     bool m_sInjected;
+    bool m_sConnected;
 };
 
 } // namespace Performance
