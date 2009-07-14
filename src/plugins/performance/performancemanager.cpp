@@ -12,18 +12,22 @@
 
 #include "performancemanager.h"
 #include "performanceinformation.h"
-#include "performanceserver.h"
 #include "performancepane.h"
+#include "performanceplugin.h"
+#include "performanceserver.h"
 
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/modemanager.h>
 
+#include "../../../share/qtcreator/gdbmacros/perfunction.h"
+
 using namespace Performance;
 using namespace Performance::Internal;
 
-PerformanceManager::PerformanceManager(QObject *parent)
+PerformanceManager::PerformanceManager(Internal::PerformancePlugin *plugin, QObject *parent)
   : QObject(parent)
+  , m_plugin(plugin)
 {
     // create the Pane
     m_pane = new PerformancePane;
@@ -57,6 +61,15 @@ Internal::PerformancePane * PerformanceManager::pane() const
 PerformanceServer * PerformanceManager::defaultServer() const
 {
     return m_servers.isEmpty() ? 0 : m_servers.first();
+}
+
+int PerformanceManager::activationFlags() const
+{
+    // flags are in perfunction.h
+    int flags = Performance::Internal::AF_None;
+    if (m_plugin->showPaint())
+        flags |= Performance::Internal::AF_PaintDebug;
+    return flags;
 }
 
 void PerformanceManager::slotShowInformation()

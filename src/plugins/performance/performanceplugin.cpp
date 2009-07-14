@@ -63,13 +63,18 @@ PerformancePlugin::~PerformancePlugin()
     // automatically
 }
 
+bool PerformancePlugin::showPaint() const
+{
+    return m_aShowPaint ? m_aShowPaint->isChecked() : false;
+}
+
 bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_message)
 {
     Q_UNUSED(arguments)
     Q_UNUSED(error_message)
 
     // create the Manager
-    m_manager = new Performance::PerformanceManager;
+    m_manager = new Performance::PerformanceManager(this);
     addAutoReleasedObject(m_manager);
     addAutoReleasedObject(m_manager->pane());
 
@@ -80,8 +85,8 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     Core::ActionManager *actionManager = core->actionManager();
     QList<int> globalContext = QList<int>()
         << Core::Constants::C_GLOBAL_ID;
-    QList<int> debuggerContext = QList<int>()
-        << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING);
+    //QList<int> debuggerContext = QList<int>()
+    //    << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING);
 
     // create the Performance Menu and add it to the Debug menu
     Core::ActionContainer *perfContainer = actionManager->createMenu("Performance.Container");
@@ -111,14 +116,12 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
 
     m_aShowPaint = new QAction(tr("Show Painted Areas"), this);
     m_aShowPaint->setCheckable(true);
-    connect(m_aShowPaint, SIGNAL(toggled(bool)), SLOT(slotShowPaint(bool)));
-    command = actionManager->registerAction(m_aShowPaint, "Performance.ShowPaintedAreas", debuggerContext);
+    command = actionManager->registerAction(m_aShowPaint, "Performance.ShowPaintedAreas", globalContext);
     perfContainer->addAction(command);
 
     m_aMemMonitor = new QAction(tr("Allocation Analysis"), this);
     m_aMemMonitor->setCheckable(true);
-    connect(m_aMemMonitor, SIGNAL(toggled(bool)), SLOT(slotShowPaint(bool)));
-    command = actionManager->registerAction(m_aMemMonitor, "Performance.AnalyzeAllocations", debuggerContext);
+    command = actionManager->registerAction(m_aMemMonitor, "Performance.AnalyzeAllocations", globalContext);
     perfContainer->addAction(command);
 
     return true;
@@ -126,11 +129,6 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
 
 void PerformancePlugin::extensionsInitialized()
 {
-}
-
-void PerformancePlugin::slotShowPaint(bool /*show*/)
-{
-    QMessageBox::information(0, tr("Performance!"), tr("Performance!! Beautiful day today, isn't it?"));
 }
 
 Q_EXPORT_PLUGIN(PerformancePlugin)

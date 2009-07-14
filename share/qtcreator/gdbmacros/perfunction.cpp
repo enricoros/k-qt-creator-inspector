@@ -32,6 +32,17 @@
 #include <QCoreApplication>
 #include <QObject>
 
+#include <QLocalSocket>
+
+#include <QTime>
+
+#include <QMetaMethod>
+
+#include <QPainter>
+#include <QPaintEvent>
+#include <QWidget>
+#include <QFont>
+
 #define PP_NAME "QtCreator Performance Plugin"
 
 /**
@@ -112,40 +123,7 @@ EventNotify Activation, qcoreapplication.cpp:
             return result;
         }
 */
-#include <QPainter>
-#include <QPaintEvent>
-#include <QWidget>
-#include <QFont>
-/*static bool paintInterceptorCallback(void **data)
-{
-    QEvent *event = reinterpret_cast<QEvent*>(data[1]);
-    if (event->type() == QEvent::Paint) {
-        QObject *receiver = reinterpret_cast<QObject*>(data[0]);
-        static int stackDepth = 0;
-        ++stackDepth;
-        static int i = 0;
-        int localI = ++i;
-        qWarning("<ICEpted Paint %d (%d) to %s>", localI, stackDepth, receiver->metaObject()->className() ? receiver->metaObject()->className() : "null");
-        QCoreApplication::instance()->notify(receiver, event);
-        if (QWidget * widget = dynamic_cast<QWidget *>(receiver)) {
-            QPainter p(widget);
-            int hue = qrand() % 360;
-            p.setBrush(QColor::fromHsv(hue, 255, 255, 128));
-            p.drawRect(static_cast<QPaintEvent *>(event)->rect().adjusted(0, 0, -1, -1));
-            p.setFont(QFont("Arial",8));
-            p.drawText(static_cast<QPaintEvent *>(event)->rect().topLeft() + QPoint(2,10), QString::number(localI));
-        }
-        qWarning("</ICEpted Paint %d>", localI);
-        bool *result = reinterpret_cast<bool*>(data[2]);
-        *result = true;
-        --stackDepth;
-        return true;
-    }
-    return false;
-}
-*/
 
-#include <QLocalSocket>
 class PerfCommClient {
     public:
         PerfCommClient(const char * serverName)
@@ -196,14 +174,16 @@ class PerfCommClient {
         bool m_connected;
         bool m_fencing;
 };
-static PerfCommClient * commClient = 0;
+
+// static plugin data
+static PerfCommClient * ppCommClient = 0;
+static bool ppDebugPainting = false;
 
 
-#include <QTime>
-static bool loadInterceptorCallback(void **data)
+static bool eventInterceptorCallback(void **data)
 {
     QEvent *event = reinterpret_cast<QEvent*>(data[1]);
-    if (!commClient->fencing() && event->type() >= QEvent::Timer && event->type() <= QEvent::User ) {
+    if (!ppCommClient->fencing() && event->type() >= QEvent::Timer && event->type() <= QEvent::User ) {
         static int stackDepth = 0;
         ++stackDepth;
         static int numE = 0;
@@ -216,16 +196,27 @@ static bool loadInterceptorCallback(void **data)
         int elapsed = time.elapsed();
         if (elapsed > 200) {
             QString s = QString("Troppo lungo l'evento %1, tipo %2, durata %3, su %4").arg(localE).arg(event->type()).arg(elapsed).arg(receiver->metaObject()->className() ? receiver->metaObject()->className() : "null");
-            commClient->writeData(s);
+            ppCommClient->writeData(s);
         }
+
+        if (ppDebugPainting && event->type() == QEvent::Paint) {
+            if (QWidget * widget = dynamic_cast<QWidget *>(receiver)) {
+                static int paintOpNumber = 0;
+                QPainter p(widget);
+                int hue = qrand() % 360;
+                p.setBrush(QColor::fromHsv(hue, 255, 255, 128));
+                p.drawRect(static_cast<QPaintEvent *>(event)->rect().adjusted(0, 0, -1, -1));
+                p.setFont(QFont("Arial",8));
+                p.drawText(static_cast<QPaintEvent *>(event)->rect().topLeft() + QPoint(2,10), QString::number(++paintOpNumber));
+            }
+        }
+
         --stackDepth;
         return true;
     }
     return false;
 }
 
-
-#include <QMetaMethod>
 static void signalBeginCallback(QObject *caller, int method_index, void **argv)
 {
     qWarning("sinal BEGIN: %s", caller->metaObject()->method(method_index).signature());
@@ -249,25 +240,27 @@ static void slotEndCallback(QObject *caller, int method_index)
 
 // Entry Points of the Shared Library (loaded by the GDB plugin)
 extern "C"
-bool qPerfActivate(const char * serverName)
+bool qPerfActivate(const char * serverName, int activationFlags)
 {
     // 1. comm client
-    if (commClient) {
-        commClient->writeError("already active");
+    if (ppCommClient) {
+        ppCommClient->writeError("already active");
         return false;
     } else
-        commClient = new PerfCommClient(serverName);
+        ppCommClient = new PerfCommClient(serverName);
 
-    // 2. signal spy callback
+    // 2. activation flags
+    ppDebugPainting = activationFlags & Performance::Internal::AF_PaintDebug;
+
+    // 3. signal spy callback
     QSignalSpyCallbackSet set = {0, slotBeginCallback, 0, slotEndCallback};
     qt_register_signal_spy_callbacks(set);
 
-    // 3. events callback
-    //QInternal::registerCallback(QInternal::EventNotifyCallback, paintInterceptorCallback);
-    QInternal::registerCallback(QInternal::EventNotifyCallback, loadInterceptorCallback);
+    // 4. events callback
+    QInternal::registerCallback(QInternal::EventNotifyCallback, eventInterceptorCallback);
 
     qWarning(PP_NAME": Activated");
-    commClient->writeData("Active");
+    ppCommClient->writeData("Active");
     return true;
 }
 
@@ -277,13 +270,13 @@ void qPerfDeactivate()
     qWarning(PP_NAME": Deactivated");
 
     // 3. events callback
-    QInternal::unregisterCallback(QInternal::EventNotifyCallback, loadInterceptorCallback);
+    QInternal::unregisterCallback(QInternal::EventNotifyCallback, eventInterceptorCallback);
 
     // 2. signal spy callback
     QSignalSpyCallbackSet set = {0, 0, 0, 0};
     qt_register_signal_spy_callbacks(set);
 
     // 1. comm client
-    delete commClient;
-    commClient = 0;
+    delete ppCommClient;
+    ppCommClient = 0;
 }

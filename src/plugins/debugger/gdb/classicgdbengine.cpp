@@ -566,6 +566,7 @@ void GdbEngine::tryActivatePerformanceHelpersClassic()
     Performance::PerformanceManager * perfManager = ExtensionSystem::PluginManager::instance()->getObject<Performance::PerformanceManager>();
     Performance::PerformanceServer * perfServer = perfManager->defaultServer();
     QString serverName = perfServer->serverName();
+    int activationFlags = perfManager->activationFlags();
 
     // disable the performance plugin if no server name
     if (serverName.isNull()) {
@@ -575,7 +576,7 @@ void GdbEngine::tryActivatePerformanceHelpersClassic()
 
     //postCommand(_("p qPerfActivate"), CB(handleDebuggingHelperPerformance));
 
-    postCommand(_("call qPerfActivate(\"%1\")").arg(serverName));
+    postCommand(_("call qPerfActivate(\"%1\",%2)").arg(serverName).arg(activationFlags));
     perfServer->setHelpersPresent(true); // FIXME
     perfServer->setHelpersInjected(true); // check this too
 }
