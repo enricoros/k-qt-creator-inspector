@@ -1,10 +1,8 @@
-<ui version="4.0" >
- <author/>
- <comment/>
- <exportmacro/>
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>PerformanceInformation</class>
- <widget class="QWidget" name="PerformanceInformation" >
-  <property name="geometry" >
+ <widget class="QWidget" name="PerformanceInformation">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
@@ -12,10 +10,28 @@
     <height>300</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>Form</string>
   </property>
+  <widget class="Performance::Internal::PerformancePlot" name="widget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>90</y>
+     <width>241</width>
+     <height>141</height>
+    </rect>
+   </property>
+  </widget>
  </widget>
- <pixmapfunction/>
+ <customwidgets>
+  <customwidget>
+   <class>Performance::Internal::PerformancePlot</class>
+   <extends>QWidget</extends>
+   <header>performanceplot.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
  <connections/>
 </ui>
