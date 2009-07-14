@@ -574,7 +574,8 @@ void GdbEngine::tryActivatePerformanceHelpersClassic()
     //postCommand(_("p qPerfActivate"), CB(handleDebuggingHelperPerformance));
 
     postCommand(_("call qPerfActivate(\"%1\")").arg(serverName));
-    perfServer->setHelpersInjected(true);
+    perfServer->setHelpersPresent(true); // FIXME
+    perfServer->setHelpersInjected(true); // check this too
 }
 
 void GdbEngine::recheckDebuggingHelperAvailabilityClassic()

@@ -3,5 +3,7 @@
         <file>images/menu-icon.png</file>
         <file>images/mark-32.png</file>
         <file>images/plot-background.svg</file>
+        <file>images/status-ok.png</file>
+        <file>images/status-err.png</file>
     </qresource>
 </RCC>

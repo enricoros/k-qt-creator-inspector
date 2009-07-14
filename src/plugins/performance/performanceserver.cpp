@@ -33,7 +33,7 @@ PerformanceServer::PerformanceServer(PerformancePane * view, QObject * parent)
     , m_view(view)
     , m_mini(0)
     , m_sEnabled(false)
-    , m_sRunning(false)
+    , m_sDebugging(false)
     , m_sHelpers(false)
     , m_sInjected(false)
     , m_sConnected(false)
@@ -67,12 +67,20 @@ QString PerformanceServer::serverName() const
 
 Internal::PerformanceInformation * PerformanceServer::createInformationWidget() const
 {
-    return new Internal::PerformanceInformation();
+    Internal::PerformanceInformation * info = new Internal::PerformanceInformation;
+    info->setAttribute(Qt::WA_DeleteOnClose);
+    info->setFieldState(info->debLabel, m_sDebugging ? 1 : -1);
+    info->setFieldState(info->enaButton, m_sEnabled ? 1 : -1);
+    info->setFieldState(info->hlpLabel, m_sHelpers ? 1 : m_sDebugging ? -1 : 0);
+    info->setFieldState(info->injLabel, m_sInjected ? 1 : m_sDebugging ? -1 : 0);
+    info->setFieldState(info->conLabel, m_sConnected ? 1 : m_sDebugging ? -1 : 0);
+    info->setFieldState(info->workLabel, (m_sDebugging && m_sEnabled && m_sInjected && m_sConnected) ? 1 : 0);
+    return info;
 }
 
 void PerformanceServer::setDebugging(bool on)
 {
-    m_sRunning = on;
+    m_sDebugging = on;
 }
 
 void PerformanceServer::setHelpersPresent(bool on)

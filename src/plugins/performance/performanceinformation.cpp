@@ -13,16 +13,53 @@
 #include "performanceinformation.h"
 #include "ui_performanceinformation.h"
 
+#include <QIcon>
+#include <QLabel>
+#include <QPixmap>
+#include <QPushButton>
+
 using namespace Performance::Internal;
 
 PerformanceInformation::PerformanceInformation(QWidget *parent)
   : QWidget(parent)
-  , m_ui(new Ui::PerformanceInformation)
+  , m_pOk(":/performance/images/status-ok.png")
+  , m_pErr(":/performance/images/status-err.png")
 {
-    m_ui->setupUi(this);
+    setupUi(this);
+    buttonBox->setFocus();
 }
 
-PerformanceInformation::~PerformanceInformation()
+void PerformanceInformation::setFieldState(QWidget * field, int state)
 {
-    delete m_ui;
+    if (QAbstractButton *b = dynamic_cast<QAbstractButton *>(field)) {
+        switch (state) {
+            case 0:
+                b->setText(tr("?"));
+                break;
+            case 1:
+                b->setIcon(m_pOk);
+                if (b->isCheckable())
+                    b->setChecked(true);
+                break;
+            case -1:
+                b->setIcon(m_pErr);
+                if (b->isCheckable())
+                    b->setChecked(false);
+                break;
+        }
+    }
+
+    if (QLabel *l = dynamic_cast<QLabel *>(field)) {
+        switch (state) {
+            case 0:
+                l->setText(tr("unknown"));
+                break;
+            case 1:
+                l->setPixmap(m_pOk);
+                break;
+            case -1:
+                l->setPixmap(m_pErr);
+                break;
+        }
+    }
 }

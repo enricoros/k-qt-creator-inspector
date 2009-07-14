@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>455</width>
-    <height>278</height>
+    <width>496</width>
+    <height>347</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -42,102 +42,102 @@
    </item>
    <item row="1" column="0" colspan="2">
     <layout class="QFormLayout" name="formLayout">
-     <property name="fieldGrowthPolicy">
-      <enum>QFormLayout::ExpandingFieldsGrow</enum>
-     </property>
      <item row="0" column="0">
       <widget class="QLabel" name="label_6">
        <property name="text">
-        <string>Plugin Loaded</string>
+        <string>Plugin Loaded:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap resource="performance.qrc">:/performance/images/status-ok.png</pixmap>
        </property>
       </widget>
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Enabled</string>
+        <string>Enabled:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QToolButton" name="enaButton">
+       <property name="checkable">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
      <item row="2" column="0">
       <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>Program is being debugged</string>
+        <string>Program is being debugged:</string>
        </property>
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QCheckBox" name="checkBox_2">
-       <property name="text">
-        <string>debugging</string>
-       </property>
-      </widget>
+      <widget class="QLabel" name="debLabel"/>
      </item>
      <item row="3" column="0">
       <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>Probe Injection</string>
+        <string>Probe Injected:</string>
        </property>
       </widget>
      </item>
      <item row="3" column="1">
-      <widget class="QCheckBox" name="checkBox_3">
-       <property name="text">
-        <string>injected</string>
-       </property>
-      </widget>
+      <widget class="QLabel" name="hlpLabel"/>
      </item>
      <item row="4" column="0">
       <widget class="QLabel" name="label_4">
        <property name="text">
-        <string>Probe Activation</string>
+        <string>Probe Activated:</string>
        </property>
       </widget>
      </item>
      <item row="4" column="1">
-      <widget class="QCheckBox" name="checkBox_4">
-       <property name="text">
-        <string>activated</string>
-       </property>
-      </widget>
+      <widget class="QLabel" name="injLabel"/>
      </item>
      <item row="5" column="0">
       <widget class="QLabel" name="label_5">
        <property name="text">
-        <string>Probe Connection</string>
+        <string>Probe Connected:</string>
        </property>
       </widget>
      </item>
      <item row="5" column="1">
-      <widget class="QCheckBox" name="checkBox_5">
+      <widget class="QLabel" name="conLabel"/>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="label_7">
        <property name="text">
-        <string>connected</string>
+        <string>Working:</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QCheckBox" name="checkBox">
-       <property name="text">
-        <string>enabled</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QCheckBox" name="checkBox_6">
-       <property name="text">
-        <string>enabled</string>
-       </property>
-      </widget>
+     <item row="6" column="1">
+      <widget class="QLabel" name="workLabel"/>
      </item>
     </layout>
    </item>
    <item row="2" column="0" colspan="2">
     <widget class="QLabel" name="infoLabel">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
+     </property>
      <property name="text">
-      <string>Notices. Performance Plugin is in alpha state. The concept works, the implementation is still not complete.
+      <string>Notices. Performance Plugin is in alpha state. The concept works, however the implementation is still not complete.
 In particular be aware of the following limitations:
- - analysis is done on main thread (gui) events only
- - runtime behavior change is not permitted
+ - the analysis is done on the main thread (gui) events only
+ - runtime reconfiguration is not allowed
  - it's not optimized for memory
  - there will be bugs (TM)</string>
      </property>
@@ -149,10 +149,34 @@ In particular be aware of the following limitations:
      </property>
     </widget>
    </item>
+   <item row="3" column="0" colspan="2">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Close</set>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources>
   <include location="performance.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>PerformanceInformation</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>220</x>
+     <y>296</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>213</x>
+     <y>272</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
