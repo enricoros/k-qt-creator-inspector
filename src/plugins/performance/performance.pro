@@ -1,13 +1,13 @@
 TEMPLATE = lib
 TARGET = Performance
-QT += network
+QT += network svg
 
 include(../../qtcreatorplugin.pri)
 include(performance_dependencies.pri)
 
-HEADERS += performanceplugin.h performancepane.h performanceserver.h performanceinformation.h
+HEADERS += performanceplugin.h performancepane.h performanceserver.h performanceinformation.h performanceplot.h
 
-SOURCES += performanceplugin.cpp performancepane.cpp performanceserver.cpp performanceinformation.cpp
+SOURCES += performanceplugin.cpp performancepane.cpp performanceserver.cpp performanceinformation.cpp performanceplot.cpp
 
 FORMS += performanceinformation.ui
 
