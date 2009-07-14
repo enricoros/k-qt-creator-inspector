@@ -5,11 +5,11 @@ QT += network svg
 include(../../qtcreatorplugin.pri)
 include(performance_dependencies.pri)
 
-HEADERS += performanceplugin.h performancepane.h performanceserver.h performanceinformation.h performanceplot.h
+HEADERS += performanceplugin.h performancepane.h performanceserver.h performanceinformation.h performanceplot.h performancewindow.h
 
-SOURCES += performanceplugin.cpp performancepane.cpp performanceserver.cpp performanceinformation.cpp performanceplot.cpp
+SOURCES += performanceplugin.cpp performancepane.cpp performanceserver.cpp performanceinformation.cpp performanceplot.cpp performancewindow.cpp
 
-FORMS += performanceinformation.ui
+FORMS += performanceinformation.ui performancewindow.ui
 
 RESOURCES += performance.qrc
 

@@ -19,6 +19,7 @@
 
 namespace Performance {
 namespace Internal {
+class PerformanceWindow;
 
 class PerformancePane
   : public Core::IOutputPane
@@ -56,7 +57,8 @@ class PerformancePane
         void goToPrev() {}
 
     private:
-        QPlainTextEdit * m_editWidget;
+        PerformanceWindow * m_widget;
+        QPlainTextEdit * m_textEdit;
 };
 
 class PerformanceMiniWidget

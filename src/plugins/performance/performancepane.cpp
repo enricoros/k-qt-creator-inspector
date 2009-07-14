@@ -11,31 +11,41 @@
  ***************************************************************************/
 
 #include "performancepane.h"
+#include "performancewindow.h"
+
 #include <QLinearGradient>
 
 using namespace Performance::Internal;
 
 PerformancePane::PerformancePane(QObject *parent)
-    : Core::IOutputPane(parent)
+  : Core::IOutputPane(parent)
+  , m_widget(0)
+  , m_textEdit(0)
 {
 }
 
 QWidget * PerformancePane::outputWidget(QWidget *parent)
 {
-    m_editWidget = new QPlainTextEdit(parent);
-    QPalette pal;
-    QLinearGradient lg(0, 0, 0, 300);
-    lg.setColorAt(0.0, Qt::white);
-    lg.setColorAt(1.0, Qt::lightGray);
-    pal.setBrush(QPalette::Base, lg);
-    m_editWidget->setFrameStyle(QFrame::NoFrame);
-    m_editWidget->setPalette(pal);
-    return m_editWidget;
+    if (!m_widget) {
+        m_widget = new PerformanceWindow(parent);
+
+        m_textEdit = new QPlainTextEdit;
+        QPalette pal;
+        QLinearGradient lg(0, 0, 0, 300);
+        lg.setColorAt(0.0, Qt::white);
+        lg.setColorAt(1.0, Qt::lightGray);
+        pal.setBrush(QPalette::Base, lg);
+        m_textEdit->setFrameStyle(QFrame::NoFrame);
+        m_textEdit->setPalette(pal);
+
+        m_widget->setCentralWidget(m_textEdit);
+    }
+    return m_widget;
 }
 
 void PerformancePane::addString(const QString & string)
 {
-    m_editWidget->appendHtml("<font color='#800'>" + string + "</font>");
+    m_textEdit->appendHtml("<font color='#800'>" + string + "</font>");
 }
 
 #include <coreplugin/stylehelper.h>
