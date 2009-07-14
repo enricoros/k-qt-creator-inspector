@@ -37,6 +37,7 @@
 #include "watchhandler.h"
 
 #include <extensionsystem/pluginmanager.h>
+#include <performance/performancemanager.h>
 #include <performance/performanceserver.h>
 #include <utils/qtcassert.h>
 
@@ -562,7 +563,8 @@ void GdbEngine::tryQueryDebuggingHelpersClassic()
 void GdbEngine::tryActivatePerformanceHelpersClassic()
 {
     // get the listening socket name
-    Performance::PerformanceServer * perfServer = ExtensionSystem::PluginManager::instance()->getObject<Performance::PerformanceServer>();
+    Performance::PerformanceManager * perfManager = ExtensionSystem::PluginManager::instance()->getObject<Performance::PerformanceManager>();
+    Performance::PerformanceServer * perfServer = perfManager->defaultServer();
     QString serverName = perfServer->serverName();
 
     // disable the performance plugin if no server name

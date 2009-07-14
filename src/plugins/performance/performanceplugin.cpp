@@ -29,8 +29,8 @@
 
 #include "performanceplugin.h"
 #include "performanceinformation.h"
+#include "performancemanager.h"
 #include "performancepane.h"
-#include "performanceserver.h"
 
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/basemode.h>
@@ -51,8 +51,9 @@
 using namespace Performance::Internal;
 
 PerformancePlugin::PerformancePlugin()
-    : m_server(0)
-    , m_pane(0)
+  : m_manager(0)
+  , m_aMemMonitor(0)
+  , m_aShowPaint(0)
 {
 }
 
@@ -67,13 +68,18 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     Q_UNUSED(arguments)
     Q_UNUSED(error_message)
 
-    // get the primary access point to the workbench.
+    // create the Manager
+    m_manager = new Performance::PerformanceManager;
+    addAutoReleasedObject(m_manager);
+    addAutoReleasedObject(m_manager->pane());
+
+    // UI
+
+    // get core objects
     Core::ICore *core = Core::ICore::instance();
     Core::ActionManager *actionManager = core->actionManager();
-    Core::Command *command;
-
-    // Create a unique context id for our own view, that will be used for the menu entry later
-    QList<int> globalContext = QList<int>() << Core::Constants::C_GLOBAL_ID;
+    QList<int> globalContext = QList<int>()
+        << Core::Constants::C_GLOBAL_ID;
     QList<int> debuggerContext = QList<int>()
         << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING);
 
@@ -82,78 +88,49 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     QMenu *perfMenu = perfContainer->menu();
     perfMenu->setTitle(tr("&Performance"));
     perfMenu->setIcon(QIcon(":/performance/images/menu-icon.png"));
-    perfMenu->setEnabled(true);
     Core::ActionContainer *debugContainer = actionManager->actionContainer(ProjectExplorer::Constants::M_DEBUG);
     debugContainer->addMenu(perfContainer);
 
     // create (and register to the system) the actions
-    QAction * infoAction = new QAction(tr("Information..."), this);
-    connect(infoAction, SIGNAL(triggered()), SLOT(slotInformation()));
+    Core::Command *command;
+
+    QAction *infoAction = new QAction(tr("Information..."), this);
+    connect(infoAction, SIGNAL(triggered()), m_manager, SLOT(slotShowInformation()));
     command = actionManager->registerAction(infoAction, "Performance.Information", globalContext);
     perfContainer->addAction(command);
 
-    m_aPerfMonitor = new QAction(tr("Measure Performance"), this);
-    connect(m_aPerfMonitor, SIGNAL(triggered()), SLOT(slotPerformance()));
-    command = actionManager->registerAction(m_aPerfMonitor, "Performance.PerformanceMonitor", debuggerContext);
+    QAction *sep = new QAction(this);
+    sep->setSeparator(true);
+    command = actionManager->registerAction(sep, QLatin1String("Performance.Sep.One"), globalContext);
     perfContainer->addAction(command);
 
-    m_aLagMonitor = new QAction(tr("Transfer Function(s)"), this);
-    connect(m_aLagMonitor, SIGNAL(triggered()), SLOT(slotLag()));
-    command = actionManager->registerAction(m_aLagMonitor, "Performance.LagMonitor", debuggerContext);
+    QAction *workBenchAction = new QAction(tr("Workbench"), this);
+    connect(workBenchAction, SIGNAL(triggered()), m_manager, SLOT(slotShowWorkbench()));
+    command = actionManager->registerAction(workBenchAction, "Performance.ShowWorkBench", globalContext);
     perfContainer->addAction(command);
 
     m_aShowPaint = new QAction(tr("Show Painted Areas"), this);
     m_aShowPaint->setCheckable(true);
-    connect(m_aShowPaint, SIGNAL(triggered()), SLOT(slotPerformance()));
+    connect(m_aShowPaint, SIGNAL(toggled(bool)), SLOT(slotShowPaint(bool)));
     command = actionManager->registerAction(m_aShowPaint, "Performance.ShowPaintedAreas", debuggerContext);
     perfContainer->addAction(command);
 
-    m_aMemMonitor = new QAction(tr("Memory Manager"), this);
-    m_aMemMonitor->setEnabled(false);
-    command = actionManager->registerAction(m_aMemMonitor, "Performance.MemoryMonitor", debuggerContext);
+    m_aMemMonitor = new QAction(tr("Allocation Analysis"), this);
+    m_aMemMonitor->setCheckable(true);
+    connect(m_aMemMonitor, SIGNAL(toggled(bool)), SLOT(slotShowPaint(bool)));
+    command = actionManager->registerAction(m_aMemMonitor, "Performance.AnalyzeAllocations", debuggerContext);
     perfContainer->addAction(command);
-
-    // Create the Pane
-    m_pane = new PerformancePane;
-    addAutoReleasedObject(m_pane);
-
-    // Create the Server
-    m_server = new Performance::PerformanceServer(m_pane);
-    addAutoReleasedObject(m_server);
 
     return true;
 }
 
-/*! Notification that all extensions that this plugin depends on have been
-    initialized. The dependencies are defined in the plugins .qwp file.
-
-    Normally this method is used for things that rely on other plugins to have
-    added objects to the plugin manager, that implement interfaces that we're
-    interested in. These objects can now be requested through the
-    PluginManagerInterface.
-
-    The PerformancePlugin doesn't need things from other plugins, so it does
-    nothing here.
-*/
 void PerformancePlugin::extensionsInitialized()
 {
 }
 
-void PerformancePlugin::slotInformation()
-{
-    PerformanceInformation * infoWidget = m_server->createInformationWidget();
-    infoWidget->setWindowModality(Qt::ApplicationModal);
-    infoWidget->show();
-}
-
-void PerformancePlugin::slotPerformance()
+void PerformancePlugin::slotShowPaint(bool /*show*/)
 {
     QMessageBox::information(0, tr("Performance!"), tr("Performance!! Beautiful day today, isn't it?"));
-}
-
-void PerformancePlugin::slotLag()
-{
-    QMessageBox::information(0, tr("Lag!"), tr("Performance!! Beautiful day today, isn't it?"));
 }
 
 Q_EXPORT_PLUGIN(PerformancePlugin)

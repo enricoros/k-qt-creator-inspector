@@ -21,8 +21,7 @@ namespace Performance {
 namespace Internal {
 class PerformanceWindow;
 
-class PerformancePane
-  : public Core::IOutputPane
+class PerformancePane : public Core::IOutputPane
 {
     Q_OBJECT
 
@@ -61,8 +60,7 @@ class PerformancePane
         QPlainTextEdit * m_textEdit;
 };
 
-class PerformanceMiniWidget
-  : public QWidget
+class PerformanceMiniWidget : public QWidget
 {
     Q_OBJECT
     Q_PROPERTY(qreal signOpacity READ signOpacity WRITE setSignOpacity)

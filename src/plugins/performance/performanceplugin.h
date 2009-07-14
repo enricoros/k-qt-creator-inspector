@@ -34,12 +34,10 @@
 class QAction;
 
 namespace Performance {
-class PerformanceServer;
+class PerformanceManager;
 namespace Internal {
-class PerformancePane;
 
-class PerformancePlugin
-  : public ExtensionSystem::IPlugin
+class PerformancePlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
 
@@ -52,15 +50,10 @@ public:
     void extensionsInitialized();
 
 private slots:
-    void slotInformation();
-    void slotPerformance();
-    void slotLag();
+    void slotShowPaint(bool show);
 
 private:
-    PerformanceServer * m_server;
-    PerformancePane * m_pane;
-    QAction * m_aPerfMonitor;
-    QAction * m_aLagMonitor;
+    PerformanceManager * m_manager;
     QAction * m_aMemMonitor;
     QAction * m_aShowPaint;
 };

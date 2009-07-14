@@ -21,7 +21,7 @@ In the first stage it will collect timing informations about functions invocatio
     * top time-consuming functions
     * function invocation frequency
     * histogram of timing for a given function
-    * frequency analysis for a function 
+    * frequency analysis for a function (FFT)
 
 In the next stages statistics are likely to be send over the network to a local or remote computer and watched real-time, for profiling in an easy and understandable way.
 
