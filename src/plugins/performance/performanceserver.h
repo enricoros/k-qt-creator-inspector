@@ -18,45 +18,37 @@
 class QLocalServer;
 
 namespace Performance {
-namespace Internal {
-    class PerformancePane;
-    class PerformanceMiniWidget;
-    class PerformanceInformation;
-}
 
-class Q_DECL_EXPORT PerformanceServer
-  : public QObject
+class Q_DECL_EXPORT PerformanceServer : public QObject
 {
     Q_OBJECT
 
 public:
-    PerformanceServer(Internal::PerformancePane * view, QObject * parent = 0);
+    PerformanceServer(QObject * parent = 0);
     ~PerformanceServer();
 
-    // TODO 1 server per Debuggee
-
-    bool enabled() const;
+    bool enabled() const; //CHANGE ME
     QString serverName() const;
-
-    Internal::PerformanceInformation * createInformationWidget() const;
 
     // externally set information
     void setDebugging(bool on);
     void setHelpersPresent(bool on);
     void setHelpersInjected(bool on);
 
+signals:
+    void newString(const QString & string);
+    void newWarnings(int count);
+
 private slots:
-    void slotMiniClicked();
     void slotIncomingConnection();
     void slotReadConnection();
     void slotDisconnected();
     void slotConnError(QLocalSocket::LocalSocketError error);
 
 private:
+    friend class PerformanceManager;
     QLocalServer * m_localServer;
     QLocalSocket * m_socket;
-    Internal::PerformancePane * m_view;
-    Internal::PerformanceMiniWidget * m_mini;
 
     bool m_sEnabled;
     bool m_sDebugging;

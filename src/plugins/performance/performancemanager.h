@@ -1,7 +1,7 @@
 /***************************************************************************
  *                                                                         *
  *   Copyright (C) 2009-2009 by Enrico Ros <enrico.ros@gmail.com>          *
- *   Started on 12 Jul 2009 by root.                                       *
+ *   Started on 14 Jul 2009 by root.                                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -10,30 +10,44 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef PERFORMANCEINFORMATION_H
-#define PERFORMANCEINFORMATION_H
+#ifndef PERFORMANCEMANAGER_H
+#define PERFORMANCEMANAGER_H
 
-#include <QDialog>
-#include "ui_performanceinformation.h"
+#include <QObject>
+#include <QList>
 
 namespace Performance {
+class PerformanceServer;
 namespace Internal {
+class PerformanceMiniWidget;
+class PerformancePane;
+}
 
-class PerformanceInformation : public QDialog, public Ui::PerformanceInformation
+class Q_DECL_EXPORT PerformanceManager : public QObject
 {
     Q_OBJECT
 
 public:
-    PerformanceInformation(QWidget *parent = 0);
+    PerformanceManager(QObject *parent = 0);
+    ~PerformanceManager();
 
-    void setFieldState(QWidget * field, int state);
+    Internal::PerformancePane *pane() const;
+    PerformanceServer *defaultServer() const;
+
+public slots:
+    void slotShowInformation();
+    void slotShowWorkbench();
+
+private slots:
+    void slotNewString(const QString & string);
+    void slotNewWarnings(int count);
 
 private:
-    QPixmap m_pOk;
-    QPixmap m_pErr;
+    QList<PerformanceServer*> m_servers;
+    Internal::PerformancePane *m_pane;
+    Internal::PerformanceMiniWidget *m_mini;
 };
 
-} // namespace Internal
 } // namespace Performance
 
-#endif // PERFORMANCEINFORMATION_H
+#endif // PERFORMANCEMANAGER_H

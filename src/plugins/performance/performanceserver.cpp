@@ -12,7 +12,6 @@
 
 #include "performanceserver.h"
 #include "performanceinformation.h"
-#include "performancepane.h"
 
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
@@ -25,13 +24,10 @@
 #include <QTime>
 
 using namespace Performance;
-using namespace Performance::Internal;
 
-PerformanceServer::PerformanceServer(PerformancePane * view, QObject * parent)
+PerformanceServer::PerformanceServer(QObject * parent)
     : QObject(parent)
     , m_socket(0)
-    , m_view(view)
-    , m_mini(0)
     , m_sEnabled(false)
     , m_sDebugging(false)
     , m_sHelpers(false)
@@ -52,7 +48,6 @@ PerformanceServer::PerformanceServer(PerformancePane * view, QObject * parent)
 PerformanceServer::~PerformanceServer()
 {
     delete m_localServer;
-    delete m_mini;
 }
 
 bool PerformanceServer::enabled() const
@@ -63,19 +58,6 @@ bool PerformanceServer::enabled() const
 QString PerformanceServer::serverName() const
 {
     return m_localServer->serverName();
-}
-
-Internal::PerformanceInformation * PerformanceServer::createInformationWidget() const
-{
-    Internal::PerformanceInformation * info = new Internal::PerformanceInformation;
-    info->setAttribute(Qt::WA_DeleteOnClose);
-    info->setFieldState(info->debLabel, m_sDebugging ? 1 : -1);
-    info->setFieldState(info->enaButton, m_sEnabled ? 1 : -1);
-    info->setFieldState(info->hlpLabel, m_sHelpers ? 1 : m_sDebugging ? -1 : 0);
-    info->setFieldState(info->injLabel, m_sInjected ? 1 : m_sDebugging ? -1 : 0);
-    info->setFieldState(info->conLabel, m_sConnected ? 1 : m_sDebugging ? -1 : 0);
-    info->setFieldState(info->workLabel, (m_sDebugging && m_sEnabled && m_sInjected && m_sConnected) ? 1 : 0);
-    return info;
 }
 
 void PerformanceServer::setDebugging(bool on)
@@ -91,13 +73,6 @@ void PerformanceServer::setHelpersPresent(bool on)
 void PerformanceServer::setHelpersInjected(bool on)
 {
     m_sInjected = on;
-}
-
-void PerformanceServer::slotMiniClicked()
-{
-    // switch to full screen performance view
-    Core::ICore::instance()->modeManager()->activateMode(Core::Constants::MODE_OUTPUT);
-    m_view->popup(true);
 }
 
 void PerformanceServer::slotIncomingConnection()
@@ -124,15 +99,9 @@ void PerformanceServer::slotReadConnection()
 
     // TODO demux data here
 
-    m_view->addString(data);
+    emit newString(data);
 
-    // show mini-widget and add a warning sign
-    if (!m_mini) {
-        m_mini = new PerformanceMiniWidget;
-        connect(m_mini, SIGNAL(clicked()), this, SLOT(slotMiniClicked()));
-        Core::ICore::instance()->modeManager()->addWidget(m_mini);
-    }
-    m_mini->addWarning();
+    emit newWarnings(1);
 }
 
 void PerformanceServer::slotDisconnected()

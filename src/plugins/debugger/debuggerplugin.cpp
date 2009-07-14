@@ -68,7 +68,7 @@
 
 #include <coreplugin/manhattanstyle.h>
 
-#include <performance/performanceserver.h>
+#include <performance/performancemanager.h>
 
 #include <projectexplorer/projectexplorer.h>
 #include <projectexplorer/projectexplorerconstants.h>
@@ -1317,8 +1317,8 @@ void DebuggerPlugin::handleStateChanged(int state)
 
     // sync Performance Plugin status
     ExtensionSystem::PluginManager::instance()
-            ->getObject<Performance::PerformanceServer>()
-            ->setDebugging(started);
+            ->getObject<Performance::PerformanceManager>()
+            ->defaultServer()->setDebugging(started);
 }
 
 void DebuggerPlugin::languageChanged(const QString &language)
