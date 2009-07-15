@@ -34,7 +34,11 @@
 
 #include <QLocalSocket>
 
+#if 0
 #include <QTime>
+#else
+#include <sys/time.h>
+#endif
 
 #include <QMetaMethod>
 
@@ -190,15 +194,34 @@ static bool eventInterceptorCallback(void **data)
         int localE = ++numE;
         QObject *receiver = reinterpret_cast<QObject*>(data[0]);
         bool *resultValue = reinterpret_cast<bool*>(data[2]);
+
+        // invoke function and measure time
+#if 0
         QTime time;
         time.start();
+#else
+        struct timeval tv1, tv2;
+        gettimeofday(&tv1, 0);
+#endif
         *resultValue = QCoreApplication::instance()->notify(receiver, event);
-        int elapsed = time.elapsed();
-        if (elapsed > 200) {
-            QString s = QString("Troppo lungo l'evento %1, tipo %2, durata %3, su %4").arg(localE).arg(event->type()).arg(elapsed).arg(receiver->metaObject()->className() ? receiver->metaObject()->className() : "null");
+#if 0
+        double elapsedMs = (double)time.elapsed();
+#else
+        gettimeofday(&tv2, 0);
+        double elapsedMs = (double)(tv2.tv_sec - tv1.tv_sec) * 1000.0 + (double)(tv2.tv_usec - tv1.tv_usec) / 1000.0;
+#endif
+
+        // send out data
+        // TODO: use a per-thread STACK for SIGNALS AND SLOTS SENDING HERE ?
+        ppCommClient->writeData(QString::number(elapsedMs));
+
+        // check for too long events
+        if (elapsedMs > 200) {
+            QString s = QString("Troppo lungo l'evento %1, tipo %2, durata %3, su %4").arg(localE).arg(event->type()).arg(elapsedMs).arg(receiver->metaObject()->className() ? receiver->metaObject()->className() : "null");
             ppCommClient->writeData(s);
         }
 
+        // show painting, if
         if (ppDebugPainting && event->type() == QEvent::Paint) {
             if (QWidget * widget = dynamic_cast<QWidget *>(receiver)) {
                 static int paintOpNumber = 0;
@@ -210,6 +233,8 @@ static bool eventInterceptorCallback(void **data)
                 p.drawText(static_cast<QPaintEvent *>(event)->rect().topLeft() + QPoint(2,10), QString::number(++paintOpNumber));
             }
         }
+
+        // TODO: measure send+painting overhead
 
         --stackDepth;
         return true;
@@ -254,7 +279,7 @@ bool qPerfActivate(const char * serverName, int activationFlags)
 
     // 3. signal spy callback
     QSignalSpyCallbackSet set = {0, slotBeginCallback, 0, slotEndCallback};
-    qt_register_signal_spy_callbacks(set);
+//    qt_register_signal_spy_callbacks(set);
 
     // 4. events callback
     QInternal::registerCallback(QInternal::EventNotifyCallback, eventInterceptorCallback);
@@ -269,12 +294,12 @@ void qPerfDeactivate()
 {
     qWarning(PP_NAME": Deactivated");
 
-    // 3. events callback
+    // 4. events callback
     QInternal::unregisterCallback(QInternal::EventNotifyCallback, eventInterceptorCallback);
 
-    // 2. signal spy callback
+    // 3. signal spy callback
     QSignalSpyCallbackSet set = {0, 0, 0, 0};
-    qt_register_signal_spy_callbacks(set);
+//    qt_register_signal_spy_callbacks(set);
 
     // 1. comm client
     delete ppCommClient;
