@@ -85,8 +85,8 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     Core::ActionManager *actionManager = core->actionManager();
     QList<int> globalContext = QList<int>()
         << Core::Constants::C_GLOBAL_ID;
-    //QList<int> debuggerContext = QList<int>()
-    //    << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING);
+    QList<int> debuggerContext = QList<int>()
+        << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING);
 
     // create the Performance Menu and add it to the Debug menu
     Core::ActionContainer *perfContainer = actionManager->createMenu("Performance.Container");
@@ -122,6 +122,16 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     m_aMemMonitor = new QAction(tr("Allocation Analysis"), this);
     m_aMemMonitor->setCheckable(true);
     command = actionManager->registerAction(m_aMemMonitor, "Performance.AnalyzeAllocations", globalContext);
+    perfContainer->addAction(command);
+
+    sep = new QAction(this);
+    sep->setSeparator(true);
+    command = actionManager->registerAction(sep, QLatin1String("Performance.Sep.Two"), globalContext);
+    perfContainer->addAction(command);
+
+    QAction *temperatureAction = new QAction(tr("Painting Temperature"), this);
+    connect(temperatureAction, SIGNAL(triggered()), m_manager, SLOT(slotPaintingTemperature()));
+    command = actionManager->registerAction(temperatureAction, "Performance.ShowTemperature", debuggerContext);
     perfContainer->addAction(command);
 
     return true;

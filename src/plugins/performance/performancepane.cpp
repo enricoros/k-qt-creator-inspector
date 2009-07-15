@@ -78,6 +78,12 @@ void PerformanceMiniWidget::addWarning()
 #endif
 }
 
+void PerformanceMiniWidget::clearWarnings()
+{
+    m_cWarnings = 0;
+    update();
+}
+
 void PerformanceMiniWidget::paintEvent(QPaintEvent * /*event*/)
 {
     // see progresspie.cpp for drawing...

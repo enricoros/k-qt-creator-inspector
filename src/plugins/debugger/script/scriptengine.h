@@ -90,6 +90,7 @@ private:
 
     void assignValueInDebugger(const QString &expr, const QString &value);
     void executeDebuggerCommand(const QString & command);
+    void callFunction(const QString &function, const QVariantList &args);
 
     void loadSymbols(const QString &moduleName);
     void loadAllSymbols();

@@ -980,6 +980,14 @@ bool DebuggerPlugin::initialize(const QStringList &arguments, QString *errorMess
     connect(editorManager, SIGNAL(editorOpened(Core::IEditor*)),
         this, SLOT(editorOpened(Core::IEditor*)));
 
+    // Performance
+    Performance::PerformanceManager *performanceManager =
+        Performance::PerformanceManager::instance();
+    Performance::PerformanceServer *performanceServer =
+        performanceManager->defaultServer();
+    connect(performanceServer, SIGNAL(debuggerCallFunction(QString,QVariantList)),
+            m_manager, SLOT(callFunction(QString,QVariantList)));
+
     // Application interaction
     connect(theDebuggerAction(SettingsDialog), SIGNAL(triggered()),
         this, SLOT(showSettingsDialog()));
@@ -1316,8 +1324,7 @@ void DebuggerPlugin::handleStateChanged(int state)
     m_detachAction->setEnabled(detachable);
 
     // sync Performance Plugin status
-    ExtensionSystem::PluginManager::instance()
-            ->getObject<Performance::PerformanceManager>()
+    Performance::PerformanceManager::instance()
             ->defaultServer()->setDebugging(started);
 }
 

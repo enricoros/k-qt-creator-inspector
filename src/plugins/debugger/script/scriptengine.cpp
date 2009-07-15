@@ -206,6 +206,14 @@ void ScriptEngine::executeDebuggerCommand(const QString &command)
     XSDEBUG("FIXME:  ScriptEngine::executeDebuggerCommand()");
 }
 
+void ScriptEngine::callFunction(const QString &function, const QVariantList &args)
+{
+    // stub, introduced py PerformancePlugin. see reference in GdbEngine
+    Q_UNUSED(function)
+    Q_UNUSED(args)
+    XSDEBUG("FIXME:  ScriptEngine::callFunction()");
+}
+
 void ScriptEngine::shutdown()
 {
     exitDebugger();

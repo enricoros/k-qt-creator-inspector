@@ -53,9 +53,9 @@ public:
     void extensionsInitialized();
 
 private:
-    PerformanceManager * m_manager;
-    QAction * m_aMemMonitor;
-    QAction * m_aShowPaint;
+    PerformanceManager *m_manager;
+    QAction *m_aMemMonitor;
+    QAction *m_aShowPaint;
 };
 
 } // namespace Internal
