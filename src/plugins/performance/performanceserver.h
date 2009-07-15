@@ -14,6 +14,7 @@
 #define PERFORMANCESERVER_H
 
 #include <QObject>
+#include <QByteArray>
 #include <QLocalSocket>
 #include <QVariant>
 class QLocalServer;
@@ -30,6 +31,8 @@ public:
 
     bool enabled() const; //CHANGE ME
     QString serverName() const;
+
+    bool processIncomingData(quint32 code1, quint32 code2, QByteArray * data);
 
     // externally set information
     void setDebugging(bool on);
@@ -49,8 +52,9 @@ private slots:
 
 private:
     friend class PerformanceManager;
-    QLocalServer * m_localServer;
-    QLocalSocket * m_socket;
+    QLocalServer *m_localServer;
+    QLocalSocket *m_socket;
+    QByteArray m_incomingData;
 
     bool m_sEnabled;
     bool m_sDebugging;

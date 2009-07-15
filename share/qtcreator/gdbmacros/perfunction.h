@@ -31,6 +31,7 @@
 #define PERFUNCTION_H
 
 #include <qglobal.h>
+#include <QByteArray>
 
 namespace Performance {
     namespace Internal {
@@ -38,13 +39,79 @@ namespace Performance {
             AF_None        = 0x0000,
             AF_PaintDebug  = 0x0001,
         };
+
+        // encode
+        // TODO: make this ARCH/bit/endian resistant
+        static QByteArray marshallMessage(quint32 code1, quint32 code2, const QByteArray &data)
+        {
+            // create the message holder
+            QByteArray message;
+            quint32 messageSize = 3 * sizeof(quint32) + data.size();
+            quint32 offset = 0;
+            message.resize(messageSize);
+
+            // copy payload (size, code1, code2, data)
+            memcpy(message.data() + offset, &messageSize, sizeof(quint32));
+            offset += sizeof(quint32);
+            memcpy(message.data() + offset, &code1, sizeof(quint32));
+            offset += sizeof(quint32);
+            memcpy(message.data() + offset, &code2, sizeof(quint32));
+            offset += sizeof(quint32);
+            memcpy(message.data() + offset, data.data(), data.size());
+            offset += data.size();
+
+            return message;
+        }
+
+        // decode (optimize this)
+        static quint32 messageLength(const QByteArray &data)
+        {
+            if (data.size() < (int)sizeof(quint32))
+                return 0;
+            quint32 length = 0;
+            memcpy(&length, data.data(), sizeof(quint32));
+            return length;
+        }
+
+        static bool demarshallMessage(const QByteArray &marshalled, quint32 *code1, quint32 *code2, QByteArray *data)
+        {
+            // safety checks
+            quint32 messageSize = messageLength(marshalled);
+            if (!messageSize || marshalled.length() < (int)messageSize) {
+                qWarning("demarshallMessage: message is not complete %d %d", marshalled.length(), messageSize);
+                return false;
+            }
+#if 0
+            else if (marshalled.length() > (int)messageSize)
+                qWarning("demarshallMessage: data is too long for the message. check logic!");
+            else
+                qWarning("demarshallMessage: ok %d", messageSize);
+#endif
+
+            // read data
+            quint32 offset = sizeof(quint32);
+            if (code1)
+                memcpy(code1, marshalled.data() + offset, sizeof(quint32));
+            offset += sizeof(quint32);
+            if (code2)
+                memcpy(code2, marshalled.data() + offset, sizeof(quint32));
+            offset += sizeof(quint32);
+            if (data) {
+                data->resize(messageSize - offset);
+                memcpy(data->data(), marshalled.data() + offset, messageSize - offset);
+            }
+            return true;
+        }
     }
 }
-
+/*
 extern "C" Q_DECL_EXPORT
 bool qPerfActivate(const char * serverName, int flags = Performance::Internal::AF_None);
 
 extern "C" Q_DECL_EXPORT
 void qPerfDeactivate();
 
+extern "C" Q_DECL_EXPORT
+void qWindowTemperature();
+*/
 #endif // PERFUNCTION_H

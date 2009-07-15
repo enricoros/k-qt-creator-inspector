@@ -1072,7 +1072,6 @@ void GdbEngine::callFunction(const QString &function, const QVariantList &args)
         firstArg = false;
     }
     callString += _(")");
-    qWarning() << "GdbEngine::callFunction:" << callString;
     postCommand(callString);
 }
 
