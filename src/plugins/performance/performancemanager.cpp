@@ -25,10 +25,15 @@
 using namespace Performance;
 using namespace Performance::Internal;
 
+PerformanceManager *PerformanceManager::s_instance = 0;
+
 PerformanceManager::PerformanceManager(Internal::PerformancePlugin *plugin, QObject *parent)
   : QObject(parent)
   , m_plugin(plugin)
 {
+    // save the instance (there is only 1 manager)
+    s_instance = this;
+
     // create the Pane
     m_pane = new PerformancePane;
 
@@ -48,9 +53,15 @@ PerformanceManager::PerformanceManager(Internal::PerformancePlugin *plugin, QObj
 
 PerformanceManager::~PerformanceManager()
 {
+    // m_pane is deleted by the plugin system (added by PerformancePlugin)
     delete m_mini;
-    delete m_pane;
     qDeleteAll(m_servers);
+    s_instance = 0;
+}
+
+PerformanceManager *PerformanceManager::instance()
+{
+    return s_instance;
 }
 
 Internal::PerformancePane * PerformanceManager::pane() const
@@ -88,11 +99,17 @@ void PerformanceManager::slotShowInformation()
 void PerformanceManager::slotShowWorkbench()
 {
     // hide the MiniWidget first
+    m_mini->clearWarnings();
     m_mini->hide();
 
     // CORE: switch to full screen performance view
     Core::ICore::instance()->modeManager()->activateMode(Core::Constants::MODE_OUTPUT);
     m_pane->popup(true);
+}
+
+void PerformanceManager::slotPaintingTemperature()
+{
+    emit defaultServer()->debuggerCallFunction("qWindowTemperature");
 }
 
 void PerformanceManager::slotNewString(const QString & string)

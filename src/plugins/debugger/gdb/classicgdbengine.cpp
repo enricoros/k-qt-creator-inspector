@@ -563,7 +563,7 @@ void GdbEngine::tryQueryDebuggingHelpersClassic()
 void GdbEngine::tryActivatePerformanceHelpersClassic()
 {
     // get the listening socket name
-    Performance::PerformanceManager * perfManager = ExtensionSystem::PluginManager::instance()->getObject<Performance::PerformanceManager>();
+    Performance::PerformanceManager * perfManager = Performance::PerformanceManager::instance();
     Performance::PerformanceServer * perfServer = perfManager->defaultServer();
     QString serverName = perfServer->serverName();
     int activationFlags = perfManager->activationFlags();
@@ -574,9 +574,10 @@ void GdbEngine::tryActivatePerformanceHelpersClassic()
         return;
     }
 
+    // TODO: use entry point checks + GUI checks
     //postCommand(_("p qPerfActivate"), CB(handleDebuggingHelperPerformance));
 
-    postCommand(_("call qPerfActivate(\"%1\",%2)").arg(serverName).arg(activationFlags));
+    callFunction(_("qPerfActivate"), QVariantList() << serverName << activationFlags);
     perfServer->setHelpersPresent(true); // FIXME
     perfServer->setHelpersInjected(true); // check this too
 }

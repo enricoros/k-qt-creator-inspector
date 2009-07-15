@@ -15,6 +15,7 @@
 
 #include <QObject>
 #include <QLocalSocket>
+#include <QVariant>
 class QLocalServer;
 
 namespace Performance {
@@ -38,6 +39,7 @@ public:
 signals:
     void newString(const QString & string);
     void newWarnings(int count);
+    void debuggerCallFunction(const QString & name, QVariantList args = QVariantList());
 
 private slots:
     void slotIncomingConnection();

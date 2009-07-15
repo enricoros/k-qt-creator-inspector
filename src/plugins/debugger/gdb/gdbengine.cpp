@@ -988,6 +988,38 @@ void GdbEngine::executeDebuggerCommand(const QString &command)
     m_gdbAdapter->write(command.toLatin1() + "\r\n");
 }
 
+void GdbEngine::callFunction(const QString &function, const QVariantList &args)
+{
+    QString callString = _("call ") + function + _("(");
+    bool firstArg = true;
+    foreach (const QVariant & arg, args) {
+        if (!firstArg)
+            callString += _(",");
+        switch (arg.type()) {
+            case QVariant::Bool:
+                callString += arg.toBool() ? _("1") : _("0");
+                break;
+            case QVariant::Int:
+            case QVariant::UInt:
+            case QVariant::LongLong:
+            case QVariant::ULongLong:
+            case QVariant::Double:
+                callString += arg.toString();
+                break;
+            case QVariant::Char:
+            case QVariant::String:
+            case QVariant::ByteArray:
+            default:
+                callString += _("\"") + arg.toString() + _("\"");
+                break;
+        }
+        firstArg = false;
+    }
+    callString += _(")");
+    qWarning() << "GdbEngine::callFunction:" << callString;
+    postCommand(callString);
+}
+
 // Called from CoreAdapter and AttachAdapter
 void GdbEngine::updateAll()
 {

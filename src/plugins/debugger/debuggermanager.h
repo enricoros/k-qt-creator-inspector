@@ -249,6 +249,7 @@ public slots:
 
     void executeDebuggerCommand();
     void executeDebuggerCommand(const QString &command);
+    void callFunction(const QString &function, const QVariantList &args);
 
     void watchPoint();
     void setRegisterValue(int nr, const QString &value);

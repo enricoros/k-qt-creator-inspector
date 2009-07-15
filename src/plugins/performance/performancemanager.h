@@ -32,6 +32,8 @@ public:
     PerformanceManager(Internal::PerformancePlugin *plugin, QObject *parent = 0);
     ~PerformanceManager();
 
+    static PerformanceManager * instance();
+
     Internal::PerformancePane *pane() const;
     PerformanceServer *defaultServer() const;
     int activationFlags() const; //TEMP relocate
@@ -39,12 +41,14 @@ public:
 public slots:
     void slotShowInformation();
     void slotShowWorkbench();
+    void slotPaintingTemperature();
 
 private slots:
     void slotNewString(const QString & string);
     void slotNewWarnings(int count);
 
 private:
+    static PerformanceManager *s_instance;
     QList<PerformanceServer*> m_servers;
     Internal::PerformancePlugin *m_plugin;
     Internal::PerformancePane *m_pane;

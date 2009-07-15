@@ -83,6 +83,7 @@ public:
     virtual void jumpToLineExec(const QString &fileName, int lineNumber);
     virtual void assignValueInDebugger(const QString &expr, const QString &value);
     virtual void executeDebuggerCommand(const QString &command);
+    virtual void callFunction(const QString &function, const QVariantList &args);
 
     virtual void activateFrame(int index);
     virtual void selectThread(int index);

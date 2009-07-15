@@ -69,6 +69,7 @@ public:
     PerformanceMiniWidget(QWidget * parent = 0);
 
     void addWarning();
+    void clearWarnings();
 
     // ::QWidget
     void paintEvent(QPaintEvent * event);

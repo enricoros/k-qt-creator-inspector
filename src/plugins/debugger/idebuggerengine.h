@@ -35,6 +35,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QList>
 #include <QtCore/QSharedPointer>
+#include <QtCore/QVariantList>
 
 QT_BEGIN_NAMESPACE
 class QPoint;
@@ -92,6 +93,7 @@ public:
     virtual void jumpToLineExec(const QString &fileName, int lineNumber) = 0;
     virtual void assignValueInDebugger(const QString &expr, const QString &value) = 0;
     virtual void executeDebuggerCommand(const QString &command) = 0;
+    virtual void callFunction(const QString &function, const QVariantList &args) = 0;
 
     virtual void activateFrame(int index) = 0;
     virtual void selectThread(int index) = 0;

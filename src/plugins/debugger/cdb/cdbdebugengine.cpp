@@ -971,6 +971,14 @@ void CdbDebugEngine::executeDebuggerCommand(const QString &command)
         warning(errorMessage);
 }
 
+void CdbDebugEngine::callFunction(const QString &function, const QVariantList &args)
+{
+    // stub, introduced py PerformancePlugin. see reference in GdbEngine
+    Q_UNUSED(function)
+    Q_UNUSED(args)
+    qDebug() << "FIXME:  CdbDebugEngine::callFunction()";
+}
+
 void CdbDebugEngine::activateFrame(int frameIndex)
 {
     if (debugCDB)
