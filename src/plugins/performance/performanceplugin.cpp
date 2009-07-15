@@ -104,14 +104,14 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     command = actionManager->registerAction(infoAction, "Performance.Information", globalContext);
     perfContainer->addAction(command);
 
-    QAction *sep = new QAction(this);
-    sep->setSeparator(true);
-    command = actionManager->registerAction(sep, QLatin1String("Performance.Sep.One"), globalContext);
-    perfContainer->addAction(command);
-
     QAction *workBenchAction = new QAction(tr("Workbench"), this);
     connect(workBenchAction, SIGNAL(triggered()), m_manager, SLOT(slotShowWorkbench()));
     command = actionManager->registerAction(workBenchAction, "Performance.ShowWorkBench", globalContext);
+    perfContainer->addAction(command);
+
+    QAction *sep = new QAction(tr("Configuration"), this);
+    sep->setSeparator(true);
+    command = actionManager->registerAction(sep, QLatin1String("Performance.Sep.One"), globalContext);
     perfContainer->addAction(command);
 
     m_aShowPaint = new QAction(tr("Show Painted Areas"), this);
@@ -124,7 +124,7 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     command = actionManager->registerAction(m_aMemMonitor, "Performance.AnalyzeAllocations", globalContext);
     perfContainer->addAction(command);
 
-    sep = new QAction(this);
+    sep = new QAction(tr("Runtime Analysis"), this);
     sep->setSeparator(true);
     command = actionManager->registerAction(sep, QLatin1String("Performance.Sep.Two"), globalContext);
     perfContainer->addAction(command);

@@ -42,6 +42,7 @@
 
 #include <QMetaMethod>
 
+#include <QApplication>
 #include <QPainter>
 #include <QPaintEvent>
 #include <QWidget>
@@ -128,6 +129,7 @@ EventNotify Activation, qcoreapplication.cpp:
         }
 */
 
+
 class PerfCommClient {
     public:
         PerfCommClient(const char * serverName)
@@ -137,7 +139,7 @@ class PerfCommClient {
             m_sock->connectToServer(serverName);
             m_connected = m_sock->waitForConnected(10000);
             if (!m_connected)
-                writeError("can't establish connection to the performance server");
+                printError("can't establish connection to the performance server");
         }
 
         ~PerfCommClient()
@@ -150,20 +152,29 @@ class PerfCommClient {
             return m_connected;
         }
 
-        bool writeData(const QString & string)
+
+        bool writeMessage(const QString & string)
         {
-            if (m_fencing) {
-                writeError("writeData during fence!");
-                return false;
-            }
-            m_fencing = true;
-            m_sock->write(string.toLatin1());
-            m_sock->waitForBytesWritten(1000);
-            m_fencing = false;
-            return true;
+            return sendData(Performance::Internal::marshallMessage(0x01, 0x01, string.toLatin1()));
         }
 
-        void writeError(const QString & string)
+        bool writeTiming(double time)
+        {
+            return sendData(Performance::Internal::marshallMessage(0x02, 0x02, QString::number(time).toLatin1()));
+        }
+
+        bool writeImage(const QImage & image)
+        {
+            QByteArray imageData;
+            QDataStream dataWriter(&imageData, QIODevice::WriteOnly);
+            dataWriter << image.size();
+            dataWriter << (quint32)image.format();
+            dataWriter << QByteArray((const char *)image.bits(), image.numBytes());
+            return sendData(Performance::Internal::marshallMessage(0x02, 0x01, imageData));
+        }
+
+
+        void printError(const QString & string)
         {
             qWarning(PP_NAME": %s", qPrintable(string));
         }
@@ -174,6 +185,20 @@ class PerfCommClient {
         }
 
     private:
+        bool sendData(const QByteArray & data)
+        {
+            // send the message
+            if (m_fencing) {
+                printError("writeData during fence!");
+                return false;
+            }
+            m_fencing = true;
+            m_sock->write(data);
+            m_sock->waitForBytesWritten(1000);
+            m_fencing = false;
+            return true;
+        }
+
         QLocalSocket * m_sock;
         bool m_connected;
         bool m_fencing;
@@ -213,12 +238,12 @@ static bool eventInterceptorCallback(void **data)
 
         // send out data
         // TODO: use a per-thread STACK for SIGNALS AND SLOTS SENDING HERE ?
-        ppCommClient->writeData(QString::number(elapsedMs));
+        ppCommClient->writeTiming(elapsedMs);
 
         // check for too long events
         if (elapsedMs > 200) {
             QString s = QString("Troppo lungo l'evento %1, tipo %2, durata %3, su %4").arg(localE).arg(event->type()).arg(elapsedMs).arg(receiver->metaObject()->className() ? receiver->metaObject()->className() : "null");
-            ppCommClient->writeData(s);
+            ppCommClient->writeMessage(s);
         }
 
         // show painting, if
@@ -241,8 +266,8 @@ static bool eventInterceptorCallback(void **data)
     }
     return false;
 }
-
-static void signalBeginCallback(QObject *caller, int method_index, void **argv)
+#if 0
+static void signalBeginCallback(QObject *caller, int method_index, void **/*argv*/)
 {
     qWarning("sinal BEGIN: %s", caller->metaObject()->method(method_index).signature());
 }
@@ -252,7 +277,7 @@ static void signalEndCallback(QObject *caller, int method_index)
     qWarning("sinal END: %s", caller->metaObject()->method(method_index).signature());
 }
 
-static void slotBeginCallback(QObject *caller, int method_index, void **argv)
+static void slotBeginCallback(QObject *caller, int method_index, void **/*argv*/)
 {
     qWarning("slot BEGIN: %s", caller->metaObject()->method(method_index).signature());
 }
@@ -261,7 +286,7 @@ static void slotEndCallback(QObject *caller, int method_index)
 {
     qWarning("slot END: %s", caller->metaObject()->method(method_index).signature());
 }
-
+#endif
 
 // Entry Points of the Shared Library (loaded by the GDB plugin)
 extern "C"
@@ -269,7 +294,7 @@ bool qPerfActivate(const char * serverName, int activationFlags)
 {
     // 1. comm client
     if (ppCommClient) {
-        ppCommClient->writeError("already active");
+        ppCommClient->printError("already active");
         return false;
     } else
         ppCommClient = new PerfCommClient(serverName);
@@ -278,14 +303,14 @@ bool qPerfActivate(const char * serverName, int activationFlags)
     ppDebugPainting = activationFlags & Performance::Internal::AF_PaintDebug;
 
     // 3. signal spy callback
-    QSignalSpyCallbackSet set = {0, slotBeginCallback, 0, slotEndCallback};
-//    qt_register_signal_spy_callbacks(set);
+    QSignalSpyCallbackSet set = {0, 0/*slotBeginCallback*/, 0, 0/*slotEndCallback*/};
+    qt_register_signal_spy_callbacks(set);
 
     // 4. events callback
     QInternal::registerCallback(QInternal::EventNotifyCallback, eventInterceptorCallback);
 
     qWarning(PP_NAME": Activated");
-    ppCommClient->writeData("Active");
+    ppCommClient->writeMessage("Active");
     return true;
 }
 
@@ -299,9 +324,38 @@ void qPerfDeactivate()
 
     // 3. signal spy callback
     QSignalSpyCallbackSet set = {0, 0, 0, 0};
-//    qt_register_signal_spy_callbacks(set);
+    qt_register_signal_spy_callbacks(set);
 
     // 1. comm client
     delete ppCommClient;
     ppCommClient = 0;
+}
+
+#include <QLabel>
+extern "C"
+void qWindowTemperature()
+{
+    // check for graphical environment
+    QApplication * app = dynamic_cast<QApplication *>(QCoreApplication::instance());
+    if (!app)
+        return;
+
+    // take the first widget
+    // TODO: use all widgets
+    QWidgetList tlws = app->topLevelWidgets();
+    if (tlws.isEmpty())
+        return;
+    QWidget * widget = tlws.first();
+    if (!widget)
+        return;
+
+    // do the test over the widget
+    QImage baseImage(widget->size(), QImage::Format_ARGB32);
+    widget->render(&baseImage);
+    ppCommClient->writeImage(baseImage);
+
+    /*QLabel * l = new QLabel();
+    l->setPixmap(basePixmap);
+    l->setFixedSize(basePixmap.size());
+    l->show();*/
 }
