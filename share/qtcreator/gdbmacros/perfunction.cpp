@@ -332,6 +332,11 @@ void qPerfDeactivate()
 }
 
 #include <QLabel>
+struct TEMP {
+    QRect rect;
+    double time;
+};
+
 extern "C"
 void qWindowTemperature()
 {
@@ -345,17 +350,97 @@ void qWindowTemperature()
     QWidgetList tlws = app->topLevelWidgets();
     if (tlws.isEmpty())
         return;
-    QWidget * widget = tlws.first();
+    bool first = false;
+foreach (QWidget * widget, tlws) {
+    if (first) {
+        first = false;
+        continue;
+    }
     if (!widget)
-        return;
+        continue;
 
     // do the test over the widget
     QImage baseImage(widget->size(), QImage::Format_ARGB32);
     widget->render(&baseImage);
+
+    // measure times
+    struct timeval tv1, tv2;
+    int passes = 10;
+    int gridX = widget->width() / 15;
+    int gridY = widget->height() / 15;
+    QList<TEMP> rects;
+
+    QImage testImage(widget->size(), QImage::Format_ARGB32);
+
+    int steps = passes * gridX * gridY;
+    int step = 0;
+
+for (int _pass = 0; _pass < 10; _pass++) {
+    int _passIdx = 0;
+    int xFrom = 0;    
+    for (int c = 0; c < gridX; c++) {
+        int xTo = (widget->width() * (c + 1)) / gridX;
+        int yFrom = 0;
+        for (int r = 0; r < gridY; r++) {
+            int yTo = (widget->height() * (r + 1)) / gridY;
+
+            QRect testRect(xFrom, yFrom, xTo - xFrom + 1, yTo - yFrom + 1);
+            //QImage testImage(testRect.size(), QImage::Format_ARGB32);
+
+            //usleep(1000);
+
+            gettimeofday(&tv1, 0);
+                widget->render(&testImage, QPoint(), testRect);
+            gettimeofday(&tv2, 0);
+            step ++;
+
+            double elapsedMs = (double)(tv2.tv_sec - tv1.tv_sec) * 1000.0 + (double)(tv2.tv_usec - tv1.tv_usec) / 1000.0;
+//            basePainter.setFont(QFont("Arial",8));
+//            basePainter.drawText(testRect.topLeft() + QPoint(2,10), QString::number(elapsedMs));
+            if (_pass == 0) {
+                TEMP t;
+                t.rect = testRect;
+                t.time = elapsedMs;
+                rects.append(t);
+            } else {
+                TEMP & t = rects[_passIdx++];
+                t.time += elapsedMs;
+            }
+
+            yFrom = yTo + 1;
+        }
+        xFrom = xTo + 1;
+
+        // send out progress information
+        int progress = (step * 100) / steps;
+        if (progress < 100)
+            ppCommClient->writeMessage(QString::number(progress) + "%");
+
+    }
+}
+
+    // find out boundaries
+    double total = 0, max = 0, min = 0;
+    foreach (const TEMP & t, rects) {
+        if (t.time > max)
+            max = t.time;
+        if (t.time < min || min == 0)
+            min = t.time;
+        total += t.time;
+    }
+
+    // draw the result
+    QPainter basePainter(&baseImage);
+    foreach (const TEMP & t, rects) {
+        double alpha = (t.time - min) / (max - min);
+        QColor col(255 * alpha, 0, 255 - (255 * alpha), 128 + 64 * alpha);
+        basePainter.fillRect(t.rect, col);
+    }
+    basePainter.end();
+
+    ppCommClient->writeImage(baseImage);
     ppCommClient->writeImage(baseImage);
 
-    /*QLabel * l = new QLabel();
-    l->setPixmap(basePixmap);
-    l->setFixedSize(basePixmap.size());
-    l->show();*/
+    break;
+}
 }
