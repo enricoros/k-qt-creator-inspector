@@ -119,6 +119,8 @@ bool PerformanceServer::processIncomingData(quint32 code1, quint32 code2, QByteA
             QImage image((uchar *)contents.data(), size.width(), size.height(), (QImage::Format)format);
 
             QLabel * label = new QLabel();
+            label->setWindowIcon(QIcon(":/performance/images/menu-icon.png"));
+            label->setWindowTitle(tr("Image from The Probe"));
             label->setFixedSize(size);
             label->setPixmap(QPixmap::fromImage(image));
             label->show();

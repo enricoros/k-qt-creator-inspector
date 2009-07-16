@@ -226,7 +226,7 @@ class PerfCommClient {
             }
             m_fencing = true;
             m_sock->write(data);
-            if (!m_sock->waitForBytesWritten(2000))
+            if (!m_sock->waitForBytesWritten(5000))
                 printError("error in waitForBytesWritten!");
             m_fencing = false;
             return true;
@@ -364,7 +364,8 @@ void qPerfDeactivate()
 
 struct __TimedRect {
     QRect rect;
-    double time;
+    QList<double> times;
+    double totalTime;
 };
 
 extern "C"
@@ -382,8 +383,11 @@ void qWindowTemperature()
 
     // parameters
     static const int passes = 5;
-    static const int chunkWidth = 20;
-    static const int chunkHeight = 20;
+    static const int headDrops = 1;
+    static const int tailDrops = 2;
+    static const int innerPasses = 4;
+    static const int chunkWidth = 10;
+    static const int chunkHeight = 10;
 
     // vars
     struct timeval tv1, tv2;
@@ -406,7 +410,8 @@ void qWindowTemperature()
                 int y1 = 0;
                 for (int row = 0; row < wRows; row++) {
                     int y2 = (wH * (row + 1)) / wRows;
-                    __TimedRect tRect = { QRect(x1, y1, x2 - x1 + 1, y2 - y1 + 1), 0.0 };
+                    __TimedRect tRect;
+                    tRect.rect = QRect(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
                     wTimedRects.append(tRect);
                     y1 = y2 + 1;
                 }
@@ -433,35 +438,51 @@ void qWindowTemperature()
 
                 // timed rendering
                 gettimeofday(&tv1, 0);
-                widget->render(&testImage, QPoint(), wTimedRects[i].rect, QWidget::DrawChildren /*| DrawWindowBackground*/);
+                for (int rep = 0; rep < innerPasses; rep++)
+                    widget->render(&testImage, QPoint() /*wTimedRects[i].rect.topLeft()*/, wTimedRects[i].rect, QWidget::DrawChildren /*| DrawWindowBackground*/);
                 gettimeofday(&tv2, 0);
 
                 // accumulate time
                 double elapsedMs = (double)(tv2.tv_sec - tv1.tv_sec) * 1000.0 + (double)(tv2.tv_usec - tv1.tv_usec) / 1000.0;
-                wTimedRects[i].time += elapsedMs;
+                wTimedRects[i].times.append(elapsedMs);
             }
             // send out the progress
             ppCommClient->sendPercent(((pass + 1) * 100) / passes);
         }
 
-        // find out boundaries
-        double total = 0, max = 0, min = 0;
-        foreach (const __TimedRect & tRect, wTimedRects) {
-            if (tRect.time > max)
-                max = tRect.time;
-            if (tRect.time < min || min == 0)
-                min = tRect.time;
-            total += tRect.time;
+        // single rect: drop min/max measured time value(s)
+        QList<__TimedRect>::iterator rIt = wTimedRects.begin(), rEnd = wTimedRects.end();
+        for (; rIt != rEnd; rIt++) {
+            __TimedRect & tRect = *rIt;
+            tRect.totalTime = 0;
+            qSort(tRect.times);
+            for (int idx = headDrops; idx < (tRect.times.size() - tailDrops); idx++)
+                tRect.totalTime += tRect.times[idx];
         }
 
-        // colorize the original image
+        // all rects: find out boundaries and discard min and max
+        double tTotal = 0, tMax = 0, tMin = 0;
+        foreach (const __TimedRect & tRect, wTimedRects) {
+            if (tRect.totalTime > tMax)
+                tMax = tRect.totalTime;
+            if (tRect.totalTime < tMin || tMin == 0)
+                tMin = tRect.totalTime;
+            tTotal += tRect.totalTime;
+        }
+
+        // colorize the original image, and draw the legend
         QPainter basePainter(&baseImage);
         foreach (const __TimedRect & tRect, wTimedRects) {
-            double alpha = (tRect.time - min) / (max - min);
-            QColor col(255 * alpha, 0, 255 - (255 * alpha), 128 + 64 * alpha);
+            double alpha = (tRect.totalTime - tMin) / (tMax - tMin);
+            QColor col = QColor::fromHsvF(0.67 - alpha * 0.67, 1.0, 1.0, 0.5 + 0.25*alpha);
             basePainter.fillRect(tRect.rect, col);
             //basePainter.setFont(QFont("Arial",8));
             //basePainter.drawText(tRect.rect.topLeft() + QPoint(2,10), QString::number(tRect.time / (double)passes));
+        }
+        for (int x = 0; x <= 100; x++) {
+            double alpha = (double)x / 100.0;
+            QColor col = QColor::fromHsvF(0.67 - alpha * 0.67, 1.0, 1.0, 0.5 + 0.25*alpha);
+            basePainter.fillRect(wW - 10 - x, 10, 1, 20, col);
         }
         basePainter.end();
 
