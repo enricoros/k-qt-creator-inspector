@@ -14,15 +14,12 @@
 #define PERFORMANCEWINDOW_H
 
 #include <QWidget>
-
-namespace Ui {
-    class PerformanceWindow;
-}
+#include "ui_performancewindow.h"
 
 namespace Performance {
 namespace Internal {
 
-class PerformanceWindow : public QWidget
+class PerformanceWindow : public QWidget, public Ui::PerformanceWindow
 {
     Q_OBJECT
 
@@ -30,12 +27,8 @@ public:
     PerformanceWindow(QWidget *parent = 0);
     ~PerformanceWindow();
 
-    void setCentralWidget(QWidget *);
-    QWidget *centralWidget() const;
-
-private:
-    Ui::PerformanceWindow *m_ui;
-    QWidget *m_centralWidget;
+    //void setCentralWidget(QWidget *);
+    //QWidget *centralWidget() const;
 };
 
 } // namespace Internal

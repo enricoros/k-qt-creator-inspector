@@ -12,6 +12,8 @@
 
 #include "performanceserver.h"
 #include "performanceinformation.h"
+#include "performancemanager.h"
+#include "performancewindow.h"
 
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
@@ -28,6 +30,7 @@
 #include "../../../share/qtcreator/gdbmacros/perfunction.h"
 
 using namespace Performance;
+using namespace Performance::Internal;
 
 PerformanceServer::PerformanceServer(QObject * parent)
     : QObject(parent)
@@ -67,14 +70,45 @@ QString PerformanceServer::serverName() const
 #include <QImage>
 bool PerformanceServer::processIncomingData(quint32 code1, quint32 code2, QByteArray * data)
 {
+    PerformanceWindow * window = PerformanceManager::instance()->defaultWindow();
+
+    // 1. Service
     if (code1 == 0x01) {
+        window->serviceText->appendPlainText(QString::number(code2) + " " + QString(*data));
+
+        // 1.1 begin
         if (code2 == 0x01) {
-            emit newString(QString(*data));
+            return true;
+        }
+    }
+
+    // 2. Generic Comm
+    if (code1 == 0x02) {
+
+        // 2.1 text messages
+        if (code2 == 0x01) {
+            window->messagesText->appendHtml("<font color='#800'>" + *data + "</font>");
+            return true;
+        }
+
+        // 2.2 warning messages
+        if (code2 == 0x02) {
+            window->errorsText->appendHtml("<font color='#800'>" + *data + "</font>");
             emit newWarnings(1);
             return true;
         }
-    } else if (code1 == 0x02) {
-        if (code2 == 0x01) {
+
+        // 2.3 percent
+        if (code2 == 0x03) {
+            int percent = qBound(0, QString(*data).toInt(), 100);
+            window->progressBar->setValue(percent);
+            window->progressLabel->setVisible(percent < 100);
+            window->progressBar->setVisible(percent < 100);
+            return true;
+        }
+
+        // 2.4 qimages
+        if (code2 == 0x04) {
             QDataStream dataReader(data, QIODevice::ReadOnly);
             QSize size;
             quint32 format;
@@ -90,14 +124,19 @@ bool PerformanceServer::processIncomingData(quint32 code1, quint32 code2, QByteA
             label->show();
             return true;
         }
+    }
 
-        if (code2 == 0x02) {
+    // 3. Event Loop Information
+    if (code1 == 0x03) {
+        // 3.1. Timing
+        if (code2 == 0x01) {
             //qWarning("timing");
             return false;
         }
     }
 
-    qWarning() << code1 << code2 << *data;
+    // warn
+    qWarning() << "unhandled message" << code1 << code2 << *data;
     return false;
 }
 

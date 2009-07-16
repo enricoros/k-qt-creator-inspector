@@ -152,27 +152,59 @@ class PerfCommClient {
             return m_connected;
         }
 
+        /** message classes
+            1 service codes
+            2 generic communication
+              1 text messages
+              2 error messages
+              3 percent
+              4 qimages
+            3 event loop information
+              1 timing
+            100 painting temperature
+              1 started
+              2 ended
+        */
 
-        bool writeMessage(const QString & string)
+        bool sendRaw(quint32 code1, quint32 code2, const QByteArray &data)
         {
-            return sendData(Performance::Internal::marshallMessage(0x01, 0x01, string.toLatin1()));
+            return sendData(Performance::Internal::marshallMessage(code1, code2, data));
         }
 
-        bool writeTiming(double time)
+        bool sendService(quint32 code2, const QByteArray &data)
         {
-            return sendData(Performance::Internal::marshallMessage(0x02, 0x02, QString::number(time).toLatin1()));
+            return sendData(Performance::Internal::marshallMessage(0x01, code2, data));
         }
 
-        bool writeImage(const QImage & image)
+        bool sendMessage(const QString & string)
+        {
+            return sendData(Performance::Internal::marshallMessage(0x02, 0x01, string.toLatin1()));
+        }
+
+        bool sendError(const QString & string)
+        {
+            return sendData(Performance::Internal::marshallMessage(0x02, 0x02, string.toLatin1()));
+        }
+
+        bool sendPercent(int value)
+        {
+            return sendData(Performance::Internal::marshallMessage(0x02, 0x03, QString::number(value).toLatin1()));
+        }
+
+        bool sendImage(const QImage & image)
         {
             QByteArray imageData;
             QDataStream dataWriter(&imageData, QIODevice::WriteOnly);
             dataWriter << image.size();
             dataWriter << (quint32)image.format();
             dataWriter << QByteArray((const char *)image.bits(), image.numBytes());
-            return sendData(Performance::Internal::marshallMessage(0x02, 0x01, imageData));
+            return sendData(Performance::Internal::marshallMessage(0x02, 0x04, imageData));
         }
 
+        bool sendTiming(double time)
+        {
+            return sendData(Performance::Internal::marshallMessage(0x03, 0x01, QString::number(time).toLatin1()));
+        }
 
         void printError(const QString & string)
         {
@@ -194,7 +226,8 @@ class PerfCommClient {
             }
             m_fencing = true;
             m_sock->write(data);
-            m_sock->waitForBytesWritten(1000);
+            if (!m_sock->waitForBytesWritten(2000))
+                printError("error in waitForBytesWritten!");
             m_fencing = false;
             return true;
         }
@@ -238,13 +271,11 @@ static bool eventInterceptorCallback(void **data)
 
         // send out data
         // TODO: use a per-thread STACK for SIGNALS AND SLOTS SENDING HERE ?
-        ppCommClient->writeTiming(elapsedMs);
+        ppCommClient->sendTiming(elapsedMs);
 
         // check for too long events
-        if (elapsedMs > 200) {
-            QString s = QString("Troppo lungo l'evento %1, tipo %2, durata %3, su %4").arg(localE).arg(event->type()).arg(elapsedMs).arg(receiver->metaObject()->className() ? receiver->metaObject()->className() : "null");
-            ppCommClient->writeMessage(s);
-        }
+        if (elapsedMs > 200)
+            ppCommClient->sendMessage(QString("Troppo lungo l'evento %1, tipo %2, durata %3, su %4").arg(localE).arg(event->type()).arg(elapsedMs).arg(receiver->metaObject()->className() ? receiver->metaObject()->className() : "null"));
 
         // show painting, if
         if (ppDebugPainting && event->type() == QEvent::Paint) {
@@ -310,7 +341,7 @@ bool qPerfActivate(const char * serverName, int activationFlags)
     QInternal::registerCallback(QInternal::EventNotifyCallback, eventInterceptorCallback);
 
     qWarning(PP_NAME": Activated");
-    ppCommClient->writeMessage("Active");
+    ppCommClient->sendService(0x01, QByteArray());
     return true;
 }
 
@@ -331,8 +362,7 @@ void qPerfDeactivate()
     ppCommClient = 0;
 }
 
-#include <QLabel>
-struct TEMP {
+struct __TimedRect {
     QRect rect;
     double time;
 };
@@ -342,105 +372,103 @@ void qWindowTemperature()
 {
     // check for graphical environment
     QApplication * app = dynamic_cast<QApplication *>(QCoreApplication::instance());
-    if (!app)
+    if (!app) {
+        ppCommClient->sendError("No QApplication in this window");
         return;
-
-    // take the first widget
-    // TODO: use all widgets
-    QWidgetList tlws = app->topLevelWidgets();
-    if (tlws.isEmpty())
-        return;
-    bool first = false;
-foreach (QWidget * widget, tlws) {
-    if (first) {
-        first = false;
-        continue;
     }
-    if (!widget)
-        continue;
 
-    // do the test over the widget
-    QImage baseImage(widget->size(), QImage::Format_ARGB32);
-    widget->render(&baseImage);
+    // tell that the operation has started
+    ppCommClient->sendRaw(0x100, 1, QByteArray());
 
-    // measure times
+    // parameters
+    static const int passes = 5;
+    static const int chunkWidth = 20;
+    static const int chunkHeight = 20;
+
+    // vars
     struct timeval tv1, tv2;
-    int passes = 10;
-    int gridX = widget->width() / 15;
-    int gridY = widget->height() / 15;
-    QList<TEMP> rects;
 
-    QImage testImage(widget->size(), QImage::Format_ARGB32);
+    foreach (QWidget * widget, app->topLevelWidgets()) {
+        if (!widget || !widget->isVisible() || widget->width() < 50 || widget->height() < 50)
+            continue;
 
-    int steps = passes * gridX * gridY;
-    int step = 0;
-
-for (int _pass = 0; _pass < 10; _pass++) {
-    int _passIdx = 0;
-    int xFrom = 0;    
-    for (int c = 0; c < gridX; c++) {
-        int xTo = (widget->width() * (c + 1)) / gridX;
-        int yFrom = 0;
-        for (int r = 0; r < gridY; r++) {
-            int yTo = (widget->height() * (r + 1)) / gridY;
-
-            QRect testRect(xFrom, yFrom, xTo - xFrom + 1, yTo - yFrom + 1);
-            //QImage testImage(testRect.size(), QImage::Format_ARGB32);
-
-            //usleep(1000);
-
-            gettimeofday(&tv1, 0);
-                widget->render(&testImage, QPoint(), testRect);
-            gettimeofday(&tv2, 0);
-            step ++;
-
-            double elapsedMs = (double)(tv2.tv_sec - tv1.tv_sec) * 1000.0 + (double)(tv2.tv_usec - tv1.tv_usec) / 1000.0;
-//            basePainter.setFont(QFont("Arial",8));
-//            basePainter.drawText(testRect.topLeft() + QPoint(2,10), QString::number(elapsedMs));
-            if (_pass == 0) {
-                TEMP t;
-                t.rect = testRect;
-                t.time = elapsedMs;
-                rects.append(t);
-            } else {
-                TEMP & t = rects[_passIdx++];
-                t.time += elapsedMs;
+        // per-widget params and rect subdivision
+        int wW = widget->width();
+        int wH = widget->height();
+        int wCols = widget->width() / chunkWidth;
+        int wRows = widget->height() / chunkHeight;
+        int wRects = wCols * wRows;
+        QList<__TimedRect> wTimedRects;
+        {
+            int x1 = 0;
+            for (int col = 0; col < wCols; col++) {
+                int x2 = (wW * (col + 1)) / wCols;
+                int y1 = 0;
+                for (int row = 0; row < wRows; row++) {
+                    int y2 = (wH * (row + 1)) / wRows;
+                    __TimedRect tRect = { QRect(x1, y1, x2 - x1 + 1, y2 - y1 + 1), 0.0 };
+                    wTimedRects.append(tRect);
+                    y1 = y2 + 1;
+                }
+                x1 = x2 + 1;
             }
-
-            yFrom = yTo + 1;
         }
-        xFrom = xTo + 1;
 
-        // send out progress information
-        int progress = (step * 100) / steps;
-        if (progress < 100)
-            ppCommClient->writeMessage(QString::number(progress) + "%");
+        // do the test over the widget
+        QImage baseImage(wW, wH, QImage::Format_ARGB32);
+        baseImage.fill(0);
+        widget->render(&baseImage);
 
+        ppCommClient->sendImage(baseImage); ///
+
+        QImage testImage(wW, wH, QImage::Format_ARGB32);
+        testImage.fill(0);
+
+        // test the rects
+        for (int pass = 0; pass < passes; pass++) {
+            for (int i = 0; i < wRects; i++) {
+
+                //QImage testImage(testRect.size(), QImage::Format_ARGB32);
+                //usleep(1000);
+
+                // timed rendering
+                gettimeofday(&tv1, 0);
+                widget->render(&testImage, QPoint(), wTimedRects[i].rect, QWidget::DrawChildren /*| DrawWindowBackground*/);
+                gettimeofday(&tv2, 0);
+
+                // accumulate time
+                double elapsedMs = (double)(tv2.tv_sec - tv1.tv_sec) * 1000.0 + (double)(tv2.tv_usec - tv1.tv_usec) / 1000.0;
+                wTimedRects[i].time += elapsedMs;
+            }
+            // send out the progress
+            ppCommClient->sendPercent(((pass + 1) * 100) / passes);
+        }
+
+        // find out boundaries
+        double total = 0, max = 0, min = 0;
+        foreach (const __TimedRect & tRect, wTimedRects) {
+            if (tRect.time > max)
+                max = tRect.time;
+            if (tRect.time < min || min == 0)
+                min = tRect.time;
+            total += tRect.time;
+        }
+
+        // colorize the original image
+        QPainter basePainter(&baseImage);
+        foreach (const __TimedRect & tRect, wTimedRects) {
+            double alpha = (tRect.time - min) / (max - min);
+            QColor col(255 * alpha, 0, 255 - (255 * alpha), 128 + 64 * alpha);
+            basePainter.fillRect(tRect.rect, col);
+            //basePainter.setFont(QFont("Arial",8));
+            //basePainter.drawText(tRect.rect.topLeft() + QPoint(2,10), QString::number(tRect.time / (double)passes));
+        }
+        basePainter.end();
+
+        // send out the result
+        ppCommClient->sendImage(baseImage);
     }
-}
 
-    // find out boundaries
-    double total = 0, max = 0, min = 0;
-    foreach (const TEMP & t, rects) {
-        if (t.time > max)
-            max = t.time;
-        if (t.time < min || min == 0)
-            min = t.time;
-        total += t.time;
-    }
-
-    // draw the result
-    QPainter basePainter(&baseImage);
-    foreach (const TEMP & t, rects) {
-        double alpha = (t.time - min) / (max - min);
-        QColor col(255 * alpha, 0, 255 - (255 * alpha), 128 + 64 * alpha);
-        basePainter.fillRect(t.rect, col);
-    }
-    basePainter.end();
-
-    ppCommClient->writeImage(baseImage);
-    ppCommClient->writeImage(baseImage);
-
-    break;
-}
+    // tell that the operation has finished
+    ppCommClient->sendRaw(0x100, 2, QByteArray());
 }

@@ -29,19 +29,17 @@ class PerformancePane : public Core::IOutputPane
         PerformancePane(QObject *parent = 0);
         ~PerformancePane() {}
 
-        void addString(const QString & string);
-        void clearCurrent() {}
+        PerformanceWindow * defaultWindow() const;
 
         // ::Core::IOutputPane
         QWidget *outputWidget(QWidget *parent);
         QList<QWidget*> toolBarWidgets() const { return QList<QWidget *>(); }
         QString name() const { return tr("Performance Analyzer"); }
 
-        // -1 don't show in statusBar
-        // 100...0 show at front...end
+        // -1 don't show in statusBar (100...0 show at front...end)
         int priorityInStatusBar() const {return -1;}
 
-        void clearContents() {clearCurrent();}
+        void clearContents() {}
         void visibilityChanged(bool /*visible*/) {}
 
         void setFocus() {}
@@ -57,7 +55,6 @@ class PerformancePane : public Core::IOutputPane
 
     private:
         PerformanceWindow * m_widget;
-        QPlainTextEdit * m_textEdit;
 };
 
 class PerformanceMiniWidget : public QWidget
