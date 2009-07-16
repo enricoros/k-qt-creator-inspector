@@ -1,7 +1,6 @@
 TEMPLATE = lib
 TARGET = Performance
-QT += network  \
-    svg
+QT += network svg
 
 include(../../qtcreatorplugin.pri)
 include(performance_dependencies.pri)

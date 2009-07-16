@@ -40,7 +40,6 @@ PerformanceManager::PerformanceManager(Internal::PerformancePlugin *plugin, QObj
     // create the Server
     PerformanceServer * server = new PerformanceServer;
     connect(server, SIGNAL(newWarnings(int)), this, SLOT(slotNewWarnings(int)));
-    connect(server, SIGNAL(newString(const QString &)), this, SLOT(slotNewString(const QString &)));
     m_servers << server;
 
     // create the MiniWidget
@@ -67,6 +66,11 @@ PerformanceManager *PerformanceManager::instance()
 Internal::PerformancePane * PerformanceManager::pane() const
 {
     return m_pane;
+}
+
+Internal::PerformanceWindow * PerformanceManager::defaultWindow() const
+{
+    return m_pane->defaultWindow();
 }
 
 PerformanceServer * PerformanceManager::defaultServer() const
@@ -110,11 +114,6 @@ void PerformanceManager::slotShowWorkbench()
 void PerformanceManager::slotPaintingTemperature()
 {
     emit defaultServer()->debuggerCallFunction("qWindowTemperature");
-}
-
-void PerformanceManager::slotNewString(const QString & string)
-{
-    m_pane->addString(string);
 }
 
 void PerformanceManager::slotNewWarnings(int count)

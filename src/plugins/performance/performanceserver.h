@@ -40,7 +40,6 @@ public:
     void setHelpersInjected(bool on);
 
 signals:
-    void newString(const QString & string);
     void newWarnings(int count);
     void debuggerCallFunction(const QString & name, QVariantList args = QVariantList());
 

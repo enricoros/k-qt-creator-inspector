@@ -11,24 +11,20 @@
  ***************************************************************************/
 
 #include "performancewindow.h"
-#include "ui_performancewindow.h"
 
 using namespace Performance::Internal;
 
 PerformanceWindow::PerformanceWindow(QWidget *parent)
   : QWidget(parent)
-  , m_ui(new Ui::PerformanceWindow)
-  , m_centralWidget(0)
 {
-    m_ui->setupUi(this);
-    m_ui->eventSectButton->setChecked(true);
+    setupUi(this);
+    eventSectButton->setChecked(true);
 }
 
 PerformanceWindow::~PerformanceWindow()
 {
-    delete m_ui;
 }
-
+/*
 void PerformanceWindow::setCentralWidget(QWidget *widget)
 {
     delete m_centralWidget;
@@ -44,3 +40,4 @@ QWidget * PerformanceWindow::centralWidget() const
 {
     return m_centralWidget;
 }
+*/

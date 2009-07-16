@@ -22,6 +22,7 @@ namespace Internal {
 class PerformanceMiniWidget;
 class PerformancePane;
 class PerformancePlugin;
+class PerformanceWindow;
 }
 
 class Q_DECL_EXPORT PerformanceManager : public QObject
@@ -35,6 +36,7 @@ public:
     static PerformanceManager * instance();
 
     Internal::PerformancePane *pane() const;
+    Internal::PerformanceWindow *defaultWindow() const;
     PerformanceServer *defaultServer() const;
     int activationFlags() const; //TEMP relocate
 
@@ -44,7 +46,6 @@ public slots:
     void slotPaintingTemperature();
 
 private slots:
-    void slotNewString(const QString & string);
     void slotNewWarnings(int count);
 
 private:
