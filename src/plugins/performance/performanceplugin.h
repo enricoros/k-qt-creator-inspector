@@ -37,6 +37,10 @@ namespace Performance {
 class PerformanceManager;
 namespace Internal {
 
+// constants
+const char * const MODE_RUNTIME          = "Runtime";
+const int          P_MODE_RUNTIME        = 5;
+
 class PerformancePlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT

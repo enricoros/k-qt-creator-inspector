@@ -19,8 +19,7 @@
 namespace Performance {
 class PerformanceServer;
 namespace Internal {
-class PerformanceMiniWidget;
-class PerformancePane;
+class PerformanceNotification;
 class PerformancePlugin;
 class PerformanceWindow;
 }
@@ -35,7 +34,6 @@ public:
 
     static PerformanceManager * instance();
 
-    Internal::PerformancePane *pane() const;
     Internal::PerformanceWindow *defaultWindow() const;
     PerformanceServer *defaultServer() const;
     int activationFlags() const; //TEMP relocate
@@ -52,8 +50,8 @@ private:
     static PerformanceManager *s_instance;
     QList<PerformanceServer*> m_servers;
     Internal::PerformancePlugin *m_plugin;
-    Internal::PerformancePane *m_pane;
-    Internal::PerformanceMiniWidget *m_mini;
+    Internal::PerformanceWindow *m_window;
+    Internal::PerformanceNotification *m_notification;
 };
 
 } // namespace Performance

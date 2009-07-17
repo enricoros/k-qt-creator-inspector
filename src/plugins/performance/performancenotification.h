@@ -10,60 +10,21 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef PERFORMANCEPANE_H
-#define PERFORMANCEPANE_H
+#ifndef PERFORMANCENOTIFICATION_H
+#define PERFORMANCENOTIFICATION_H
 
-#include <coreplugin/ioutputpane.h>
-#include <QPixmap>
-#include <QPlainTextEdit>
+#include <QWidget>
 
 namespace Performance {
 namespace Internal {
-class PerformanceWindow;
 
-class PerformancePane : public Core::IOutputPane
-{
-    Q_OBJECT
-
-    public:
-        PerformancePane(QObject *parent = 0);
-        ~PerformancePane() {}
-
-        PerformanceWindow * defaultWindow() const;
-
-        // ::Core::IOutputPane
-        QWidget *outputWidget(QWidget *parent);
-        QList<QWidget*> toolBarWidgets() const { return QList<QWidget *>(); }
-        QString name() const { return tr("Performance Analyzer"); }
-
-        // -1 don't show in statusBar (100...0 show at front...end)
-        int priorityInStatusBar() const {return -1;}
-
-        void clearContents() {}
-        void visibilityChanged(bool /*visible*/) {}
-
-        void setFocus() {}
-        bool hasFocus() { return true; }
-        // should return true only if there are results here
-        bool canFocus() { return true; }
-
-        bool canNavigate() { return true; }
-        bool canNext() { return false; }
-        bool canPrevious() { return false; }
-        void goToNext() {}
-        void goToPrev() {}
-
-    private:
-        PerformanceWindow * m_widget;
-};
-
-class PerformanceMiniWidget : public QWidget
+class PerformanceNotification : public QWidget
 {
     Q_OBJECT
     Q_PROPERTY(qreal signOpacity READ signOpacity WRITE setSignOpacity)
 
 public:
-    PerformanceMiniWidget(QWidget * parent = 0);
+    PerformanceNotification(QWidget * parent = 0);
 
     void addWarning();
     void clearWarnings();

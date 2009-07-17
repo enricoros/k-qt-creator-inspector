@@ -30,7 +30,8 @@
 #include "performanceplugin.h"
 #include "performanceinformation.h"
 #include "performancemanager.h"
-#include "performancepane.h"
+#include "performancenotification.h"
+#include "performancewindow.h"
 
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/basemode.h>
@@ -76,7 +77,6 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     // create the Manager
     m_manager = new Performance::PerformanceManager(this);
     addAutoReleasedObject(m_manager);
-    addAutoReleasedObject(m_manager->pane());
 
     // UI
 
@@ -133,6 +133,18 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     connect(temperatureAction, SIGNAL(triggered()), m_manager, SLOT(slotPaintingTemperature()));
     command = actionManager->registerAction(temperatureAction, "Performance.ShowTemperature", debuggerContext);
     perfContainer->addAction(command);
+
+    Core::BaseMode * runtimeMode = new Core::BaseMode;
+    runtimeMode->setName(tr("Runtime"));
+    runtimeMode->setIcon(QIcon(":/performance/images/fancy-icon-32.png"));
+    runtimeMode->setPriority(Performance::Internal::P_MODE_RUNTIME);
+    runtimeMode->setWidget(new PerformanceWindow);
+    runtimeMode->setUniqueModeName(Performance::Internal::MODE_RUNTIME);
+    runtimeMode->setContext(globalContext);
+    addAutoReleasedObject(runtimeMode);
+
+//    connect(core->modeManager(), SIGNAL(currentModeChanged(Core::IMode*)),
+//            this, SLOT(modeChanged(Core::IMode*)), Qt::QueuedConnection);
 
     return true;
 }
