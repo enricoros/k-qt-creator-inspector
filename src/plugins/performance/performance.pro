@@ -6,7 +6,7 @@ include(../../qtcreatorplugin.pri)
 include(performance_dependencies.pri)
 
 HEADERS += performanceplugin.h \
-    performancepane.h \
+    performancenotification.h \
     performanceserver.h  \
     performanceinformation.h  \
     performanceplot.h  \
@@ -14,7 +14,7 @@ HEADERS += performanceplugin.h \
     performancemanager.h
 
 SOURCES += performanceplugin.cpp  \
-    performancepane.cpp  \
+    performancenotification.cpp  \
     performanceserver.cpp  \
     performanceinformation.cpp  \
     performanceplot.cpp  \

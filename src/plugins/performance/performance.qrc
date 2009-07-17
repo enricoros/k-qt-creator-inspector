@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/performance" >
+        <file>images/fancy-icon-32.png</file>
         <file>images/menu-icon.png</file>
         <file>images/mark-32.png</file>
         <file>images/plot-background.svg</file>

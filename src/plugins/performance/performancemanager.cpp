@@ -12,9 +12,10 @@
 
 #include "performancemanager.h"
 #include "performanceinformation.h"
-#include "performancepane.h"
+#include "performancenotification.h"
 #include "performanceplugin.h"
 #include "performanceserver.h"
+#include "performancewindow.h"
 
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
@@ -34,26 +35,26 @@ PerformanceManager::PerformanceManager(Internal::PerformancePlugin *plugin, QObj
     // save the instance (there is only 1 manager)
     s_instance = this;
 
-    // create the Pane
-    m_pane = new PerformancePane;
+    // create the Window
+    m_window = new PerformanceWindow;
 
     // create the Server
     PerformanceServer * server = new PerformanceServer;
     connect(server, SIGNAL(newWarnings(int)), this, SLOT(slotNewWarnings(int)));
     m_servers << server;
 
-    // create the MiniWidget
-    m_mini = new PerformanceMiniWidget;
-    connect(m_mini, SIGNAL(clicked()), this, SLOT(slotShowWorkbench()));
-    m_mini->hide();
+    // create the Notification
+    m_notification = new PerformanceNotification;
+    connect(m_notification, SIGNAL(clicked()), this, SLOT(slotShowWorkbench()));
+    m_notification->hide();
     // add it to CORE (add it now, even if not visible, to stay on top later)
-    Core::ICore::instance()->modeManager()->addWidget(m_mini);
+    Core::ICore::instance()->modeManager()->addWidget(m_notification);
 }
 
 PerformanceManager::~PerformanceManager()
 {
-    // m_pane is deleted by the plugin system (added by PerformancePlugin)
-    delete m_mini;
+    // m_window is deleted by the plugin system (added by PerformancePlugin)
+    delete m_notification;
     qDeleteAll(m_servers);
     s_instance = 0;
 }
@@ -63,14 +64,9 @@ PerformanceManager *PerformanceManager::instance()
     return s_instance;
 }
 
-Internal::PerformancePane * PerformanceManager::pane() const
-{
-    return m_pane;
-}
-
 Internal::PerformanceWindow * PerformanceManager::defaultWindow() const
 {
-    return m_pane->defaultWindow();
+    return m_window;
 }
 
 PerformanceServer * PerformanceManager::defaultServer() const
@@ -102,13 +98,12 @@ void PerformanceManager::slotShowInformation()
 
 void PerformanceManager::slotShowWorkbench()
 {
-    // hide the MiniWidget first
-    m_mini->clearWarnings();
-    m_mini->hide();
+    // hide the Notification first
+    m_notification->clearWarnings();
+    m_notification->hide();
 
-    // CORE: switch to full screen performance view
-    Core::ICore::instance()->modeManager()->activateMode(Core::Constants::MODE_OUTPUT);
-    m_pane->popup(true);
+    // switch to the Runtime view
+    Core::ICore::instance()->modeManager()->activateMode(Performance::Internal::MODE_RUNTIME);
 }
 
 void PerformanceManager::slotPaintingTemperature()
@@ -119,6 +114,6 @@ void PerformanceManager::slotPaintingTemperature()
 void PerformanceManager::slotNewWarnings(int count)
 {
     for (int i = 0; i < count; i++)
-        m_mini->addWarning();
-    m_mini->show();
+        m_notification->addWarning();
+    m_notification->show();
 }

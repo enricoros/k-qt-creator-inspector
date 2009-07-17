@@ -10,36 +10,19 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "performancepane.h"
+#include "performancenotification.h"
 #include "performancewindow.h"
 
-using namespace Performance::Internal;
-
-PerformancePane::PerformancePane(QObject *parent)
-  : Core::IOutputPane(parent)
-  , m_widget(0)
-{
-}
-
-PerformanceWindow * PerformancePane::defaultWindow() const
-{
-    return m_widget;
-}
-
-QWidget * PerformancePane::outputWidget(QWidget *parent)
-{
-    if (!m_widget)
-        m_widget = new PerformanceWindow(parent);
-    return m_widget;
-}
-
 #include <utils/stylehelper.h>
+
 #include <QPainter>
 #if QT_VERSION >= 0x040600
 #include <QPropertyAnimation>
 #endif
 
-PerformanceMiniWidget::PerformanceMiniWidget(QWidget * parent)
+using namespace Performance::Internal;
+
+PerformanceNotification::PerformanceNotification(QWidget * parent)
   : QWidget(parent)
   , m_signOpacity(1.0)
   , m_pixmap(":/performance/images/mark-32.png")
@@ -48,7 +31,7 @@ PerformanceMiniWidget::PerformanceMiniWidget(QWidget * parent)
     setMinimumSize(60, 50);
 }
 
-void PerformanceMiniWidget::addWarning()
+void PerformanceNotification::addWarning()
 {
     m_cWarnings++;
 #if QT_VERSION >= 0x040600
@@ -63,13 +46,13 @@ void PerformanceMiniWidget::addWarning()
 #endif
 }
 
-void PerformanceMiniWidget::clearWarnings()
+void PerformanceNotification::clearWarnings()
 {
     m_cWarnings = 0;
     update();
 }
 
-void PerformanceMiniWidget::paintEvent(QPaintEvent * /*event*/)
+void PerformanceNotification::paintEvent(QPaintEvent * /*event*/)
 {
     // see progresspie.cpp for drawing...
     QPainter p(this);
@@ -104,18 +87,18 @@ void PerformanceMiniWidget::paintEvent(QPaintEvent * /*event*/)
     p.drawText(left, baseLine, width() - left, 12, Qt::AlignVCenter, tr("%1").arg(m_cWarnings));
 }
 
-void PerformanceMiniWidget::mousePressEvent(QMouseEvent * event)
+void PerformanceNotification::mousePressEvent(QMouseEvent * event)
 {
     if (event->button() == Qt::LeftButton)
         emit clicked();
 }
 
-qreal PerformanceMiniWidget::signOpacity() const
+qreal PerformanceNotification::signOpacity() const
 {
     return m_signOpacity;
 }
 
-void PerformanceMiniWidget::setSignOpacity(qreal opacity)
+void PerformanceNotification::setSignOpacity(qreal opacity)
 {
     m_signOpacity = opacity;
     update();
