@@ -105,7 +105,7 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     perfContainer->addAction(command);
 
     QAction *workBenchAction = new QAction(tr("Workbench"), this);
-    connect(workBenchAction, SIGNAL(triggered()), m_manager, SLOT(slotShowWorkbench()));
+    connect(workBenchAction, SIGNAL(triggered()), m_manager, SLOT(slotShowRuntimeMode()));
     command = actionManager->registerAction(workBenchAction, "Performance.ShowWorkBench", globalContext);
     perfContainer->addAction(command);
 

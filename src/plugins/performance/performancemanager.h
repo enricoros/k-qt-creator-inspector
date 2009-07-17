@@ -40,7 +40,7 @@ public:
 
 public slots:
     void slotShowInformation();
-    void slotShowWorkbench();
+    void slotShowRuntimeMode();
     void slotPaintingTemperature();
 
 private slots:

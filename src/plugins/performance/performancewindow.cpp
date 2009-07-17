@@ -18,26 +18,67 @@ PerformanceWindow::PerformanceWindow(QWidget *parent)
   : QWidget(parent)
 {
     setupUi(this);
-    eventSectButton->setChecked(true);
+
+    connect(generalSectButton, SIGNAL(toggled(bool)), this, SLOT(slotSetGeneral(bool)));
+    connect(eventSectButton, SIGNAL(toggled(bool)), this, SLOT(slotSetEvent(bool)));
+    connect(editSectButton, SIGNAL(toggled(bool)), this, SLOT(slotSetEdit(bool)));
+    connect(paintingSectButton, SIGNAL(toggled(bool)), this, SLOT(slotSetPainting(bool)));
+    connect(timersSectButton, SIGNAL(toggled(bool)), this, SLOT(slotSetTimers(bool)));
+    connect(networkSectButton, SIGNAL(toggled(bool)), this, SLOT(slotSetNetwork(bool)));
+    connect(inputSectButton, SIGNAL(toggled(bool)), this, SLOT(slotSetInput(bool)));
+    connect(parallelSectButton, SIGNAL(toggled(bool)), this, SLOT(slotSetParallel(bool)));
+
+    generalSectButton->setChecked(true);
 }
 
 PerformanceWindow::~PerformanceWindow()
 {
 }
-/*
-void PerformanceWindow::setCentralWidget(QWidget *widget)
+
+void PerformanceWindow::slotSetGeneral(bool on)
 {
-    delete m_centralWidget;
-    m_centralWidget = widget;
-
-    foreach (QObject * child, m_ui->mainFrame->children())
-        delete child;
-    m_centralWidget->setParent(m_ui->mainFrame);
-
+    if (on)
+        mainStackWidget->setCurrentIndex(0);
 }
 
-QWidget * PerformanceWindow::centralWidget() const
+void PerformanceWindow::slotSetEvent(bool on)
 {
-    return m_centralWidget;
+    if (on)
+        mainStackWidget->setCurrentIndex(1);
 }
-*/
+
+void PerformanceWindow::slotSetEdit(bool on)
+{
+    if (on)
+        mainStackWidget->setCurrentIndex(2);
+}
+
+void PerformanceWindow::slotSetPainting(bool on)
+{
+    if (on)
+        mainStackWidget->setCurrentIndex(3);
+}
+
+void PerformanceWindow::slotSetTimers(bool on)
+{
+    if (on)
+        mainStackWidget->setCurrentIndex(4);
+}
+
+void PerformanceWindow::slotSetNetwork(bool on)
+{
+    if (on)
+        mainStackWidget->setCurrentIndex(5);
+}
+
+void PerformanceWindow::slotSetInput(bool on)
+{
+    if (on)
+        mainStackWidget->setCurrentIndex(6);
+}
+
+void PerformanceWindow::slotSetParallel(bool on)
+{
+    if (on)
+        mainStackWidget->setCurrentIndex(7);
+}
