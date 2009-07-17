@@ -45,7 +45,7 @@ PerformanceManager::PerformanceManager(Internal::PerformancePlugin *plugin, QObj
 
     // create the Notification
     m_notification = new PerformanceNotification;
-    connect(m_notification, SIGNAL(clicked()), this, SLOT(slotShowWorkbench()));
+    connect(m_notification, SIGNAL(clicked()), this, SLOT(slotShowRuntimeMode()));
     m_notification->hide();
     // add it to CORE (add it now, even if not visible, to stay on top later)
     Core::ICore::instance()->modeManager()->addWidget(m_notification);
@@ -96,7 +96,7 @@ void PerformanceManager::slotShowInformation()
     info.exec();
 }
 
-void PerformanceManager::slotShowWorkbench()
+void PerformanceManager::slotShowRuntimeMode()
 {
     // hide the Notification first
     m_notification->clearWarnings();

@@ -27,8 +27,15 @@ public:
     PerformanceWindow(QWidget *parent = 0);
     ~PerformanceWindow();
 
-    //void setCentralWidget(QWidget *);
-    //QWidget *centralWidget() const;
+private slots:
+    void slotSetGeneral(bool);
+    void slotSetEvent(bool);
+    void slotSetEdit(bool);
+    void slotSetPainting(bool);
+    void slotSetTimers(bool);
+    void slotSetNetwork(bool);
+    void slotSetInput(bool);
+    void slotSetParallel(bool);
 };
 
 } // namespace Internal
