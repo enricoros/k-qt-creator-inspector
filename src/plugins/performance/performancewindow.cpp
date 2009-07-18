@@ -12,73 +12,174 @@
 
 #include "performancewindow.h"
 
+#include <utils/styledbar.h>
+
+#include <QtGui/QComboBox>
+#include <QtGui/QHBoxLayout>
+#include <QtGui/QLabel>
+
+#if QT_VERSION >= 0x040600
+#include <QPropertyAnimation>
+#endif
+
 using namespace Performance::Internal;
 
 PerformanceWindow::PerformanceWindow(QWidget *parent)
   : QWidget(parent)
+  , m_centralWidget(0)
 {
-    setupUi(this);
+    // ToolBar
+    QWidget *toolBar = new Utils::StyledBar(this);
+    QHBoxLayout *tLayout = new QHBoxLayout(toolBar);
+    tLayout->setMargin(0);
+    tLayout->setSpacing(0);
 
-    connect(generalSectButton, SIGNAL(toggled(bool)), this, SLOT(slotSetGeneral(bool)));
-    connect(eventSectButton, SIGNAL(toggled(bool)), this, SLOT(slotSetEvent(bool)));
-    connect(editSectButton, SIGNAL(toggled(bool)), this, SLOT(slotSetEdit(bool)));
-    connect(paintingSectButton, SIGNAL(toggled(bool)), this, SLOT(slotSetPainting(bool)));
-    connect(timersSectButton, SIGNAL(toggled(bool)), this, SLOT(slotSetTimers(bool)));
-    connect(networkSectButton, SIGNAL(toggled(bool)), this, SLOT(slotSetNetwork(bool)));
-    connect(inputSectButton, SIGNAL(toggled(bool)), this, SLOT(slotSetInput(bool)));
-    connect(parallelSectButton, SIGNAL(toggled(bool)), this, SLOT(slotSetParallel(bool)));
+    m_mainCombo = new QComboBox(toolBar);
+    connect(m_mainCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(slotMainChanged(int)));
+    m_subCombo = new QComboBox(toolBar);
+    connect(m_subCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(slotSubChanged(int)));
+    tLayout->addWidget(m_mainCombo);
+    //tLayout->addWidget(new QLabel(tr(" section "), toolBar));
+    tLayout->addWidget(m_subCombo);
+    tLayout->addStretch(10);
 
-    generalSectButton->setChecked(true);
+    // Main Layout
+    m_mainLayout = new QVBoxLayout(this);
+    m_mainLayout->setMargin(0);
+    m_mainLayout->setSpacing(0);
+    m_mainLayout->addWidget(toolBar);
+
+    updateMainCombo(true);
 }
 
 PerformanceWindow::~PerformanceWindow()
 {
 }
 
-void PerformanceWindow::slotSetGeneral(bool on)
+void PerformanceWindow::slotMainChanged(int choice)
 {
-    if (on)
-        mainStackWidget->setCurrentIndex(0);
+    // reset subcombo
+    m_subCombo->hide();
+    m_subCombo->clear();
+
+    // main category selected
+    int id = m_mainCombo->itemData(choice, Qt::UserRole).toInt();
+    switch (id) {
+        case 1:
+            m_subCombo->addItem(tr("Information"), 101);
+            m_subCombo->addItem(tr("Debugging"), 102);
+            m_subCombo->adjustSize();
+            m_subCombo->show();
+            break;
+        case 2:
+            break;
+        case 3:
+            break;
+        case 4:
+            m_subCombo->addItem(tr("..."));
+            m_subCombo->addItem(tr("Temperature"), 401);
+            m_subCombo->addItem(tr("Pixel Energy"), 402);
+            m_subCombo->adjustSize();
+            m_subCombo->show();
+            activateSubSelector();
+            break;
+        case 5:
+            break;
+        case 6:
+            break;
+        case 7:
+            break;
+        case 8:
+            break;
+    }
 }
 
-void PerformanceWindow::slotSetEvent(bool on)
+void PerformanceWindow::slotSubChanged(int choice)
 {
-    if (on)
-        mainStackWidget->setCurrentIndex(1);
+    int id = m_subCombo->itemData(choice, Qt::UserRole).toInt();
+    switch (id) {
+        case 101:
+            activateRInformation();
+            break;
+        case 102:
+            activateRDebugging();
+            break;
+        case 401:
+            activatePainting(1);
+            break;
+        case 402:
+            activatePainting(2);
+            break;
+        default:
+            activateSubSelector();
+            break;
+    }
 }
 
-void PerformanceWindow::slotSetEdit(bool on)
+
+void PerformanceWindow::activateRInformation()
 {
-    if (on)
-        mainStackWidget->setCurrentIndex(2);
+    setCentralWidget(new QWidget);
 }
 
-void PerformanceWindow::slotSetPainting(bool on)
+#include "ui_servicewindow.h"
+void PerformanceWindow::activateRDebugging()
 {
-    if (on)
-        mainStackWidget->setCurrentIndex(3);
+    QWidget *w = new QWidget;
+    Ui::ServiceWindow * ui = new Ui::ServiceWindow;
+    ui->setupUi(w);
+    setCentralWidget(w);
 }
 
-void PerformanceWindow::slotSetTimers(bool on)
+void PerformanceWindow::activatePainting(int /*subChoice*/)
 {
-    if (on)
-        mainStackWidget->setCurrentIndex(4);
+    setCentralWidget(new QWidget);
 }
 
-void PerformanceWindow::slotSetNetwork(bool on)
+void PerformanceWindow::activateSubSelector()
 {
-    if (on)
-        mainStackWidget->setCurrentIndex(5);
+    QWidget *holder = new QWidget;
+    QLabel *arrowLabel = new QLabel(holder);
+    QPixmap pix(":/performance/images/submenu-up.png");
+    arrowLabel->setPixmap(pix);
+    arrowLabel->setFixedSize(pix.size());
+#if QT_VERSION >= 0x040600
+    QPropertyAnimation * ani = new QPropertyAnimation(arrowLabel, "pos");
+    ani->setEasingCurve(QEasingCurve::OutCubic);
+    ani->setDuration(800);
+    ani->setEndValue(QPoint(m_subCombo->x() + (m_subCombo->width() - pix.width()) / 2, 0));
+    ani->start(QPropertyAnimation::DeleteWhenStopped);
+#else
+    arrowLabel->move(m_subCombo->x() + (m_subCombo->width() - pix.width()) / 2, 0);
+#endif
+    setCentralWidget(holder);
 }
 
-void PerformanceWindow::slotSetInput(bool on)
+
+void PerformanceWindow::setCentralWidget(QWidget * widget)
 {
-    if (on)
-        mainStackWidget->setCurrentIndex(6);
+    delete m_centralWidget;
+    m_centralWidget = widget;
+    if (m_centralWidget)
+        m_mainLayout->addWidget(m_centralWidget, 10);
 }
 
-void PerformanceWindow::slotSetParallel(bool on)
+void PerformanceWindow::updateMainCombo(bool enabled)
 {
-    if (on)
-        mainStackWidget->setCurrentIndex(7);
+    int prevIdx = m_mainCombo->currentIndex();
+    m_mainCombo->clear();
+    m_mainCombo->addItem(tr("Runtime"), 1);
+    if (enabled) {
+        m_mainCombo->addItem(tr("Event Loop"), 2);
+        m_mainCombo->addItem(tr("Edit"), 3);
+        m_mainCombo->addItem(tr("Painting"), 4);
+        m_mainCombo->addItem(tr("Timers"), 5);
+        m_mainCombo->addItem(tr("Network"), 6);
+        m_mainCombo->addItem(tr("Input"), 7);
+        m_mainCombo->addItem(tr("Parallel"), 8);
+    }
+    if (prevIdx > 0 && prevIdx < m_mainCombo->count())
+        m_mainCombo->setCurrentIndex(prevIdx);
+    else
+        m_mainCombo->setCurrentIndex(0);
 }
