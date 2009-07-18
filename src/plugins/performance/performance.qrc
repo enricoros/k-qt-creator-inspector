@@ -6,5 +6,6 @@
         <file>images/plot-background.svg</file>
         <file>images/status-ok.png</file>
         <file>images/status-err.png</file>
+        <file>images/submenu-up.png</file>
     </qresource>
 </RCC>

@@ -14,12 +14,13 @@
 #define PERFORMANCEWINDOW_H
 
 #include <QWidget>
-#include "ui_performancewindow.h"
+class QComboBox;
+class QVBoxLayout;
 
 namespace Performance {
 namespace Internal {
 
-class PerformanceWindow : public QWidget, public Ui::PerformanceWindow
+class PerformanceWindow : public QWidget
 {
     Q_OBJECT
 
@@ -28,14 +29,22 @@ public:
     ~PerformanceWindow();
 
 private slots:
-    void slotSetGeneral(bool);
-    void slotSetEvent(bool);
-    void slotSetEdit(bool);
-    void slotSetPainting(bool);
-    void slotSetTimers(bool);
-    void slotSetNetwork(bool);
-    void slotSetInput(bool);
-    void slotSetParallel(bool);
+    void slotMainChanged(int);
+    void slotSubChanged(int);
+
+private:
+    void activateRInformation();
+    void activateRDebugging();
+    void activatePainting(int subChoice);
+    void activateSubSelector();
+
+    void setCentralWidget(QWidget * widget);
+    void updateMainCombo(bool enabled);
+
+    QComboBox *m_mainCombo;
+    QComboBox *m_subCombo;
+    QVBoxLayout *m_mainLayout;
+    QWidget *m_centralWidget;
 };
 
 } // namespace Internal

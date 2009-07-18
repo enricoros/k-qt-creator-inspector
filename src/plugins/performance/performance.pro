@@ -22,7 +22,7 @@ SOURCES += performanceplugin.cpp  \
     performancemanager.cpp
 
 FORMS += performanceinformation.ui  \
-    performancewindow.ui
+    servicewindow.ui
 
 RESOURCES += performance.qrc
 
