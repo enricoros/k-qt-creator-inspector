@@ -116,10 +116,26 @@ void PerformanceWindow::slotSubChanged(int choice)
     }
 }
 
-
+#include "performanceinformation.h"
+#include "performancemanager.h"
+#include "performanceserver.h"
 void PerformanceWindow::activateRInformation()
 {
-    setCentralWidget(new QWidget);
+    Performance::PerformanceServer *server = Performance::PerformanceManager::instance()->defaultServer();
+    if (!server) {
+        setCentralWidget(new QWidget);
+	return;
+    }
+
+    Internal::PerformanceInformation *info = new Internal::PerformanceInformation;
+    info->setFieldState(info->debLabel, server->m_sDebugging ? 1 : -1);
+    info->setFieldState(info->enaButton, server->m_sEnabled ? 1 : -1);
+    info->setFieldState(info->hlpLabel, server->m_sHelpers ? 1 : server->m_sDebugging ? -1 : 0);
+    info->setFieldState(info->injLabel, server->m_sInjected ? 1 : server->m_sDebugging ? -1 : 0);
+    info->setFieldState(info->conLabel, server->m_sConnected ? 1 : server->m_sDebugging ? -1 : 0);
+    info->setFieldState(info->workLabel, (server->m_sDebugging && server->m_sEnabled && server->m_sInjected && server->m_sConnected) ? 1 : 0);
+
+    setCentralWidget(info);
 }
 
 #include "ui_servicewindow.h"

@@ -138,7 +138,7 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     runtimeMode->setName(tr("Runtime"));
     runtimeMode->setIcon(QIcon(":/performance/images/fancy-icon-32.png"));
     runtimeMode->setPriority(Performance::Internal::P_MODE_RUNTIME);
-    runtimeMode->setWidget(new PerformanceWindow);
+    runtimeMode->setWidget(m_manager->defaultWindow());
     runtimeMode->setUniqueModeName(Performance::Internal::MODE_RUNTIME);
     runtimeMode->setContext(globalContext);
     addAutoReleasedObject(runtimeMode);
