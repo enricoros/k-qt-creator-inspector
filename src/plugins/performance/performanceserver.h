@@ -20,6 +20,9 @@
 class QLocalServer;
 
 namespace Performance {
+namespace Internal {
+class PerformanceWindow;
+}
 
 class Q_DECL_EXPORT PerformanceServer : public QObject
 {
@@ -51,6 +54,7 @@ private slots:
 
 private:
     friend class PerformanceManager;
+    friend class Internal::PerformanceWindow;
     QLocalServer *m_localServer;
     QLocalSocket *m_socket;
     QByteArray m_incomingData;
