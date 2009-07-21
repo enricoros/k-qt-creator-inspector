@@ -31,6 +31,7 @@ PerformanceManager *PerformanceManager::s_instance = 0;
 PerformanceManager::PerformanceManager(Internal::PerformancePlugin *plugin, QObject *parent)
   : QObject(parent)
   , m_plugin(plugin)
+  , m_enabled(true)
 {
     // save the instance (there is only 1 manager)
     s_instance = this;
@@ -64,6 +65,11 @@ PerformanceManager *PerformanceManager::instance()
     return s_instance;
 }
 
+bool PerformanceManager::enabled() const
+{
+    return m_enabled;
+}
+
 Internal::PerformanceWindow * PerformanceManager::defaultWindow() const
 {
     return m_window;
@@ -81,6 +87,11 @@ int PerformanceManager::activationFlags() const
     if (m_plugin->showPaint())
         flags |= Performance::Internal::AF_PaintDebug;
     return flags;
+}
+
+void PerformanceManager::slotSetEnabled(bool enabled)
+{
+    m_enabled = enabled;
 }
 
 void PerformanceManager::slotShowInformation()

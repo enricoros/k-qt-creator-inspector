@@ -34,11 +34,14 @@ public:
 
     static PerformanceManager * instance();
 
+    bool enabled() const;
+
     Internal::PerformanceWindow *defaultWindow() const;
     PerformanceServer *defaultServer() const;
     int activationFlags() const; //TEMP relocate
 
 public slots:
+    void slotSetEnabled(bool enabled);
     void slotShowInformation();
     void slotShowRuntimeMode();
     void slotPaintingTemperature();
@@ -52,6 +55,7 @@ private:
     Internal::PerformancePlugin *m_plugin;
     Internal::PerformanceWindow *m_window;
     Internal::PerformanceNotification *m_notification;
+    bool m_enabled;
 };
 
 } // namespace Performance

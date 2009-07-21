@@ -565,12 +565,18 @@ void GdbEngine::tryActivatePerformanceHelpersClassic()
     // get the listening socket name
     Performance::PerformanceManager * perfManager = Performance::PerformanceManager::instance();
     Performance::PerformanceServer * perfServer = perfManager->defaultServer();
+    if (!perfManager->enabled()) {
+        perfServer->setHelpersPresent(false);
+        perfServer->setHelpersInjected(false);
+        return;
+    }
     QString serverName = perfServer->serverName();
     int activationFlags = perfManager->activationFlags();
 
     // disable the performance plugin if no server name
     if (serverName.isNull()) {
         perfServer->setHelpersPresent(false);
+        perfServer->setHelpersInjected(false);
         return;
     }
 
