@@ -99,6 +99,13 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     // create (and register to the system) the actions
     Core::Command *command;
 
+    QAction *enableAction = new QAction(tr("Enable"), this);
+    enableAction->setCheckable(true);
+    enableAction->setChecked(true);
+    connect(enableAction, SIGNAL(toggled(bool)), m_manager, SLOT(slotSetEnabled(bool)));
+    command = actionManager->registerAction(enableAction, "Performance.Enable", globalContext);
+    perfContainer->addAction(command);
+
     QAction *infoAction = new QAction(tr("Information..."), this);
     connect(infoAction, SIGNAL(triggered()), m_manager, SLOT(slotShowInformation()));
     command = actionManager->registerAction(infoAction, "Performance.Information", globalContext);
