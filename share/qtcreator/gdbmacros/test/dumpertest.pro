@@ -11,7 +11,8 @@ CONFIG   -= app_bundle
 TEMPLATE = app
 
 SOURCES += main.cpp \
-../gdbmacros.cpp
+../gdbmacros.cpp \
+../perfunction.cpp
 
 exists($$QMAKE_INCDIR_QT/QtCore/private/qobject_p.h) {
    DEFINES+=HAS_QOBJECT_P_H

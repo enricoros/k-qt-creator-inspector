@@ -180,7 +180,7 @@ QString DebuggingHelperLibrary::copyDebuggingHelperLibrary(const QString &qtInst
 
     QStringList files;
     files << QLatin1String("gdbmacros.cpp") << QLatin1String("gdbmacros_p.h") << QLatin1String("gdbmacros.h") << QLatin1String("gdbmacros.pro")
-          << QLatin1String("LICENSE.LGPL") << QLatin1String("LGPL_EXCEPTION.TXT");
+          << QLatin1String("perfunction.cpp") << QLatin1String("perfunction.h") << QLatin1String("LICENSE.LGPL") << QLatin1String("LGPL_EXCEPTION.TXT");
     // Try to find a writeable directory.
     foreach(const QString &directory, directories)
         if (copyDebuggingHelperFiles(files, directory, errorMessage)) {
