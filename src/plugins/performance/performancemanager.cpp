@@ -31,7 +31,7 @@ PerformanceManager *PerformanceManager::s_instance = 0;
 PerformanceManager::PerformanceManager(Internal::PerformancePlugin *plugin, QObject *parent)
   : QObject(parent)
   , m_plugin(plugin)
-  , m_enabled(true)
+  , m_enabled(false)
 {
     // save the instance (there is only 1 manager)
     s_instance = this;
