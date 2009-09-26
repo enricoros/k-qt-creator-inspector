@@ -1225,8 +1225,8 @@ void DebuggerManager::executeDebuggerCommand()
 
 void DebuggerManager::callFunction(const QString &function, const QVariantList &args)
 {
-    if (m_engine)
-        m_engine->callFunction(function, args);
+    if (d->m_engine)
+        d->m_engine->callFunction(function, args);
 }
 
 void DebuggerManager::executeDebuggerCommand(const QString &command)
