@@ -245,7 +245,7 @@ static bool ppDebugPainting = false;
 static bool eventInterceptorCallback(void **data)
 {
     QEvent *event = reinterpret_cast<QEvent*>(data[1]);
-    if (!ppCommClient->fencing() && event->type() >= QEvent::Timer && event->type() <= QEvent::User ) {
+    if (ppCommClient && (!ppCommClient->fencing() && event->type() >= QEvent::Timer && event->type() <= QEvent::User)) {
         static int stackDepth = 0;
         ++stackDepth;
         static int numE = 0;
@@ -371,6 +371,12 @@ struct __TimedRect {
 extern "C"
 void qWindowTemperature()
 {
+    // sanity check
+    if (!ppCommClient) {
+        qWarning("qWindowTemperature: not connected");
+        return;
+    }
+
     // check for graphical environment
     QApplication * app = dynamic_cast<QApplication *>(QCoreApplication::instance());
     if (!app) {
@@ -382,12 +388,12 @@ void qWindowTemperature()
     ppCommClient->sendRaw(0x100, 1, QByteArray());
 
     // parameters
-    static const int passes = 5;
-    static const int headDrops = 1;
-    static const int tailDrops = 2;
-    static const int innerPasses = 4;
-    static const int chunkWidth = 10;
-    static const int chunkHeight = 10;
+    static const int passes         = 5;    // 5
+    static const int headDrops      = 1;    // 1
+    static const int tailDrops      = 2;    // 2
+    static const int innerPasses    = 4;    // 4
+    static const int chunkWidth     = 5;    // 5
+    static const int chunkHeight    = 5;    // 5
 
     // vars
     struct timeval tv1, tv2;

@@ -101,7 +101,7 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
 
     QAction *enableAction = new QAction(tr("Enable"), this);
     enableAction->setCheckable(true);
-    enableAction->setChecked(true);
+    enableAction->setChecked(m_manager->enabled());
     connect(enableAction, SIGNAL(toggled(bool)), m_manager, SLOT(slotSetEnabled(bool)));
     command = actionManager->registerAction(enableAction, "Performance.Enable", globalContext);
     perfContainer->addAction(command);
