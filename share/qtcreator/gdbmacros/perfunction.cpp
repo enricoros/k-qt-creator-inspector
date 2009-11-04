@@ -208,7 +208,7 @@ class PerfCommClient {
 
         void printError(const QString & string)
         {
-            qWarning(PP_NAME": %s", qPrintable(string));
+            fprintf(stderr, PP_NAME": %s", qPrintable(string));
         }
 
         inline bool fencing() const
@@ -300,22 +300,22 @@ static bool eventInterceptorCallback(void **data)
 #if 0
 static void signalBeginCallback(QObject *caller, int method_index, void **/*argv*/)
 {
-    qWarning("sinal BEGIN: %s", caller->metaObject()->method(method_index).signature());
+    fprintf(stderr, "sinal BEGIN: %s", caller->metaObject()->method(method_index).signature());
 }
 
 static void signalEndCallback(QObject *caller, int method_index)
 {
-    qWarning("sinal END: %s", caller->metaObject()->method(method_index).signature());
+    fprintf(stderr, "sinal END: %s", caller->metaObject()->method(method_index).signature());
 }
 
 static void slotBeginCallback(QObject *caller, int method_index, void **/*argv*/)
 {
-    qWarning("slot BEGIN: %s", caller->metaObject()->method(method_index).signature());
+    fprintf(stderr, "slot BEGIN: %s", caller->metaObject()->method(method_index).signature());
 }
 
 static void slotEndCallback(QObject *caller, int method_index)
 {
-    qWarning("slot END: %s", caller->metaObject()->method(method_index).signature());
+    fprintf(stderr, "slot END: %s", caller->metaObject()->method(method_index).signature());
 }
 #endif
 
@@ -340,7 +340,7 @@ bool qPerfActivate(const char * serverName, int activationFlags)
     // 4. events callback
     QInternal::registerCallback(QInternal::EventNotifyCallback, eventInterceptorCallback);
 
-    qWarning(PP_NAME": Activated");
+    fprintf(stderr, PP_NAME": Activated");
     ppCommClient->sendService(0x01, QByteArray());
     return true;
 }
@@ -348,7 +348,7 @@ bool qPerfActivate(const char * serverName, int activationFlags)
 extern "C"
 void qPerfDeactivate()
 {
-    qWarning(PP_NAME": Deactivated");
+    fprintf(stderr, PP_NAME": Deactivated");
 
     // 4. events callback
     QInternal::unregisterCallback(QInternal::EventNotifyCallback, eventInterceptorCallback);
@@ -373,13 +373,14 @@ void qWindowTemperature()
 {
     // sanity check
     if (!ppCommClient) {
-        qWarning("qWindowTemperature: not connected");
+        fprintf(stderr, "qWindowTemperature: not connected");
         return;
     }
 
     // check for graphical environment
     QApplication * app = dynamic_cast<QApplication *>(QCoreApplication::instance());
     if (!app) {
+        fprintf(stderr, "qWindowTemperature: no QApplication");
         ppCommClient->sendError("No QApplication in this window");
         return;
     }
@@ -397,6 +398,7 @@ void qWindowTemperature()
 
     // vars
     struct timeval tv1, tv2;
+fprintf(stderr, "A\n");
 
     foreach (QWidget * widget, app->topLevelWidgets()) {
         if (!widget || !widget->isVisible() || widget->width() < 50 || widget->height() < 50)
@@ -429,14 +431,17 @@ void qWindowTemperature()
         QImage baseImage(wW, wH, QImage::Format_ARGB32);
         baseImage.fill(0);
         widget->render(&baseImage);
+fprintf(stderr, "B\n");
 
         ppCommClient->sendImage(baseImage); ///
 
         QImage testImage(wW, wH, QImage::Format_ARGB32);
         testImage.fill(0);
+fprintf(stderr, "C %d\n", passes);
 
         // test the rects
         for (int pass = 0; pass < passes; pass++) {
+fprintf(stderr, "p %d\n", pass);
             for (int i = 0; i < wRects; i++) {
 
                 //QImage testImage(testRect.size(), QImage::Format_ARGB32);
@@ -444,8 +449,10 @@ void qWindowTemperature()
 
                 // timed rendering
                 gettimeofday(&tv1, 0);
+fprintf(stderr, "r %d %d\n", i, wRects);
                 for (int rep = 0; rep < innerPasses; rep++)
                     widget->render(&testImage, QPoint() /*wTimedRects[i].rect.topLeft()*/, wTimedRects[i].rect, QWidget::DrawChildren /*| DrawWindowBackground*/);
+fprintf(stderr, "/r\n");
                 gettimeofday(&tv2, 0);
 
                 // accumulate time
@@ -453,6 +460,8 @@ void qWindowTemperature()
                 wTimedRects[i].times.append(elapsedMs);
             }
             // send out the progress
+//app->processEvents();
+fprintf(stderr, "pc %d\n", ((pass + 1) * 100) / passes);
             ppCommClient->sendPercent(((pass + 1) * 100) / passes);
         }
 
@@ -465,6 +474,7 @@ void qWindowTemperature()
             for (int idx = headDrops; idx < (tRect.times.size() - tailDrops); idx++)
                 tRect.totalTime += tRect.times[idx];
         }
+fprintf(stderr, "done minmax\n");
 
         // all rects: find out boundaries and discard min and max
         double tTotal = 0, tMax = 0, tMin = 0;
@@ -475,6 +485,7 @@ void qWindowTemperature()
                 tMin = tRect.totalTime;
             tTotal += tRect.totalTime;
         }
+fprintf(stderr, "done bounds\n");
 
         // colorize the original image, and draw the legend
         QPainter basePainter(&baseImage);
@@ -485,17 +496,21 @@ void qWindowTemperature()
             //basePainter.setFont(QFont("Arial",8));
             //basePainter.drawText(tRect.rect.topLeft() + QPoint(2,10), QString::number(tRect.time / (double)passes));
         }
+fprintf(stderr, "done baseimage\n");
         for (int x = 0; x <= 100; x++) {
             double alpha = (double)x / 100.0;
             QColor col = QColor::fromHsvF(0.67 - alpha * 0.67, 1.0, 1.0, 0.5 + 0.25*alpha);
             basePainter.fillRect(wW - 10 - x, 10, 1, 20, col);
         }
         basePainter.end();
+fprintf(stderr, "done painting\n");
 
         // send out the result
         ppCommClient->sendImage(baseImage);
+fprintf(stderr, "done send\n");
     }
 
     // tell that the operation has finished
     ppCommClient->sendRaw(0x100, 2, QByteArray());
+fprintf(stderr, "done send2\n");
 }
