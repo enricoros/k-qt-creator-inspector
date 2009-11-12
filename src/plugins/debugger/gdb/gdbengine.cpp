@@ -805,6 +805,9 @@ int GdbEngine::commandTimeoutTime() const
 
 void GdbEngine::commandTimeout()
 {
+    // ### disable timeout, for Performance by Enrico
+    return;
+
     QList<int> keys = m_cookieForToken.keys();
     qSort(keys);
     bool killIt = false;
