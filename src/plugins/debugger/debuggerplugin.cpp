@@ -67,6 +67,7 @@
 #include <coreplugin/manhattanstyle.h>
 
 #include <performance/performancemanager.h>
+#include <performance/performanceserver.h>
 
 #include <projectexplorer/projectexplorer.h>
 #include <projectexplorer/projectexplorerconstants.h>
