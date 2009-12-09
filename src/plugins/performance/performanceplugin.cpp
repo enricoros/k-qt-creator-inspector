@@ -143,7 +143,7 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
 
     Core::BaseMode * runtimeMode = new Core::BaseMode;
     runtimeMode->setName(tr("Runtime"));
-    runtimeMode->setIcon(QIcon(":/performance/images/fancy-icon-32.png"));
+    runtimeMode->setIcon(QIcon(":/performance/images/probe-icon-32.png"));
     runtimeMode->setPriority(Performance::Internal::P_MODE_RUNTIME);
     runtimeMode->setWidget(m_manager->defaultWindow());
     runtimeMode->setUniqueModeName(Performance::Internal::MODE_RUNTIME);
