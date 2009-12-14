@@ -20,14 +20,69 @@
 #include <QGradient>
 #include <QPainter>
 #include <QPaintEvent>
+#include <QPixmap>
 #include <QPropertyAnimation>
 #include <QSvgRenderer>
 
 using namespace Performance::Internal;
 
+class ViewContainerWidget : public QWidget
+{
+    public:
+        ViewContainerWidget(QWidget * parent = 0)
+          : QWidget(parent)
+          , m_widget(0)
+        {
+            // precache watermark pixmap
+            QSvgRenderer wmRender(QString(":/performance/images/probe-watermark.svg"));
+            if (wmRender.isValid()) {
+                m_watermarkPixmap = QPixmap(wmRender.defaultSize());
+                m_watermarkPixmap.fill(Qt::transparent);
+                QPainter wmPainter(&m_watermarkPixmap);
+                wmRender.render(&wmPainter);
+            }
+
+            // set a vertical layout
+            QVBoxLayout * lay = new QVBoxLayout(this);
+            setLayout(lay);
+        }
+
+        void setWidget(QWidget * widget)
+        {
+            delete m_widget;
+            m_widget = widget;
+            if (widget) {
+                widget->setParent(this);
+                layout()->addWidget(widget);
+            }
+        }
+
+    protected:
+        void paintEvent(QPaintEvent * event)
+        {
+            // draw a light gradient as the background
+            QPainter p(this);
+            QLinearGradient bg(0, 0, 0, 1);
+            bg.setCoordinateMode(QGradient::StretchToDeviceMode);
+            bg.setColorAt(0.0, QColor(247, 247, 247));
+            bg.setColorAt(1.0, QColor(215, 215, 215));
+            p.setCompositionMode(QPainter::CompositionMode_Source);
+            p.fillRect(event->rect(), bg);
+            p.setCompositionMode(QPainter::CompositionMode_SourceOver);
+
+            // draw the watermark
+            if (!m_watermarkPixmap.isNull())
+                p.drawPixmap(isLeftToRight() ? (width() - m_watermarkPixmap.width()) : 0, 0, m_watermarkPixmap);
+        }
+
+    private:
+        QPixmap m_watermarkPixmap;
+        QWidget * m_widget;
+};
+
 PerformanceWindow::PerformanceWindow(QWidget *parent)
   : QWidget(parent)
-  , m_centralWidget(0)
+  , m_viewWidget(0)
 {
     // ToolBar
     QWidget *toolBar = new Utils::StyledBar(this);
@@ -44,22 +99,16 @@ PerformanceWindow::PerformanceWindow(QWidget *parent)
     tLayout->addWidget(m_subCombo);
     tLayout->addStretch(10);
 
+    m_viewWidget = new ViewContainerWidget(this);
+
     // Main Layout
-    m_mainLayout = new QVBoxLayout(this);
-    m_mainLayout->setMargin(0);
-    m_mainLayout->setSpacing(0);
-    m_mainLayout->addWidget(toolBar);
+    QVBoxLayout * vLayout = new QVBoxLayout(this);
+    vLayout->setMargin(0);
+    vLayout->setSpacing(0);
+    vLayout->addWidget(toolBar);
+    vLayout->addWidget(m_viewWidget);
 
     updateMainCombo(true);
-
-    // precache watermark pixmap
-    QSvgRenderer wmRender(QString(":/performance/images/probe-watermark.svg"));
-    if (wmRender.isValid()) {
-        m_watermarkPixmap = QPixmap(wmRender.defaultSize());
-        m_watermarkPixmap.fill(Qt::transparent);
-        QPainter wmPainter(&m_watermarkPixmap);
-        wmRender.render(&wmPainter);
-    }
 }
 
 PerformanceWindow::~PerformanceWindow()
@@ -126,23 +175,6 @@ void PerformanceWindow::slotSubChanged(int choice)
     }
 }
 
-void PerformanceWindow::paintEvent(QPaintEvent * event)
-{
-    // draw a light gradient as the background
-    QPainter p(this);
-    QLinearGradient bg(0, 0, 0, 1);
-    bg.setCoordinateMode(QGradient::StretchToDeviceMode);
-    bg.setColorAt(0.0, QColor(247, 247, 247));
-    bg.setColorAt(1.0, QColor(215, 215, 215));
-    p.setCompositionMode(QPainter::CompositionMode_Source);
-    p.fillRect(event->rect(), bg);
-    p.setCompositionMode(QPainter::CompositionMode_SourceOver);
-
-    // draw the watermark
-    if (!m_watermarkPixmap.isNull())
-        p.drawPixmap(isLeftToRight() ? (width() - m_watermarkPixmap.width()) : 0, 0, m_watermarkPixmap);
-}
-
 #include "performanceinformation.h"
 #include "performancemanager.h"
 #include "performanceserver.h"
@@ -150,7 +182,7 @@ void PerformanceWindow::activateRInformation()
 {
     Performance::PerformanceServer *server = Performance::PerformanceManager::instance()->defaultServer();
     if (!server) {
-        setCentralWidget(new QWidget);
+        m_viewWidget->setWidget(new QWidget);
         return;
     }
 
@@ -162,7 +194,7 @@ void PerformanceWindow::activateRInformation()
     info->setFieldState(info->conLabel, server->m_sConnected ? 1 : server->m_sDebugging ? -1 : 0);
     info->setFieldState(info->workLabel, (server->m_sDebugging && server->m_sEnabled && server->m_sInjected && server->m_sConnected) ? 1 : 0);
 
-    setCentralWidget(info);
+    m_viewWidget->setWidget(info);
 }
 
 #include "ui_servicewindow.h"
@@ -171,12 +203,12 @@ void PerformanceWindow::activateRDebugging()
     QWidget *w = new QWidget;
     Ui::ServiceWindow * ui = new Ui::ServiceWindow;
     ui->setupUi(w);
-    setCentralWidget(w);
+    m_viewWidget->setWidget(w);
 }
 
 void PerformanceWindow::activatePainting(int /*subChoice*/)
 {
-    setCentralWidget(new QWidget);
+    m_viewWidget->setWidget(new QWidget);
 }
 
 void PerformanceWindow::activateSubSelector()
@@ -191,23 +223,14 @@ void PerformanceWindow::activateSubSelector()
     ani->setDuration(800);
     ani->setEndValue(QPoint(m_subCombo->x() + (m_subCombo->width() - pix.width()) / 2, 0));
     ani->start(QPropertyAnimation::DeleteWhenStopped);
-    setCentralWidget(holder);
-}
-
-
-void PerformanceWindow::setCentralWidget(QWidget * widget)
-{
-    delete m_centralWidget;
-    m_centralWidget = widget;
-    if (m_centralWidget)
-        m_mainLayout->addWidget(m_centralWidget, 10);
+    m_viewWidget->setWidget(holder);
 }
 
 void PerformanceWindow::updateMainCombo(bool enabled)
 {
     int prevIdx = m_mainCombo->currentIndex();
     m_mainCombo->clear();
-    m_mainCombo->addItem(tr("Runtime"), 1);
+    m_mainCombo->addItem(tr("Probe"), 1);
     if (enabled) {
         m_mainCombo->addItem(tr("Event Loop"), 2);
         m_mainCombo->addItem(tr("Edit"), 3);

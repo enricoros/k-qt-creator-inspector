@@ -116,7 +116,7 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     perfContainer->addAction(command);
 
     QAction *workBenchAction = new QAction(tr("Workbench"), this);
-    connect(workBenchAction, SIGNAL(triggered()), m_manager, SLOT(slotShowRuntimeMode()));
+    connect(workBenchAction, SIGNAL(triggered()), m_manager, SLOT(slotShowProbeMode()));
     command = actionManager->registerAction(workBenchAction, "Performance.ShowWorkBench", globalContext);
     perfContainer->addAction(command);
 
@@ -145,14 +145,14 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     command = actionManager->registerAction(temperatureAction, "Performance.ShowTemperature", debuggerContext);
     perfContainer->addAction(command);
 
-    Core::BaseMode * runtimeMode = new Core::BaseMode;
-    runtimeMode->setName(tr("Probe"));
-    runtimeMode->setIcon(QIcon(":/performance/images/probe-icon-32.png"));
-    runtimeMode->setPriority(Performance::Internal::P_MODE_RUNTIME);
-    runtimeMode->setWidget(m_manager->defaultWindow());
-    runtimeMode->setUniqueModeName(Performance::Internal::MODE_RUNTIME);
-    runtimeMode->setContext(globalContext);
-    addAutoReleasedObject(runtimeMode);
+    Core::BaseMode * probeMode = new Core::BaseMode;
+    probeMode->setName(tr("Probe"));
+    probeMode->setIcon(QIcon(":/performance/images/probe-icon-32.png"));
+    probeMode->setPriority(Performance::Internal::P_MODE_PROBE);
+    probeMode->setWidget(m_manager->defaultWindow());
+    probeMode->setUniqueModeName(Performance::Internal::MODE_PROBE);
+    probeMode->setContext(globalContext);
+    addAutoReleasedObject(probeMode);
 
 //    connect(core->modeManager(), SIGNAL(currentModeChanged(Core::IMode*)),
 //            this, SLOT(modeChanged(Core::IMode*)), Qt::QueuedConnection);
