@@ -15,6 +15,7 @@
 
 #include <QObject>
 #include <QList>
+#include <QVariantList>
 
 namespace Performance {
 class PerformanceServer;
@@ -39,6 +40,9 @@ public:
     Internal::PerformanceWindow *defaultWindow() const;
     PerformanceServer *defaultServer() const;
     int activationFlags() const; //TEMP relocate
+
+    // ### TEMP emits default server's debuggerCallFunction
+    void defaultServerCallFunction(const QString & name, QVariantList args = QVariantList());
 
 public slots:
     void slotSetEnabled(bool enabled);

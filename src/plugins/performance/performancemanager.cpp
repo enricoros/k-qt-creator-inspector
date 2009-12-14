@@ -11,7 +11,7 @@
  ***************************************************************************/
 
 #include "performancemanager.h"
-#include "performanceinformation.h"
+#include "infoview.h"
 #include "performancenotification.h"
 #include "performanceplugin.h"
 #include "performanceserver.h"
@@ -90,6 +90,12 @@ int PerformanceManager::activationFlags() const
     return flags;
 }
 
+void PerformanceManager::defaultServerCallFunction(const QString &name, QVariantList args)
+{
+    if (!m_servers.isEmpty())
+        emit m_servers.first()->debuggerCallFunction(name, args);
+}
+
 void PerformanceManager::slotSetEnabled(bool enabled)
 {
     m_enabled = enabled;
@@ -98,7 +104,7 @@ void PerformanceManager::slotSetEnabled(bool enabled)
 void PerformanceManager::slotShowInformation()
 {
     PerformanceServer * server = defaultServer();
-    Internal::PerformanceInformation info;
+    Internal::InfoView info;
     info.setFieldState(info.debLabel, server->m_sDebugging ? 1 : -1);
     info.setFieldState(info.enaButton, server->m_sEnabled ? 1 : -1);
     info.setFieldState(info.hlpLabel, server->m_sHelpers ? 1 : server->m_sDebugging ? -1 : 0);
@@ -120,11 +126,11 @@ void PerformanceManager::slotShowProbeMode()
 
 void PerformanceManager::slotPaintingTemperature()
 {
-    QVariantList args;
-    // passes << headDrops << tailDrops << innerPasses << chunkWidth << chunkHeight << consoleDebug
-    args << 5 << 1 << 2 << 4 << 20 << 20 << true;
-    //args << 4 << 0 << 2 << 1 << 1 << 1 << true;
-    emit defaultServer()->debuggerCallFunction("qWindowTemperature", args);
+    // switch to the Probe view
+    Core::ICore::instance()->modeManager()->activateMode(Performance::Internal::MODE_PROBE);
+
+    // activate the P.T.View
+    m_window->activatePaintingTemperature();
 }
 
 void PerformanceManager::slotNewWarnings(int count)

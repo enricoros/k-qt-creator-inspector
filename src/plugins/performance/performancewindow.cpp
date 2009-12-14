@@ -13,6 +13,7 @@
 #include "performancewindow.h"
 
 #include <utils/styledbar.h>
+#include "ptview.h"
 
 #include <QtGui/QComboBox>
 #include <QtGui/QHBoxLayout>
@@ -164,10 +165,7 @@ void PerformanceWindow::slotSubChanged(int choice)
             activateRDebugging();
             break;
         case 401:
-            activatePainting(1);
-            break;
-        case 402:
-            activatePainting(2);
+            activatePaintingTemperature();
             break;
         default:
             activateSubSelector();
@@ -175,7 +173,7 @@ void PerformanceWindow::slotSubChanged(int choice)
     }
 }
 
-#include "performanceinformation.h"
+#include "infoview.h"
 #include "performancemanager.h"
 #include "performanceserver.h"
 void PerformanceWindow::activateRInformation()
@@ -186,7 +184,7 @@ void PerformanceWindow::activateRInformation()
         return;
     }
 
-    Internal::PerformanceInformation *info = new Internal::PerformanceInformation;
+    Internal::InfoView *info = new Internal::InfoView;
     info->setFieldState(info->debLabel, server->m_sDebugging ? 1 : -1);
     info->setFieldState(info->enaButton, server->m_sEnabled ? 1 : -1);
     info->setFieldState(info->hlpLabel, server->m_sHelpers ? 1 : server->m_sDebugging ? -1 : 0);
@@ -197,18 +195,20 @@ void PerformanceWindow::activateRInformation()
     m_viewWidget->setWidget(info);
 }
 
-#include "ui_servicewindow.h"
+void PerformanceWindow::activatePaintingTemperature()
+{
+    PaintTemperatureView * ptView = new PaintTemperatureView;
+    m_viewWidget->setWidget(ptView);
+}
+
+
+#include "ui_commview.h"
 void PerformanceWindow::activateRDebugging()
 {
     QWidget *w = new QWidget;
-    Ui::ServiceWindow * ui = new Ui::ServiceWindow;
+    Ui::CommView * ui = new Ui::CommView;
     ui->setupUi(w);
     m_viewWidget->setWidget(w);
-}
-
-void PerformanceWindow::activatePainting(int /*subChoice*/)
-{
-    m_viewWidget->setWidget(new QWidget);
 }
 
 void PerformanceWindow::activateSubSelector()

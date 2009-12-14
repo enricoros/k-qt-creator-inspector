@@ -11,7 +11,6 @@
  ***************************************************************************/
 
 #include "performanceserver.h"
-#include "performanceinformation.h"
 #include "performancemanager.h"
 #include "performancewindow.h"
 
@@ -20,6 +19,8 @@
 #include <coreplugin/modemanager.h>
 
 #include <QDebug>
+#include <QIcon>
+#include <QLabel>
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QMessageBox>

@@ -1,7 +1,7 @@
 /***************************************************************************
  *                                                                         *
  *   Copyright (C) 2009-2009 by Enrico Ros <enrico.ros@gmail.com>          *
- *   Started on 14 Jul 2009 by root.                                       *
+ *   Started on 12 Jul 2009 by root.                                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -10,44 +10,30 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef PERFORMANCEWINDOW_H
-#define PERFORMANCEWINDOW_H
+#ifndef INFOVIEW_H
+#define INFOVIEW_H
 
-#include <QWidget>
-class QComboBox;
-class QVBoxLayout;
-class ViewContainerWidget;
+#include <QDialog>
+#include "ui_infoview.h"
 
 namespace Performance {
 namespace Internal {
 
-class PerformanceWindow : public QWidget
+class InfoView : public QDialog, public Ui::InfoView
 {
     Q_OBJECT
 
 public:
-    PerformanceWindow(QWidget *parent = 0);
-    ~PerformanceWindow();
+    InfoView(QWidget *parent = 0);
 
-    void activateRInformation();
-    void activatePaintingTemperature();
-
-private slots:
-    void slotMainChanged(int);
-    void slotSubChanged(int);
+    void setFieldState(QWidget * field, int state);
 
 private:
-    void activateRDebugging();
-    void activateSubSelector();
-    void updateMainCombo(bool enabled);
-
-    QComboBox *m_mainCombo;
-    QComboBox *m_subCombo;
-    ViewContainerWidget * m_viewWidget;
-    QWidget *m_centralWidget;
+    QPixmap m_pOk;
+    QPixmap m_pErr;
 };
 
 } // namespace Internal
 } // namespace Performance
 
-#endif // PERFORMANCEWINDOW_H
+#endif // INFOVIEW_H
