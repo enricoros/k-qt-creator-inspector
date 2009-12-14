@@ -145,7 +145,6 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     command = actionManager->registerAction(temperatureAction, "Performance.ShowTemperature", debuggerContext);
     perfContainer->addAction(command);
 #endif
-    core->
 
     Core::BaseMode * probeMode = new Core::BaseMode;
     probeMode->setName(tr("Probe"));

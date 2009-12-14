@@ -27,46 +27,31 @@
 **
 **************************************************************************/
 
-#ifndef PERFORMANCEWINDOW_H
-#define PERFORMANCEWINDOW_H
+#ifndef TASKSWIDGET_H
+#define TASKSWIDGET_H
 
-#include <QWidget>
-class QComboBox;
-class QVBoxLayout;
+#include <QGraphicsView>
 
 namespace Performance {
 namespace Internal {
-class TaskbarWidget;
-class ViewContainerWidget;
+class TasksScene;
 
-class PerformanceWindow : public QWidget
+class TasksWidget : public QGraphicsView
 {
     Q_OBJECT
 
 public:
-    PerformanceWindow(QWidget *parent = 0);
-    ~PerformanceWindow();
+    TasksWidget(QWidget *parent = 0);
 
-    void activateRInformation();
-    void activatePaintingTemperature();
-
-private slots:
-    void slotMainChanged(int);
-    void slotSubChanged(int);
+    // ::QWidget
+    QSize sizeHint() const;
+    QSize minimumSizeHint() const;
 
 private:
-    void activateRDebugging();
-    void activateSubSelector();
-    void updateMainCombo(bool enabled);
-
-    QComboBox *m_mainCombo;
-    QComboBox *m_subCombo;
-    ViewContainerWidget * m_viewWidget;
-    TaskbarWidget * m_taskbarWidget;
-    QWidget *m_centralWidget;
+    TasksScene * m_scene;
 };
 
 } // namespace Internal
 } // namespace Performance
 
-#endif // PERFORMANCEWINDOW_H
+#endif // TASKSWIDGET_H

@@ -27,46 +27,38 @@
 **
 **************************************************************************/
 
-#ifndef PERFORMANCEWINDOW_H
-#define PERFORMANCEWINDOW_H
+#include "taskswidget.h"
 
-#include <QWidget>
-class QComboBox;
-class QVBoxLayout;
+#include "tasksscene.h"
 
-namespace Performance {
-namespace Internal {
-class TaskbarWidget;
-class ViewContainerWidget;
+#include <QPalette>
 
-class PerformanceWindow : public QWidget
+using namespace Performance::Internal;
+
+// the scene drawing the tasks
+
+TasksWidget::TasksWidget(QWidget *parent)
+  : QGraphicsView(parent)
+  , m_scene(new TasksScene)
 {
-    Q_OBJECT
+    // customize widget
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    setFrameStyle(QFrame::NoFrame);
+    QPalette pal;
+    pal.setBrush(QPalette::Base, QColor(80, 80, 90));
+    viewport()->setPalette(pal);
 
-public:
-    PerformanceWindow(QWidget *parent = 0);
-    ~PerformanceWindow();
+    setScene(m_scene);
+}
 
-    void activateRInformation();
-    void activatePaintingTemperature();
+QSize TasksWidget::sizeHint() const
+{
+    return minimumSizeHint();
+}
 
-private slots:
-    void slotMainChanged(int);
-    void slotSubChanged(int);
-
-private:
-    void activateRDebugging();
-    void activateSubSelector();
-    void updateMainCombo(bool enabled);
-
-    QComboBox *m_mainCombo;
-    QComboBox *m_subCombo;
-    ViewContainerWidget * m_viewWidget;
-    TaskbarWidget * m_taskbarWidget;
-    QWidget *m_centralWidget;
-};
-
-} // namespace Internal
-} // namespace Performance
-
-#endif // PERFORMANCEWINDOW_H
+QSize TasksWidget::minimumSizeHint() const
+{
+    return QSize(100, TasksScene::fixedHeight());
+}
