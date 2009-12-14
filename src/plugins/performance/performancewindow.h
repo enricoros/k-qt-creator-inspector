@@ -14,6 +14,7 @@
 #define PERFORMANCEWINDOW_H
 
 #include <QWidget>
+#include <QPixmap>
 class QComboBox;
 class QVBoxLayout;
 
@@ -32,6 +33,9 @@ private slots:
     void slotMainChanged(int);
     void slotSubChanged(int);
 
+protected:
+    void paintEvent(QPaintEvent *);
+
 private:
     void activateRInformation();
     void activateRDebugging();
@@ -45,6 +49,7 @@ private:
     QComboBox *m_subCombo;
     QVBoxLayout *m_mainLayout;
     QWidget *m_centralWidget;
+    QPixmap m_watermarkPixmap;
 };
 
 } // namespace Internal
