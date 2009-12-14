@@ -30,7 +30,12 @@
 #include "performancewindow.h"
 
 #include <utils/styledbar.h>
+#include "infoview.h"
+#include "performancemanager.h"
+#include "performanceserver.h"
 #include "ptview.h"
+#include "taskbarwidget.h"
+#include "ui_commview.h"
 
 #include <QtGui/QComboBox>
 #include <QtGui/QHBoxLayout>
@@ -42,7 +47,8 @@
 #include <QPropertyAnimation>
 #include <QSvgRenderer>
 
-using namespace Performance::Internal;
+namespace Performance {
+namespace Internal {
 
 class ViewContainerWidget : public QWidget
 {
@@ -119,12 +125,15 @@ PerformanceWindow::PerformanceWindow(QWidget *parent)
 
     m_viewWidget = new ViewContainerWidget(this);
 
+    m_taskbarWidget = new TaskbarWidget(this);
+
     // Main Layout
     QVBoxLayout * vLayout = new QVBoxLayout(this);
     vLayout->setMargin(0);
     vLayout->setSpacing(0);
     vLayout->addWidget(toolBar);
     vLayout->addWidget(m_viewWidget);
+    vLayout->addWidget(m_taskbarWidget);
 
     updateMainCombo(true);
 }
@@ -190,9 +199,6 @@ void PerformanceWindow::slotSubChanged(int choice)
     }
 }
 
-#include "infoview.h"
-#include "performancemanager.h"
-#include "performanceserver.h"
 void PerformanceWindow::activateRInformation()
 {
     Performance::PerformanceServer *server = Performance::PerformanceManager::instance()->defaultServer();
@@ -219,7 +225,6 @@ void PerformanceWindow::activatePaintingTemperature()
 }
 
 
-#include "ui_commview.h"
 void PerformanceWindow::activateRDebugging()
 {
     QWidget *w = new QWidget;
@@ -262,3 +267,6 @@ void PerformanceWindow::updateMainCombo(bool enabled)
     else
         m_mainCombo->setCurrentIndex(0);
 }
+
+} // namespace Internal
+} // namespace Performance

@@ -13,7 +13,10 @@ HEADERS += \
     performancewindow.h \
     performancemanager.h \
     plotgrid.h \
-    ptview.h
+    ptview.h \
+    taskbarwidget.h \
+    tasksscene.h \
+    taskswidget.h
 
 SOURCES += \
     infoview.cpp \
@@ -23,7 +26,10 @@ SOURCES += \
     performancewindow.cpp \
     performancemanager.cpp \
     plotgrid.cpp \
-    ptview.cpp
+    ptview.cpp \
+    taskbarwidget.cpp \
+    tasksscene.cpp \
+    taskswidget.cpp
 
 FORMS += \
     commview.ui \

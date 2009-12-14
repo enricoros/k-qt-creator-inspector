@@ -80,7 +80,7 @@ void Performance::Internal::PaintTemperatureView::on_runButton_clicked()
     args << passesBox->value() << lowBox->value() << highBox->value() << innerBox->value() << widthBox->value() << heightBox->value() << debugBox->isChecked();
     // execute the probe
     PerformanceManager::instance()->defaultServerCallFunction("qWindowTemperature", args);
-    p//newTestGroup->setEnabled(false);
+    //newTestGroup->setEnabled(false);
 }
 
 void Performance::Internal::PaintTemperatureView::slotCheckPasses()

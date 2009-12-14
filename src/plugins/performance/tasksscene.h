@@ -27,46 +27,46 @@
 **
 **************************************************************************/
 
-#ifndef PERFORMANCEWINDOW_H
-#define PERFORMANCEWINDOW_H
+#ifndef TASKSSCENE_H
+#define TASKSSCENE_H
 
-#include <QWidget>
-class QComboBox;
-class QVBoxLayout;
+#include <QGraphicsScene>
+#include <QBasicTimer>
+#include <QTime>
 
 namespace Performance {
 namespace Internal {
-class TaskbarWidget;
-class ViewContainerWidget;
 
-class PerformanceWindow : public QWidget
+class TasksScene : public QGraphicsScene
 {
     Q_OBJECT
 
 public:
-    PerformanceWindow(QWidget *parent = 0);
-    ~PerformanceWindow();
+    TasksScene(QObject * parent = 0);
 
-    void activateRInformation();
-    void activatePaintingTemperature();
+    static int fixedHeight();
 
-private slots:
-    void slotMainChanged(int);
-    void slotSubChanged(int);
+    void clear();
+
+    int pixelPerSecond() const;
+    void setPixelPerSecond(int pps);
+
+    bool scrollLocked() const;
+    void setScrollLocked(bool locked);
+
+protected:
+    void timerEvent(QTimerEvent *);
 
 private:
-    void activateRDebugging();
-    void activateSubSelector();
-    void updateMainCombo(bool enabled);
-
-    QComboBox *m_mainCombo;
-    QComboBox *m_subCombo;
-    ViewContainerWidget * m_viewWidget;
-    TaskbarWidget * m_taskbarWidget;
-    QWidget *m_centralWidget;
+    void regenScene();
+    void updateCurrentScene();
+    QBasicTimer m_updateTimer;
+    QTime m_startTime;
+    bool m_scrollLocked;
+    int m_pixelPerSecond;
 };
 
 } // namespace Internal
 } // namespace Performance
 
-#endif // PERFORMANCEWINDOW_H
+#endif // TASKSWIDGET_H
