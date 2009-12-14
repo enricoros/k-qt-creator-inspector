@@ -17,9 +17,7 @@
 
 #include <QPainter>
 #include <QMouseEvent>
-#if QT_VERSION >= 0x040600
 #include <QPropertyAnimation>
-#endif
 
 using namespace Performance::Internal;
 
@@ -35,16 +33,12 @@ PerformanceNotification::PerformanceNotification(QWidget * parent)
 void PerformanceNotification::addWarning()
 {
     m_cWarnings++;
-#if QT_VERSION >= 0x040600
     QPropertyAnimation * ani = new QPropertyAnimation(this, "signOpacity");
     ani->setEasingCurve(QEasingCurve::OutCirc);
     ani->setDuration(400);
     ani->setStartValue(0.1);
     ani->setEndValue(1.0);
     ani->start(QPropertyAnimation::DeleteWhenStopped);
-#else
-    update();
-#endif
 }
 
 void PerformanceNotification::clearWarnings()

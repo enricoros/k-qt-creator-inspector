@@ -17,10 +17,11 @@
 #include <QtGui/QComboBox>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QLabel>
-
-#if QT_VERSION >= 0x040600
+#include <QGradient>
+#include <QPainter>
+#include <QPaintEvent>
 #include <QPropertyAnimation>
-#endif
+#include <QSvgRenderer>
 
 using namespace Performance::Internal;
 
@@ -50,6 +51,15 @@ PerformanceWindow::PerformanceWindow(QWidget *parent)
     m_mainLayout->addWidget(toolBar);
 
     updateMainCombo(true);
+
+    // precache watermark pixmap
+    QSvgRenderer wmRender(QString(":/performance/images/probe-watermark.svg"));
+    if (wmRender.isValid()) {
+        m_watermarkPixmap = QPixmap(wmRender.defaultSize());
+        m_watermarkPixmap.fill(Qt::transparent);
+        QPainter wmPainter(&m_watermarkPixmap);
+        wmRender.render(&wmPainter);
+    }
 }
 
 PerformanceWindow::~PerformanceWindow()
@@ -116,6 +126,23 @@ void PerformanceWindow::slotSubChanged(int choice)
     }
 }
 
+void PerformanceWindow::paintEvent(QPaintEvent * event)
+{
+    // draw a light gradient as the background
+    QPainter p(this);
+    QLinearGradient bg(0, 0, 0, 1);
+    bg.setCoordinateMode(QGradient::StretchToDeviceMode);
+    bg.setColorAt(0.0, QColor(247, 247, 247));
+    bg.setColorAt(1.0, QColor(215, 215, 215));
+    p.setCompositionMode(QPainter::CompositionMode_Source);
+    p.fillRect(event->rect(), bg);
+    p.setCompositionMode(QPainter::CompositionMode_SourceOver);
+
+    // draw the watermark
+    if (!m_watermarkPixmap.isNull())
+        p.drawPixmap(isLeftToRight() ? (width() - m_watermarkPixmap.width()) : 0, 0, m_watermarkPixmap);
+}
+
 #include "performanceinformation.h"
 #include "performancemanager.h"
 #include "performanceserver.h"
@@ -124,7 +151,7 @@ void PerformanceWindow::activateRInformation()
     Performance::PerformanceServer *server = Performance::PerformanceManager::instance()->defaultServer();
     if (!server) {
         setCentralWidget(new QWidget);
-	return;
+        return;
     }
 
     Internal::PerformanceInformation *info = new Internal::PerformanceInformation;
@@ -159,15 +186,11 @@ void PerformanceWindow::activateSubSelector()
     QPixmap pix(":/performance/images/submenu-up.png");
     arrowLabel->setPixmap(pix);
     arrowLabel->setFixedSize(pix.size());
-#if QT_VERSION >= 0x040600
     QPropertyAnimation * ani = new QPropertyAnimation(arrowLabel, "pos");
-    ani->setEasingCurve(QEasingCurve::OutCubic);
+    ani->setEasingCurve(QEasingCurve::OutElastic);
     ani->setDuration(800);
     ani->setEndValue(QPoint(m_subCombo->x() + (m_subCombo->width() - pix.width()) / 2, 0));
     ani->start(QPropertyAnimation::DeleteWhenStopped);
-#else
-    arrowLabel->move(m_subCombo->x() + (m_subCombo->width() - pix.width()) / 2, 0);
-#endif
     setCentralWidget(holder);
 }
 

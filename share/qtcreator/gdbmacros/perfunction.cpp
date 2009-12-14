@@ -378,7 +378,7 @@ struct __TimedRect {
 
 extern "C"
 Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
-	int innerPasses, int chunkWidth, int chunkHeight, bool consoleDebug)
+    int innerPasses, int chunkWidth, int chunkHeight, bool consoleDebug)
 {
     // sanity check
     if (!ppCommClient) {

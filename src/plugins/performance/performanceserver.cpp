@@ -71,6 +71,7 @@ QString PerformanceServer::serverName() const
 bool PerformanceServer::processIncomingData(quint32 code1, quint32 code2, QByteArray * data)
 {
     PerformanceWindow * window = PerformanceManager::instance()->defaultWindow();
+    // ### FIXME, do something about this
 
     // 1. Service
     if (code1 == 0x01) {
@@ -101,6 +102,8 @@ bool PerformanceServer::processIncomingData(quint32 code1, quint32 code2, QByteA
         // 2.3 percent
         if (code2 == 0x03) {
             int percent = qBound(0, QString(*data).toInt(), 100);
+            qWarning("performance percent: %d", percent);
+            // ### TODO
             ///window->progressBar->setValue(percent);
             ///window->progressLabel->setVisible(percent < 100);
             ///window->progressBar->setVisible(percent < 100);
@@ -109,6 +112,7 @@ bool PerformanceServer::processIncomingData(quint32 code1, quint32 code2, QByteA
 
         // 2.4 qimages
         if (code2 == 0x04) {
+            qWarning("performance: image received");
             QDataStream dataReader(data, QIODevice::ReadOnly);
             QSize size;
             quint32 format;
