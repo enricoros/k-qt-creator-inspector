@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>PTView</class>
+ <author>Enrico Ros</author>
+  <class>PTView</class>
  <widget class="QWidget" name="PTView">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>495</width>
-    <height>418</height>
+    <height>394</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -229,6 +230,19 @@ Then you ca use this form to run the tests.</string>
           <string>Run the Test</string>
          </property>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
