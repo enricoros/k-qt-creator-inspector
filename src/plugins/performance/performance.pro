@@ -5,24 +5,30 @@ QT += network svg
 include(../../qtcreatorplugin.pri)
 include(performance_dependencies.pri)
 
-HEADERS += performanceplugin.h \
+HEADERS += \
+    infoview.h \
+    performanceplugin.h \
     performancenotification.h \
-    performanceserver.h  \
-    performanceinformation.h  \
-    performanceplot.h  \
-    performancewindow.h  \
-    performancemanager.h
+    performanceserver.h \
+    performancewindow.h \
+    performancemanager.h \
+    plotgrid.h \
+    ptview.h
 
-SOURCES += performanceplugin.cpp  \
-    performancenotification.cpp  \
-    performanceserver.cpp  \
-    performanceinformation.cpp  \
-    performanceplot.cpp  \
-    performancewindow.cpp  \
-    performancemanager.cpp
+SOURCES += \
+    infoview.cpp \
+    performanceplugin.cpp \
+    performancenotification.cpp \
+    performanceserver.cpp \
+    performancewindow.cpp \
+    performancemanager.cpp \
+    plotgrid.cpp \
+    ptview.cpp
 
-FORMS += performanceinformation.ui  \
-    servicewindow.ui
+FORMS += \
+    commview.ui \
+    infoview.ui \
+    ptview.ui
 
 RESOURCES += performance.qrc
 

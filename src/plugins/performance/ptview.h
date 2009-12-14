@@ -10,30 +10,33 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef PERFORMANCEINFORMATION_H
-#define PERFORMANCEINFORMATION_H
+#ifndef PTVIEW_H
+#define PTVIEW_H
 
-#include <QDialog>
-#include "ui_performanceinformation.h"
+#include <QWidget>
+#include "ui_ptview.h"
 
 namespace Performance {
 namespace Internal {
 
-class PerformanceInformation : public QDialog, public Ui::PerformanceInformation
+class PaintTemperatureView : public QWidget, public Ui::PTView
 {
     Q_OBJECT
 
 public:
-    PerformanceInformation(QWidget *parent = 0);
-
-    void setFieldState(QWidget * field, int state);
+    PaintTemperatureView(QWidget *parent = 0);
 
 private:
-    QPixmap m_pOk;
-    QPixmap m_pErr;
+    QPixmap m_pixmap;
+
+private slots:
+    void on_defaultsButton_clicked();
+    void on_runButton_clicked();
+    void slotCheckPasses();
+    void slotUpdatePops();
 };
 
 } // namespace Internal
 } // namespace Performance
 
-#endif // PERFORMANCEINFORMATION_H
+#endif // PTVIEW_H

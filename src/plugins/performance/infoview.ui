@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>PerformanceInformation</class>
- <widget class="QDialog" name="PerformanceInformation">
+ <class>InfoView</class>
+ <widget class="QDialog" name="InfoView">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -165,7 +165,7 @@ In particular be aware of the following limitations:
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>PerformanceInformation</receiver>
+   <receiver>InfoView</receiver>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">

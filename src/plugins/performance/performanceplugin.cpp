@@ -28,7 +28,6 @@
 **************************************************************************/
 
 #include "performanceplugin.h"
-#include "performanceinformation.h"
 #include "performancemanager.h"
 #include "performancenotification.h"
 #include "performancewindow.h"
@@ -140,10 +139,12 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     command = actionManager->registerAction(sep, QLatin1String("Performance.Sep.Two"), globalContext);
     perfContainer->addAction(command);
 
+#if 1
     QAction *temperatureAction = new QAction(tr("Painting Temperature"), this);
     connect(temperatureAction, SIGNAL(triggered()), m_manager, SLOT(slotPaintingTemperature()));
     command = actionManager->registerAction(temperatureAction, "Performance.ShowTemperature", debuggerContext);
     perfContainer->addAction(command);
+#endif
 
     Core::BaseMode * probeMode = new Core::BaseMode;
     probeMode->setName(tr("Probe"));

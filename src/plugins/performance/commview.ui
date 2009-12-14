@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <author>Enrico Ros</author>
- <class>ServiceWindow</class>
- <widget class="QWidget" name="ServiceWindow">
+ <class>CommView</class>
+ <widget class="QWidget" name="CommView">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -10,9 +10,6 @@
     <width>418</width>
     <height>234</height>
    </rect>
-  </property>
-  <property name="windowTitle">
-   <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">

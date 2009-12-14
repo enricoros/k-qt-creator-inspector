@@ -10,8 +10,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "performanceinformation.h"
-#include "ui_performanceinformation.h"
+#include "infoview.h"
 
 #include <QIcon>
 #include <QLabel>
@@ -20,7 +19,7 @@
 
 using namespace Performance::Internal;
 
-PerformanceInformation::PerformanceInformation(QWidget *parent)
+InfoView::InfoView(QWidget *parent)
   : QDialog(parent)
   , m_pOk(":/performance/images/status-ok.png")
   , m_pErr(":/performance/images/status-err.png")
@@ -29,7 +28,7 @@ PerformanceInformation::PerformanceInformation(QWidget *parent)
     buttonBox->setFocus();
 }
 
-void PerformanceInformation::setFieldState(QWidget * field, int state)
+void InfoView::setFieldState(QWidget * field, int state)
 {
     if (QAbstractButton *b = dynamic_cast<QAbstractButton *>(field)) {
         switch (state) {

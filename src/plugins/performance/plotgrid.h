@@ -10,19 +10,32 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "performanceplot.h"
-#include <QPainter>
+#ifndef PLOTGRID_H
+#define PLOTGRID_H
 
-using namespace Performance::Internal;
+#include <QWidget>
+#include <QSvgRenderer>
 
-PerformancePlot::PerformancePlot(QWidget *parent)
-  : QWidget(parent)
-  , m_backRenderer(QString(":/performance/images/plot-background.svg"))
+namespace Performance {
+namespace Internal {
+
+class PlotGrid : public QWidget
 {
-}
+    Q_OBJECT
 
-void PerformancePlot::paintEvent(QPaintEvent */*event*/)
-{
-    QPainter p(this);
-    m_backRenderer.render(&p);
-}
+public:
+    PlotGrid(QWidget *parent = 0);
+
+    // completely TODO
+
+    void paintEvent(QPaintEvent *event);
+
+private:
+    QSvgRenderer m_backRenderer;
+
+};
+
+} // namespace Internal
+} // namespace Performance
+
+#endif // PLOTGRID_H
