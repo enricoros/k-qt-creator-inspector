@@ -61,9 +61,8 @@ private:
 
     QComboBox *m_mainCombo;
     QComboBox *m_subCombo;
-    ViewContainerWidget * m_viewWidget;
-    TaskbarWidget * m_taskbarWidget;
-    QWidget *m_centralWidget;
+    ViewContainerWidget *m_viewWidget;
+    TaskbarWidget *m_taskbarWidget;
 };
 
 } // namespace Internal

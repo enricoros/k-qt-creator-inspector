@@ -36,6 +36,7 @@
 
 namespace Performance {
 namespace Internal {
+class TaskItem;
 
 class TasksScene : public QGraphicsScene
 {
@@ -55,6 +56,9 @@ public:
     void setScrollLocked(bool locked);
 
 protected:
+    // ::QGraphicsScene
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+    // ::QObject
     void timerEvent(QTimerEvent *);
 
 private:
@@ -64,6 +68,7 @@ private:
     QTime m_startTime;
     bool m_scrollLocked;
     int m_pixelPerSecond;
+    QList<TaskItem *> m_currentTasks;
 };
 
 } // namespace Internal
