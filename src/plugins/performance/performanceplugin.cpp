@@ -2,7 +2,7 @@
 **
 ** This file is part of Qt Creator
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (c) 2009-2010 Enrico Ros
 **
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
@@ -23,7 +23,7 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 ** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://www.qtsoftware.com/contact.
+** contact the sales department at http://qt.nokia.com/contact.
 **
 **************************************************************************/
 
@@ -145,6 +145,7 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
     command = actionManager->registerAction(temperatureAction, "Performance.ShowTemperature", debuggerContext);
     perfContainer->addAction(command);
 #endif
+    core->
 
     Core::BaseMode * probeMode = new Core::BaseMode;
     probeMode->setName(tr("Probe"));
