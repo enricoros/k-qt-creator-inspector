@@ -22,8 +22,9 @@ will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.</license>
         <dependency name="Core" version="1.3.80"/>
     </dependencyList>
     <argumentList>
-        <argument name="-disable-slotmon">Disable Signal/Slot monitoring</argument>
-        <argument name="-disable-eloop">Disable Event loop statistics</argument>
-        <argument name="-disable-mmon">Disable Memory allocations monitoring</argument>
+        <argument name="-performanceon">Enable performance monitoring by default</argument>
+        <argument name="-disable-slotmon-unused">Disable Signal/Slot monitoring</argument>
+        <argument name="-disable-eloop-unused">Disable Event loop statistics</argument>
+        <argument name="-disable-mmon-unused">Disable Memory allocations monitoring</argument>
     </argumentList>
 </plugin>

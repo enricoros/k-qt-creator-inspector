@@ -1009,10 +1009,11 @@ void GdbEngine::callFunction(const QString &function, const QVariantList &args)
             case QVariant::Double:
                 callString += arg.toString();
                 break;
+            default:
+                qWarning("GdbEngine::callFunction: variant type %d is not handled. falling back to string.", (int)arg.type());
             case QVariant::Char:
             case QVariant::String:
             case QVariant::ByteArray:
-            default:
                 callString += _("\"") + arg.toString() + _("\"");
                 break;
         }

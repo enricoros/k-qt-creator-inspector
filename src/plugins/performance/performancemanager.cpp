@@ -119,7 +119,11 @@ void PerformanceManager::slotShowRuntimeMode()
 
 void PerformanceManager::slotPaintingTemperature()
 {
-    emit defaultServer()->debuggerCallFunction("qWindowTemperature");
+    QVariantList args;
+    // passes << headDrops << tailDrops << innerPasses << chunkWidth << chunkHeight << consoleDebug
+    args << 5 << 1 << 2 << 4 << 20 << 20 << true;
+    //args << 4 << 0 << 2 << 1 << 1 << 1 << true;
+    emit defaultServer()->debuggerCallFunction("qWindowTemperature", args);
 }
 
 void PerformanceManager::slotNewWarnings(int count)

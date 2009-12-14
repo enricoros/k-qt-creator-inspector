@@ -57,9 +57,11 @@ public:
     void extensionsInitialized();
 
 private:
+    void parseArguments(const QStringList & arguments);
     PerformanceManager *m_manager;
     QAction *m_aMemMonitor;
     QAction *m_aShowPaint;
+    bool m_defaultActive;
 };
 
 } // namespace Internal

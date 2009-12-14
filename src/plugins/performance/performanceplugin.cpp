@@ -55,6 +55,7 @@ PerformancePlugin::PerformancePlugin()
   : m_manager(0)
   , m_aMemMonitor(0)
   , m_aShowPaint(0)
+  , m_defaultActive(false)
 {
 }
 
@@ -71,11 +72,14 @@ bool PerformancePlugin::showPaint() const
 
 bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_message)
 {
-    Q_UNUSED(arguments)
     Q_UNUSED(error_message)
+
+    // check arguments
+    parseArguments(arguments);
 
     // create the Manager
     m_manager = new Performance::PerformanceManager(this);
+    m_manager->slotSetEnabled(m_defaultActive);
     addAutoReleasedObject(m_manager);
 
     // UI
@@ -158,6 +162,12 @@ bool PerformancePlugin::initialize(const QStringList &arguments, QString *error_
 
 void PerformancePlugin::extensionsInitialized()
 {
+}
+
+void PerformancePlugin::parseArguments(const QStringList &arguments)
+{
+    if (arguments.contains("-performanceon", Qt::CaseInsensitive))
+        m_defaultActive = true;
 }
 
 Q_EXPORT_PLUGIN(PerformancePlugin)

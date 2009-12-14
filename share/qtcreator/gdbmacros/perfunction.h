@@ -104,14 +104,5 @@ namespace Performance {
         }
     }
 }
-/*
-extern "C" Q_DECL_EXPORT
-bool qPerfActivate(const char * serverName, int flags = Performance::Internal::AF_None);
 
-extern "C" Q_DECL_EXPORT
-void qPerfDeactivate();
-
-extern "C" Q_DECL_EXPORT
-void qWindowTemperature();
-*/
 #endif // PERFUNCTION_H
