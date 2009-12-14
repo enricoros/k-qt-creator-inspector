@@ -43,7 +43,7 @@ public:
 public slots:
     void slotSetEnabled(bool enabled);
     void slotShowInformation();
-    void slotShowRuntimeMode();
+    void slotShowProbeMode();
     void slotPaintingTemperature();
 
 private slots:

@@ -36,9 +36,6 @@ PerformanceManager::PerformanceManager(Internal::PerformancePlugin *plugin, QObj
     // save the instance (there is only 1 manager)
     s_instance = this;
 
-    // create the Window
-    m_window = new PerformanceWindow;
-
     // create the Server
     PerformanceServer * server = new PerformanceServer;
     connect(server, SIGNAL(newWarnings(int)), this, SLOT(slotNewWarnings(int)));
@@ -46,10 +43,14 @@ PerformanceManager::PerformanceManager(Internal::PerformancePlugin *plugin, QObj
 
     // create the Notification
     m_notification = new PerformanceNotification;
-    connect(m_notification, SIGNAL(clicked()), this, SLOT(slotShowRuntimeMode()));
+    connect(m_notification, SIGNAL(clicked()), this, SLOT(slotShowProbeMode()));
     m_notification->hide();
     // add it to CORE (add it now, even if not visible, to stay on top later)
     Core::ICore::instance()->modeManager()->addWidget(m_notification);
+
+    // create the Window
+    m_window = new PerformanceWindow;
+    m_window->activateRInformation();
 }
 
 PerformanceManager::~PerformanceManager()
@@ -107,14 +108,14 @@ void PerformanceManager::slotShowInformation()
     info.exec();
 }
 
-void PerformanceManager::slotShowRuntimeMode()
+void PerformanceManager::slotShowProbeMode()
 {
     // hide the Notification first
     m_notification->clearWarnings();
     m_notification->hide();
 
-    // switch to the Runtime view
-    Core::ICore::instance()->modeManager()->activateMode(Performance::Internal::MODE_RUNTIME);
+    // switch to the Probe view
+    Core::ICore::instance()->modeManager()->activateMode(Performance::Internal::MODE_PROBE);
 }
 
 void PerformanceManager::slotPaintingTemperature()

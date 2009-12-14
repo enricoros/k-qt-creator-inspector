@@ -38,8 +38,8 @@ class PerformanceManager;
 namespace Internal {
 
 // constants
-const char * const MODE_RUNTIME          = "Runtime";
-const int          P_MODE_RUNTIME        = 5;
+const char * const MODE_PROBE           = "Probe";
+const int          P_MODE_PROBE         = 5;
 
 class PerformancePlugin : public ExtensionSystem::IPlugin
 {

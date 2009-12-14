@@ -14,9 +14,9 @@
 #define PERFORMANCEWINDOW_H
 
 #include <QWidget>
-#include <QPixmap>
 class QComboBox;
 class QVBoxLayout;
+class ViewContainerWidget;
 
 namespace Performance {
 namespace Internal {
@@ -29,27 +29,22 @@ public:
     PerformanceWindow(QWidget *parent = 0);
     ~PerformanceWindow();
 
+    void activateRInformation();
+
 private slots:
     void slotMainChanged(int);
     void slotSubChanged(int);
 
-protected:
-    void paintEvent(QPaintEvent *);
-
 private:
-    void activateRInformation();
     void activateRDebugging();
     void activatePainting(int subChoice);
     void activateSubSelector();
-
-    void setCentralWidget(QWidget * widget);
     void updateMainCombo(bool enabled);
 
     QComboBox *m_mainCombo;
     QComboBox *m_subCombo;
-    QVBoxLayout *m_mainLayout;
+    ViewContainerWidget * m_viewWidget;
     QWidget *m_centralWidget;
-    QPixmap m_watermarkPixmap;
 };
 
 } // namespace Internal

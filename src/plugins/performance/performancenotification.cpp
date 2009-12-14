@@ -65,7 +65,7 @@ void PerformanceNotification::paintEvent(QPaintEvent * /*event*/)
 
     // Draw top text
     p.setPen(Qt::white);
-    p.drawText(0, 4, width(), 10, Qt::AlignHCenter, tr("Runtime"));
+    p.drawText(0, 4, width(), 10, Qt::AlignHCenter, tr("Defect"));
 
     // Draw left pixmap
     int baseLine = 18;
