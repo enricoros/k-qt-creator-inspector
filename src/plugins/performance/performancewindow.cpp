@@ -56,6 +56,8 @@ class ViewContainerWidget : public QWidget
         ViewContainerWidget(QWidget * parent = 0)
           : QWidget(parent)
           , m_widget(0)
+          , m_disabled(false)
+          //, m_disabledLabel(0)
         {
             // precache watermark pixmap
             QSvgRenderer wmRender(QString(":/performance/images/probe-watermark.svg"));
@@ -66,10 +68,26 @@ class ViewContainerWidget : public QWidget
                 wmRender.render(&wmPainter);
             }
 
+            // create the disabled warning lable
+            //m_disabledLabel = new QLabel(tr("This View is disabled. Probably the View is not available in the current state."), this);
+            //m_disabledLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+            //m_disabledLabel->hide();
+
             // set a vertical layout
             QVBoxLayout * lay = new QVBoxLayout(this);
+            //lay->addWidget(m_disabledLabel);
             setLayout(lay);
         }
+
+        /*void setDisableWidget(bool disabled)
+        {
+            if (disabled != m_disabled) {
+                m_disabled = disabled;
+                m_disabledLabel->setVisible(disabled);
+                if (m_widget)
+                    m_widget->setEnabled(!m_disabled);
+            }
+        }*/
 
         void setWidget(QWidget * widget)
         {
@@ -78,6 +96,8 @@ class ViewContainerWidget : public QWidget
             if (widget) {
                 widget->setParent(this);
                 layout()->addWidget(widget);
+                //if (m_disabled)
+                //    widget->setEnabled(false);
             }
         }
 
@@ -102,6 +122,8 @@ class ViewContainerWidget : public QWidget
     private:
         QPixmap m_watermarkPixmap;
         QWidget * m_widget;
+        bool m_disabled;
+        //QLabel * m_disabledLabel;
 };
 
 PerformanceWindow::PerformanceWindow(QWidget *parent)

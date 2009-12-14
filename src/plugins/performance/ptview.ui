@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <author>Enrico Ros</author>
-  <class>PTView</class>
+ <class>PTView</class>
  <widget class="QWidget" name="PTView">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>495</width>
-    <height>394</height>
+    <width>493</width>
+    <height>392</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -248,7 +248,7 @@ Then you ca use this form to run the tests.</string>
      </widget>
      <widget class="QGroupBox" name="resultsGroup">
       <property name="title">
-       <string>Test Result and Comparison</string>
+       <string>Test Results and Comparison</string>
       </property>
       <layout class="QGridLayout" name="gridLayout">
        <item row="0" column="0">
