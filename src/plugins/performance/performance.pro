@@ -6,6 +6,7 @@ include(../../qtcreatorplugin.pri)
 include(performance_dependencies.pri)
 
 HEADERS += \
+    abstracttest.h \
     infoview.h \
     performanceplugin.h \
     performancenotification.h \
@@ -16,9 +17,11 @@ HEADERS += \
     ptview.h \
     taskbarwidget.h \
     tasksscene.h \
-    taskswidget.h
+    taskswidget.h \
+    testcontrol.h
 
 SOURCES += \
+    abstracttest.cpp \
     infoview.cpp \
     performanceplugin.cpp \
     performancenotification.cpp \
@@ -29,7 +32,8 @@ SOURCES += \
     ptview.cpp \
     taskbarwidget.cpp \
     tasksscene.cpp \
-    taskswidget.cpp
+    taskswidget.cpp \
+    testcontrol.cpp
 
 FORMS += \
     commview.ui \

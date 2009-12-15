@@ -159,13 +159,12 @@ class TaskItem : public QGraphicsWidget
                 painter->drawRoundedRect(boundingRect().adjusted(0.5, 0.5, -0.5, -0.5), 4, 4, Qt::AbsoluteSize);
 
                 // draw the percent polygon
-                painter->setBrush(Qt::NoBrush);
-                painter->setPen(Qt::lightGray);
                 int h = size().height();
                 int x = 0;
                 foreach (int val, m_percs) {
                     int y = h * (0.9 - 0.8*(qreal)val / 100.0);
-                    painter->drawPoint(++x, y);
+                    painter->fillRect(x, y, x + 1, h - y, Qt::lightGray);
+                    ++x;
                 }
 
                 QRect r = boundingRect().toRect().adjusted(2, 1, -2, 0);
