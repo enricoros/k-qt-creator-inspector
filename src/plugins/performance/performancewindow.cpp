@@ -37,6 +37,8 @@
 #include "taskbarwidget.h"
 #include "ui_commview.h"
 
+#include "abstracttest.h"
+
 #include <QtGui/QComboBox>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QLabel>
@@ -130,6 +132,8 @@ PerformanceWindow::PerformanceWindow(QWidget *parent)
   : QWidget(parent)
   , m_viewWidget(0)
 {
+    AbstractTest * test = new AbstractTest(0);
+
     // ToolBar
     QWidget *toolBar = new Utils::StyledBar(this);
     QHBoxLayout *tLayout = new QHBoxLayout(toolBar);
