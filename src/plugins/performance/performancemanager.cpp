@@ -33,6 +33,8 @@
 #include "performanceplugin.h"
 #include "performanceserver.h"
 #include "performancewindow.h"
+#include "testcontrol.h"
+#include "paint-test/painttest.h"
 
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
@@ -65,9 +67,13 @@ PerformanceManager::PerformanceManager(Internal::PerformancePlugin *plugin, QObj
     // add it to CORE (add it now, even if not visible, to stay on top later)
     Core::ICore::instance()->modeManager()->addWidget(m_notification);
 
+    // create the Test Control & Tests
+    m_testControl = new TestControl(this);
+    m_testControl->addTest(new PaintTest);
+
     // create the Window
-    m_window = new PerformanceWindow;
-    m_window->activateRInformation();
+    m_window = new PerformanceWindow(m_testControl);
+    m_window->showDefaultView();
 }
 
 PerformanceManager::~PerformanceManager()
@@ -139,15 +145,6 @@ void PerformanceManager::slotShowProbeMode()
 
     // switch to the Probe view
     Core::ICore::instance()->modeManager()->activateMode(Performance::Internal::MODE_PROBE);
-}
-
-void PerformanceManager::slotPaintingTemperature()
-{
-    // switch to the Probe view
-    Core::ICore::instance()->modeManager()->activateMode(Performance::Internal::MODE_PROBE);
-
-    // activate the P.T.View
-    m_window->activatePaintingTemperature();
 }
 
 void PerformanceManager::slotNewWarnings(int count)

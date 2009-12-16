@@ -29,7 +29,8 @@
 
 #include "abstracttest.h"
 
-#include <QSignalTransition>
+#include <QAbstractTransition>
+#include <QStateMachine>
 #include <QState>
 
 using namespace Performance::Internal;
@@ -38,7 +39,7 @@ using namespace Performance::Internal;
 class TestEvent : public QEvent
 {
 public:
-    enum OpType { Go, Wait, Deny, Close };
+    enum OpType { Activate, Deactivate, Refuse, Wait };
     TestEvent(OpType opType) : QEvent(QEvent::Type(QEvent::User+1)), opType(opType) {}
     OpType opType;
 };
@@ -61,71 +62,80 @@ private:
     TestEvent::OpType m_opType;
 };
 
+struct Performance::Internal::AbstractTestPrivate {
+    QStateMachine stateMachine;
+};
 
 AbstractTest::AbstractTest(QObject *parent)
   : QObject(parent)
+  , d(new AbstractTestPrivate)
 {
     // 1. state machine configuration
 
     // 1.1 create states
     QState * sIdle = new QState;
     QState * sWait = new QState;
-    connect(sWait, SIGNAL(entered()), this, SLOT(slotWaitEntered()));
-    connect(sWait, SIGNAL(exited()), this, SLOT(slotWaitExited()));
+    connect(sWait, SIGNAL(entered()), this, SLOT(slotLock()));
+    connect(sWait, SIGNAL(exited()), this, SLOT(slotUnlock()));
     QState * sActive = new QState;
     connect(sActive, SIGNAL(entered()), this, SLOT(slotActivate()));
-    QState * sClosing = new QState;
-    connect(sClosing, SIGNAL(entered()), this, SLOT(slotClose()));
+    QState * sDeactivate = new QState;
+    connect(sDeactivate, SIGNAL(entered()), this, SLOT(slotDeactivate()));
 
     // 1.2 configure transitions
     sIdle->addTransition(new TestTransition(TestEvent::Wait, sWait));
-    sIdle->addTransition(new TestTransition(TestEvent::Go, sActive));
-    sWait->addTransition(new TestTransition(TestEvent::Deny, sIdle));
-    sWait->addTransition(new TestTransition(TestEvent::Go, sActive));
-    sActive->addTransition(new TestTransition(TestEvent::Close, sClosing));
-    sClosing->addTransition(new QSignalTransition(this, SIGNAL(deactivated())));
+    sIdle->addTransition(new TestTransition(TestEvent::Activate, sActive));
+    sWait->addTransition(new TestTransition(TestEvent::Refuse, sIdle));
+    sWait->addTransition(new TestTransition(TestEvent::Activate, sActive));
+    sActive->addTransition(new TestTransition(TestEvent::Deactivate, sDeactivate));
+    sDeactivate->addTransition(this, SIGNAL(deactivated()), sIdle);
 
     // 1.3 add states to the machine
-    m_stateMachine.addState(sIdle);
-    m_stateMachine.addState(sWait);
-    m_stateMachine.addState(sActive);
-    m_stateMachine.addState(sClosing);
-    m_stateMachine.setInitialState(sIdle);
+    d->stateMachine.addState(sIdle);
+    d->stateMachine.addState(sWait);
+    d->stateMachine.addState(sActive);
+    d->stateMachine.addState(sDeactivate);
+    d->stateMachine.setInitialState(sIdle);
 }
 
-void AbstractTest::slotWaitEntered()
+AbstractTest::~AbstractTest()
 {
-}
-
-void AbstractTest::slotWaitExited()
-{
+    delete d;
 }
 
 void AbstractTest::slotActivate()
 {
 }
 
-void AbstractTest::slotClose()
+void AbstractTest::slotDeactivate()
 {
     emit deactivated();
 }
 
-void AbstractTest::controlGo()
+void AbstractTest::slotLock()
 {
-    m_stateMachine.postEvent(new TestEvent(TestEvent::Go));
+}
+
+void AbstractTest::slotUnlock()
+{
+}
+
+void AbstractTest::controlActivate()
+{
+    d->stateMachine.postEvent(new TestEvent(TestEvent::Activate));
+}
+
+void AbstractTest::controlDeactivate()
+{
+    d->stateMachine.postEvent(new TestEvent(TestEvent::Deactivate));
+}
+
+void AbstractTest::controlRefuse()
+{
+    d->stateMachine.postEvent(new TestEvent(TestEvent::Refuse));
 }
 
 void AbstractTest::controlWait()
 {
-    m_stateMachine.postEvent(new TestEvent(TestEvent::Wait));
-}
-
-void AbstractTest::controlDenied()
-{
-    m_stateMachine.postEvent(new TestEvent(TestEvent::Deny));
-}
-
-void AbstractTest::controlClose()
-{
-    m_stateMachine.postEvent(new TestEvent(TestEvent::Close));
+    d->stateMachine.postEvent(new TestEvent(TestEvent::Wait));
 }

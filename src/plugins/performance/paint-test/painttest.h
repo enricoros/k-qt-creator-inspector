@@ -27,59 +27,40 @@
 **
 **************************************************************************/
 
-#ifndef PERFORMANCEMANAGER_H
-#define PERFORMANCEMANAGER_H
+#ifndef PAINTTEST_H
+#define PAINTTEST_H
 
-#include <QObject>
-#include <QList>
-#include <QVariantList>
+#include "abstracttest.h"
 
 namespace Performance {
-class PerformanceServer;
 namespace Internal {
-class PerformanceNotification;
-class PerformancePlugin;
-class PerformanceWindow;
-class TestControl;
-}
+class PaintTemperatureView;
 
-class Q_DECL_EXPORT PerformanceManager : public QObject
+class PaintTest : public AbstractTest
 {
     Q_OBJECT
 
 public:
-    PerformanceManager(Internal::PerformancePlugin *plugin, QObject *parent = 0);
-    ~PerformanceManager();
+    PaintTest(QObject *parent = 0);
+    ~PaintTest();
 
-    static PerformanceManager * instance();
+    // ::AbstractTest
+    enum { Uid = 0x01 };
+    QString name() const;
+    TestMenu menu() const;
+    QWidget * createView(int viewId);
 
-    bool enabled() const;
-
-    Internal::PerformanceWindow *defaultWindow() const;
-    PerformanceServer *defaultServer() const;
-    int activationFlags() const; //TEMP relocate
-
-    // ### TEMP emits default server's debuggerCallFunction
-    void defaultServerCallFunction(const QString & name, QVariantList args = QVariantList());
-
-public slots:
-    void slotSetEnabled(bool enabled);
-    void slotShowInformation();
-    void slotShowProbeMode();
-
-private slots:
-    void slotNewWarnings(int count);
+    // ::AbstractTest
+    void slotActivate();
+    void slotDeactivate();
+    void slotLock();
+    void slotUnlock();
 
 private:
-    static PerformanceManager *s_instance;
-    QList<PerformanceServer*> m_servers;
-    Internal::PerformancePlugin *m_plugin;
-    Internal::PerformanceWindow *m_window;
-    Internal::PerformanceNotification *m_notification;
-    Internal::TestControl *m_testControl;
-    bool m_enabled;
+    QList<PaintTemperatureView *> m_views;
 };
 
+} // namespace Internal
 } // namespace Performance
 
-#endif // PERFORMANCEMANAGER_H
+#endif // PAINTTEST_H

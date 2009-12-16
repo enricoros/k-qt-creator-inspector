@@ -163,8 +163,7 @@ class TaskItem : public QGraphicsWidget
                 int x = 0;
                 foreach (int val, m_percs) {
                     int y = h * (0.9 - 0.8*(qreal)val / 100.0);
-                    painter->fillRect(x, y, x + 1, h - y, Qt::lightGray);
-                    ++x;
+                    painter->fillRect(x++, y, 1, h - y, Qt::lightGray);
                 }
 
                 QRect r = boundingRect().toRect().adjusted(2, 1, -2, 0);

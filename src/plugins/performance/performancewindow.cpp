@@ -33,11 +33,9 @@
 #include "infoview.h"
 #include "performancemanager.h"
 #include "performanceserver.h"
-#include "ptview.h"
 #include "taskbarwidget.h"
+#include "testcontrol.h"
 #include "ui_commview.h"
-
-#include "abstracttest.h"
 
 #include <QtGui/QComboBox>
 #include <QtGui/QHBoxLayout>
@@ -128,12 +126,12 @@ class ViewContainerWidget : public QWidget
         //QLabel * m_disabledLabel;
 };
 
-PerformanceWindow::PerformanceWindow(QWidget *parent)
+PerformanceWindow::PerformanceWindow(TestControl *control, QWidget *parent)
   : QWidget(parent)
+  , m_testControl(control)
   , m_viewWidget(0)
+  , m_taskbarWidget(0)
 {
-    AbstractTest * test = new AbstractTest(0);
-
     // ToolBar
     QWidget *toolBar = new Utils::StyledBar(this);
     QHBoxLayout *tLayout = new QHBoxLayout(toolBar);
@@ -141,9 +139,9 @@ PerformanceWindow::PerformanceWindow(QWidget *parent)
     tLayout->setSpacing(0);
 
     m_mainCombo = new QComboBox(toolBar);
-    connect(m_mainCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(slotMainChanged(int)));
+    connect(m_mainCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(slotMainComboChanged(int)));
     m_subCombo = new QComboBox(toolBar);
-    connect(m_subCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(slotSubChanged(int)));
+    connect(m_subCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(slotSubComboChanged(int)));
     tLayout->addWidget(m_mainCombo);
     //tLayout->addWidget(new QLabel(tr(" section "), toolBar));
     tLayout->addWidget(m_subCombo);
@@ -161,71 +159,10 @@ PerformanceWindow::PerformanceWindow(QWidget *parent)
     vLayout->addWidget(m_viewWidget);
     vLayout->addWidget(m_taskbarWidget);
 
-    updateMainCombo(true);
+    updateMainCombo();
 }
 
-PerformanceWindow::~PerformanceWindow()
-{
-}
-
-void PerformanceWindow::slotMainChanged(int choice)
-{
-    // reset subcombo
-    m_subCombo->hide();
-    m_subCombo->clear();
-
-    // main category selected
-    int id = m_mainCombo->itemData(choice, Qt::UserRole).toInt();
-    switch (id) {
-        case 1:
-            m_subCombo->addItem(tr("Information"), 101);
-            m_subCombo->addItem(tr("Debugging"), 102);
-            m_subCombo->adjustSize();
-            m_subCombo->show();
-            break;
-        case 2:
-            break;
-        case 3:
-            break;
-        case 4:
-            m_subCombo->addItem(tr("..."));
-            m_subCombo->addItem(tr("Temperature"), 401);
-            m_subCombo->addItem(tr("Pixel Energy"), 402);
-            m_subCombo->adjustSize();
-            m_subCombo->show();
-            activateSubSelector();
-            break;
-        case 5:
-            break;
-        case 6:
-            break;
-        case 7:
-            break;
-        case 8:
-            break;
-    }
-}
-
-void PerformanceWindow::slotSubChanged(int choice)
-{
-    int id = m_subCombo->itemData(choice, Qt::UserRole).toInt();
-    switch (id) {
-        case 101:
-            activateRInformation();
-            break;
-        case 102:
-            activateRDebugging();
-            break;
-        case 401:
-            activatePaintingTemperature();
-            break;
-        default:
-            activateSubSelector();
-            break;
-    }
-}
-
-void PerformanceWindow::activateRInformation()
+void PerformanceWindow::showDefaultView()
 {
     Performance::PerformanceServer *server = Performance::PerformanceManager::instance()->defaultServer();
     if (!server) {
@@ -242,24 +179,16 @@ void PerformanceWindow::activateRInformation()
     info->setFieldState(info->workLabel, (server->m_sDebugging && server->m_sEnabled && server->m_sInjected && server->m_sConnected) ? 1 : 0);
 
     m_viewWidget->setWidget(info);
-}
 
-void PerformanceWindow::activatePaintingTemperature()
-{
-    PaintTemperatureView * ptView = new PaintTemperatureView;
-    m_viewWidget->setWidget(ptView);
-}
-
-
-void PerformanceWindow::activateRDebugging()
-{
+/*
     QWidget *w = new QWidget;
     Ui::CommView * ui = new Ui::CommView;
     ui->setupUi(w);
     m_viewWidget->setWidget(w);
+*/
 }
 
-void PerformanceWindow::activateSubSelector()
+void PerformanceWindow::showSubSelectorView()
 {
     QWidget *holder = new QWidget;
     QLabel *arrowLabel = new QLabel(holder);
@@ -274,24 +203,80 @@ void PerformanceWindow::activateSubSelector()
     m_viewWidget->setWidget(holder);
 }
 
-void PerformanceWindow::updateMainCombo(bool enabled)
+void PerformanceWindow::updateMainCombo()
 {
-    int prevIdx = m_mainCombo->currentIndex();
+    // TODO: keep care of the current state while updating: some items may be
+    // unavailable
+
+    // regen the combo
+    int prevIndex = m_mainCombo->currentIndex();
+    int prevTestId = prevIndex >= 0 ? m_mainCombo->itemData(prevIndex).toInt() : 0;
     m_mainCombo->clear();
-    m_mainCombo->addItem(tr("Probe"), 1);
-    if (enabled) {
-        m_mainCombo->addItem(tr("Event Loop"), 2);
-        m_mainCombo->addItem(tr("Edit"), 3);
-        m_mainCombo->addItem(tr("Painting"), 4);
-        m_mainCombo->addItem(tr("Timers"), 5);
-        m_mainCombo->addItem(tr("Network"), 6);
-        m_mainCombo->addItem(tr("Input"), 7);
-        m_mainCombo->addItem(tr("Parallel"), 8);
+    m_mainCombo->addItem(QIcon(":/performance/images/menu-icon.png"), tr("Status"));
+
+    // add all the top-level items
+    m_mergedMenu = m_testControl->mergedMenu();
+    foreach (const TestMenuItem & item, m_mergedMenu) {
+        if (item.enabled) {
+            m_mainCombo->addItem(item.name);
+            if (prevTestId == item.testId)
+                m_mainCombo->setCurrentIndex(m_mainCombo->count() - 1);
+        }
     }
-    if (prevIdx > 0 && prevIdx < m_mainCombo->count())
-        m_mainCombo->setCurrentIndex(prevIdx);
-    else
+
+    // select the first item, if no other selected
+    if (m_mainCombo->currentIndex() < 0)
         m_mainCombo->setCurrentIndex(0);
+}
+
+void PerformanceWindow::slotMainComboChanged(int mainIndex)
+{
+    // reset subcombo
+    m_subCombo->hide();
+    m_subCombo->clear();
+
+    // handle deault view
+    if (!mainIndex) {
+        showDefaultView();
+        return;
+    }
+    --mainIndex;
+
+    // handle the selection on the main combo
+    TestMenuItem subMenu = m_mergedMenu.at(mainIndex);
+    if (!subMenu.children.isEmpty()) {
+        foreach (const TestMenuItem & item, subMenu.children) {
+            if (item.enabled)
+                m_subCombo->addItem(item.name);
+        }
+        if (m_subCombo->count()) {
+            m_subCombo->adjustSize();
+            m_subCombo->show();
+        }
+    } else if (subMenu.testId) {
+        activateView(subMenu.testId, subMenu.viewId);
+    } else
+        qWarning("PerformanceWindow::slotMainChanged: can't handle this combo selection");
+}
+
+void PerformanceWindow::slotSubComboChanged(int subIndex)
+{
+    // get the item
+    int mainIndex = m_mainCombo->currentIndex() - 1;
+    if (mainIndex < 0 || mainIndex >= m_mergedMenu.count())
+        return;
+    const TestMenuItem & menu = m_mergedMenu.at(mainIndex);
+    if (subIndex < 0 || subIndex >= menu.children.count())
+        return;
+    const TestMenuItem & item = menu.children.at(subIndex);
+
+    // activate the related view
+    activateView(item.testId, item.viewId);
+}
+
+void PerformanceWindow::activateView(int testId, int viewId)
+{
+    qWarning("View activation TODO");
 }
 
 } // namespace Internal

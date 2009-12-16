@@ -29,10 +29,82 @@
 
 #include "testcontrol.h"
 
+#include "abstracttest.h"
 
 using namespace Performance::Internal;
 
 TestControl::TestControl(QObject *parent)
   : QObject(parent)
 {
+}
+
+TestControl::~TestControl()
+{
+    // delete all the tests (bypassing the 'destroyed' hook)
+    QList<AbstractTest *> listCopy = m_tests;
+    m_tests.clear();
+    qDeleteAll(listCopy);
+}
+
+void TestControl::addTest(AbstractTest * test)
+{
+    if (!test) {
+        qWarning("TestControl::addTest: skipping 0 pointer");
+        return;
+    }
+    // register the Test
+    connect(test, SIGNAL(requestActivation()), this, SLOT(slotTestActivationRequested()));
+    connect(test, SIGNAL(deactivated()), this, SLOT(slotTestDeactivated()));
+    connect(test, SIGNAL(destroyed()), this, SLOT(slotTestDestroyed()));
+    mergeToMenu(test->menu());
+    m_tests.append(test);
+}
+
+void TestControl::removeTest(AbstractTest * test)
+{
+    if (!test) {
+        qWarning("TestControl::removeTest: skipping 0 pointer");
+        return;
+    }
+    // unregister the Test
+    unmergeFromMenu(test->menu());
+    disconnect(test, 0, this, 0);
+    m_tests.removeAll(test);
+    m_activeTests.removeAll(test);
+}
+
+TestMenu TestControl::mergedMenu() const
+{
+    return m_menu;
+}
+
+void TestControl::mergeToMenu(const TestMenu & menu)
+{
+    qWarning("TestControl::mergeToMenu: FIXME");
+    m_menu.append(menu);
+}
+
+void TestControl::unmergeFromMenu(const TestMenu & /*menu*/)
+{
+    qWarning("TestControl::unmergeFromMenu: TODO");
+}
+
+void TestControl::slotTestActivationRequested()
+{
+    AbstractTest * test = static_cast<AbstractTest *>(sender());
+    test->controlActivate();
+    m_activeTests.append(test);
+}
+
+void TestControl::slotTestDeactivated()
+{
+    AbstractTest * test = static_cast<AbstractTest *>(sender());
+    m_activeTests.removeAll(test);
+}
+
+void TestControl::slotTestDestroyed()
+{
+    AbstractTest * test = static_cast<AbstractTest *>(sender());
+    if (m_tests.contains(test))
+        removeTest(test);
 }
