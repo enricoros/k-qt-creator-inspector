@@ -14,11 +14,12 @@ HEADERS += \
     performancewindow.h \
     performancemanager.h \
     plotgrid.h \
-    ptview.h \
     taskbarwidget.h \
     tasksscene.h \
     taskswidget.h \
-    testcontrol.h
+    testcontrol.h \
+    paint-test/painttest.h \
+    paint-test/ptview.h
 
 SOURCES += \
     abstracttest.cpp \
@@ -29,16 +30,17 @@ SOURCES += \
     performancewindow.cpp \
     performancemanager.cpp \
     plotgrid.cpp \
-    ptview.cpp \
     taskbarwidget.cpp \
     tasksscene.cpp \
     taskswidget.cpp \
-    testcontrol.cpp
+    testcontrol.cpp \
+    paint-test/painttest.cpp \
+    paint-test/ptview.cpp
 
 FORMS += \
     commview.ui \
     infoview.ui \
-    ptview.ui
+    paint-test/ptview.ui
 
 RESOURCES += performance.qrc
 

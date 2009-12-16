@@ -31,12 +31,14 @@
 #define PERFORMANCEWINDOW_H
 
 #include <QWidget>
+#include "abstracttest.h"
 class QComboBox;
 class QVBoxLayout;
 
 namespace Performance {
 namespace Internal {
 class TaskbarWidget;
+class TestControl;
 class ViewContainerWidget;
 
 class PerformanceWindow : public QWidget
@@ -44,25 +46,26 @@ class PerformanceWindow : public QWidget
     Q_OBJECT
 
 public:
-    PerformanceWindow(QWidget *parent = 0);
-    ~PerformanceWindow();
+    PerformanceWindow(TestControl * control, QWidget *parent = 0);
 
-    void activateRInformation();
-    void activatePaintingTemperature();
+    /// displays the only hardcoded view. all the others are plugged in
+    void showDefaultView();
+    void showSubSelectorView();
 
 private slots:
-    void slotMainChanged(int);
-    void slotSubChanged(int);
+    void updateMainCombo();
+    void slotMainComboChanged(int);
+    void slotSubComboChanged(int);
 
 private:
-    void activateRDebugging();
-    void activateSubSelector();
-    void updateMainCombo(bool enabled);
+    void activateView(int testId, int viewId);
 
+    TestControl *m_testControl;
     QComboBox *m_mainCombo;
     QComboBox *m_subCombo;
     ViewContainerWidget *m_viewWidget;
     TaskbarWidget *m_taskbarWidget;
+    TestMenu m_mergedMenu;
 };
 
 } // namespace Internal

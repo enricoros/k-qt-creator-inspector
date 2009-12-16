@@ -31,11 +31,24 @@
 #define ABSTRACTTEST_H
 
 #include <QObject>
-#include <QStateMachine>
+class QWidget;
 
 namespace Performance {
 namespace Internal {
 class TestControl;
+
+struct TestMenuItem {
+    QString name;
+    bool enabled;
+    int testId;
+    int viewId;
+    QList<TestMenuItem> children;
+
+    TestMenuItem(const QString & name, bool enabled, int testId, int viewId)
+        : name(name), enabled(enabled), testId(testId), viewId(viewId) {}
+};
+
+typedef QList<TestMenuItem> TestMenu;
 
 class AbstractTest : public QObject
 {
@@ -43,26 +56,37 @@ class AbstractTest : public QObject
 
 public:
     AbstractTest(QObject *parent = 0);
+    virtual ~AbstractTest();
+
+    // describe the Test
+    enum { Uid = 0x00 };
+    virtual QString name() const = 0;
+    virtual TestMenu menu() const = 0;
+    //virtual QList<int> cmdClasses() const = 0;
+    virtual QWidget * createView(int viewId) = 0;
+    //virtual * createCommSession(int cmdClass) = 0;
 
 signals:
+    // tells TestContol to activate this test
     void requestActivation();
+    // tells TestControl that this test is idle again
     void deactivated();
 
 protected slots:
-    virtual void slotWaitEntered();
-    virtual void slotWaitExited();
+    // reimplement to be notified when the state changes
     virtual void slotActivate();
-    virtual void slotClose();
+    virtual void slotDeactivate();
+    virtual void slotLock();
+    virtual void slotUnlock();
 
 private:
+    // used by TestControl for state transitions
     friend class TestControl;
-    void controlGo();
+    void controlActivate();
+    void controlDeactivate();
+    void controlRefuse();
     void controlWait();
-    void controlDenied();
-    void controlClose();
-
-private:
-    QStateMachine m_stateMachine;
+    struct AbstractTestPrivate * d;
 };
 
 } // namespace Internal

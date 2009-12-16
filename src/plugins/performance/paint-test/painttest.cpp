@@ -27,47 +27,66 @@
 **
 **************************************************************************/
 
-#ifndef TESTCONTROL_H
-#define TESTCONTROL_H
+#include "painttest.h"
 
-#include <QObject>
-#include <QList>
-#include "abstracttest.h"
+#include "ptview.h"
 
-namespace Performance {
-namespace Internal {
+#include <QAbstractTransition>
+#include <QStateMachine>
+#include <QState>
 
-/**
-  Features to add:
-   - model to store all the activations like "active tests", commands log, past tests, etc...
-**/
-class TestControl : public QObject
+using namespace Performance::Internal;
+
+
+PaintTest::PaintTest(QObject *parent)
+  : AbstractTest(parent)
 {
-    Q_OBJECT
+}
 
-public:
-    TestControl(QObject *parent = 0);
-    ~TestControl();
+PaintTest::~PaintTest()
+{
+    qDeleteAll(m_views);
+}
 
-    void addTest(AbstractTest *);
-    void removeTest(AbstractTest *);
+QString PaintTest::name() const
+{
+    return tr("Paint Temperature Test");
+}
 
-    TestMenu mergedMenu() const;
+TestMenu PaintTest::menu() const
+{
+    TestMenu menu;
+    TestMenuItem root(tr("Painting"), true, Uid, 0);
+    root.children.append(TestMenuItem(tr("Temperature"), true, Uid, 1));
+    root.children.append(TestMenuItem(tr("Pixel Energy"), true, Uid, 2));
+    menu.append(root);
+    return menu;
+}
 
-private:
-    void mergeToMenu(const TestMenu & menu);
-    void unmergeFromMenu(const TestMenu & menu);
-    QList<AbstractTest *> m_activeTests;
-    QList<AbstractTest *> m_tests;
-    TestMenu m_menu;
+QWidget * PaintTest::createView(int viewId)
+{
+    Q_UNUSED(viewId);
+    PaintTemperatureView * ptView = new PaintTemperatureView;
+    return ptView;
+}
 
-private slots:
-    void slotTestActivationRequested();
-    void slotTestDeactivated();
-    void slotTestDestroyed();
-};
+void PaintTest::slotActivate()
+{
+}
 
-} // namespace Internal
-} // namespace Performance
+void PaintTest::slotDeactivate()
+{
+    emit deactivated();
+}
 
-#endif // TESTCONTROL_H
+void PaintTest::slotLock()
+{
+    foreach (PaintTemperatureView * view, m_views)
+        view->setEnabled(false);
+}
+
+void PaintTest::slotUnlock()
+{
+    foreach (PaintTemperatureView * view, m_views)
+        view->setEnabled(true);
+}
