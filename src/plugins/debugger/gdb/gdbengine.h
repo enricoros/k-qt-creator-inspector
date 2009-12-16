@@ -487,7 +487,7 @@ private: ////////// View & Data Stuff //////////
     void handleDebuggingHelperValue3Classic(const GdbResponse &response);
     void handleDebuggingHelperEditValue(const GdbResponse &response);
     void handleDebuggingHelperSetup(const GdbResponse &response);
-    void handleDebuggingHelperPerformance(const GdbResponse &response);
+    void handleDebuggingHelperInspector(const GdbResponse &response);
 
     Q_SLOT void createFullBacktrace();
     void handleCreateFullBacktrace(const GdbResponse &response);
@@ -518,7 +518,7 @@ private: ////////// Dumper Management //////////
     void setDebuggingHelperStateClassic(DebuggingHelperState);
     void tryLoadDebuggingHelpersClassic();
     void tryQueryDebuggingHelpersClassic();
-    void tryActivatePerformanceHelpersClassic();
+    void tryActivateInspectorHelpersClassic();
     Q_SLOT void recheckDebuggingHelperAvailabilityClassic();
     void connectDebuggingHelperActions();
     void disconnectDebuggingHelperActions();

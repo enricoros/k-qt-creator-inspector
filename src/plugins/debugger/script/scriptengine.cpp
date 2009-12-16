@@ -208,7 +208,7 @@ void ScriptEngine::executeDebuggerCommand(const QString &command)
 
 void ScriptEngine::callFunction(const QString &function, const QVariantList &args)
 {
-    // stub, introduced py PerformancePlugin. see reference in GdbEngine
+    // stub, introduced by the Inspector Plugin. see reference in GdbEngine
     Q_UNUSED(function)
     Q_UNUSED(args)
     XSDEBUG("FIXME:  ScriptEngine::callFunction()");
