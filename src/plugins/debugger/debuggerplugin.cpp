@@ -66,8 +66,8 @@
 
 #include <coreplugin/manhattanstyle.h>
 
-#include <performance/performancemanager.h>
-#include <performance/performanceserver.h>
+#include <inspector/commserver.h>
+#include <inspector/inspectorinstance.h>
 
 #include <projectexplorer/projectexplorer.h>
 #include <projectexplorer/projectexplorerconstants.h>
@@ -942,12 +942,10 @@ bool DebuggerPlugin::initialize(const QStringList &arguments, QString *errorMess
     connect(editorManager, SIGNAL(editorOpened(Core::IEditor*)),
         this, SLOT(editorOpened(Core::IEditor*)));
 
-    // Performance
-    Performance::PerformanceManager *performanceManager =
-        Performance::PerformanceManager::instance();
-    Performance::PerformanceServer *performanceServer =
-        performanceManager->defaultServer();
-    connect(performanceServer, SIGNAL(debuggerCallFunction(QString,QVariantList)),
+    // Inspector connection (temp HACK to issue debugger commands)
+    Inspector::CommServer * commServer = Inspector::InspectorInstance::
+        instance()->defaultComm();
+    connect(commServer, SIGNAL(debuggerCallFunction(QString,QVariantList)),
             m_manager, SLOT(callFunction(QString,QVariantList)));
 
     // Application interaction
@@ -1251,9 +1249,9 @@ void DebuggerPlugin::handleStateChanged(int state)
     m_startRemoteAction->setEnabled(!started && !starting);
     m_detachAction->setEnabled(detachable);
 
-    // sync Performance Plugin status
-    Performance::PerformanceManager::instance()
-            ->defaultServer()->setDebugging(started);
+    // sync Inspector Plugin status
+    Inspector::InspectorInstance::instance()
+            ->defaultComm()->setDebugging(started);
 }
 
 void DebuggerPlugin::writeSettings() const

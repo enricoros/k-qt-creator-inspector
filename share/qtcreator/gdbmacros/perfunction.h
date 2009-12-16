@@ -33,7 +33,7 @@
 #include <qglobal.h>
 #include <QByteArray>
 
-namespace Performance {
+namespace Inspector {
     namespace Internal {
         enum ActivationFlags {
             AF_None        = 0x0000,

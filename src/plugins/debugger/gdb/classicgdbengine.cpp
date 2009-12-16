@@ -37,8 +37,8 @@
 #include "watchhandler.h"
 
 #include <extensionsystem/pluginmanager.h>
-#include <performance/performancemanager.h>
-#include <performance/performanceserver.h>
+#include <inspector/commserver.h>
+#include <inspector/inspectorinstance.h>
 #include <utils/qtcassert.h>
 
 #include <QtCore/QFile>
@@ -548,7 +548,7 @@ void GdbEngine::tryLoadDebuggingHelpersClassic()
     postCommand("sharedlibrary " + dotEscape(dlopenLib));
 #endif
     tryQueryDebuggingHelpersClassic();
-    tryActivatePerformanceHelpersClassic();
+    tryActivateInspectorHelpersClassic();
 }
 
 void GdbEngine::tryQueryDebuggingHelpersClassic()
@@ -560,32 +560,32 @@ void GdbEngine::tryQueryDebuggingHelpersClassic()
         CB(handleQueryDebuggingHelperClassic));
 }
 
-void GdbEngine::tryActivatePerformanceHelpersClassic()
+void GdbEngine::tryActivateInspectorHelpersClassic()
 {
     // get the listening socket name
-    Performance::PerformanceManager * perfManager = Performance::PerformanceManager::instance();
-    Performance::PerformanceServer * perfServer = perfManager->defaultServer();
-    if (!perfManager->enabled()) {
-        perfServer->setHelpersPresent(false);
-        perfServer->setHelpersInjected(false);
+    Inspector::InspectorInstance * perfInstance = Inspector::InspectorInstance::instance();
+    Inspector::CommServer * commServer = perfInstance->defaultComm();
+    if (!perfInstance->enabled()) {
+        commServer->setHelpersPresent(false);
+        commServer->setHelpersInjected(false);
         return;
     }
-    QString serverName = perfServer->serverName();
-    int activationFlags = perfManager->activationFlags();
+    QString serverName = commServer->serverName();
+    int activationFlags = perfInstance->activationFlags();
 
-    // disable the performance plugin if no server name
+    // disable the inspector plugin if no server name
     if (serverName.isNull()) {
-        perfServer->setHelpersPresent(false);
-        perfServer->setHelpersInjected(false);
-        return;
+         commServer->setHelpersPresent(false);
+         commServer->setHelpersInjected(false);
+         return;
     }
 
     // TODO: use entry point checks + GUI checks
-    //postCommand(_("p qPerfActivate"), CB(handleDebuggingHelperPerformance));
+    //postCommand(_("p qPerfActivate"), CB(handleDebuggingHelperInspector));
 
     callFunction(_("qPerfActivate"), QVariantList() << serverName << activationFlags);
-    perfServer->setHelpersPresent(true); // FIXME
-    perfServer->setHelpersInjected(true); // check this too
+    commServer->setHelpersPresent(true); // FIXME
+    commServer->setHelpersInjected(true); // check this too
 }
 
 void GdbEngine::recheckDebuggingHelperAvailabilityClassic()

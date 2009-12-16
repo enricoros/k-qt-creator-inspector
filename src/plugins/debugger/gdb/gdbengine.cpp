@@ -805,7 +805,7 @@ int GdbEngine::commandTimeoutTime() const
 
 void GdbEngine::commandTimeout()
 {
-    // ### disable timeout, for Performance by Enrico
+    // ### disable timeout, for Inspector by Enrico
     return;
 
     QList<int> keys = m_cookieForToken.keys();
@@ -3362,9 +3362,9 @@ void GdbEngine::handleDebuggingHelperSetup(const GdbResponse &response)
     }
 }
 
-void GdbEngine::handleDebuggingHelperPerformance(const GdbResponse &response)
+void GdbEngine::handleDebuggingHelperInspector(const GdbResponse &response)
 {
-    qWarning() << "PERFORMANCE HELPER CALLED"; // << (int)record.resultClass << record.data.toString();
+    qWarning() << "INSPECTOR HELPER CALLED"; // << (int)record.resultClass << record.data.toString();
 
     /// Add check for: Present and with 4 symbols with {0, 0, 0, 0} values (otherwise another handler is installed)
     // "$5 = {signal_begin_callback = 0, slot_begin_callback = 0, signal_end_callback = 0, slot_end_callback = 0}"
