@@ -27,64 +27,43 @@
 **
 **************************************************************************/
 
-#include "paintprobe.h"
+#ifndef COMBOTREEWIDGET_H
+#define COMBOTREEWIDGET_H
 
-#include "ptview.h"
+#include <utils/styledbar.h>
+#include <QIcon>
+#include <QVariant>
 
-#include <QAbstractTransition>
-#include <QStateMachine>
-#include <QState>
+namespace Inspector {
+namespace Internal {
 
-using namespace Inspector::Internal;
-
-
-PaintProbe::PaintProbe(QObject *parent)
-  : AbstractProbe(parent)
+/**
+    \brief Navigates a tree with horizontal combo-boxes
+*/
+class ComboTreeWidget : public Utils::StyledBar
 {
-}
+    Q_OBJECT
 
-PaintProbe::~PaintProbe()
-{
-    qDeleteAll(m_views);
-}
+public:
+    ComboTreeWidget(QWidget *parent = 0);
 
-QString PaintProbe::name() const
-{
-    return tr("Paint Temperature Test");
-}
+    void addPath(const QStringList &path, const QVariant &userData, const QIcon &icon = QIcon());
+    void removePath(const QStringList &path);
+    void clear();
 
-ProbeMenuEntries PaintProbe::menuEntries() const
-{
-    ProbeMenuEntries entries;
-    entries.append(ProbeMenuEntry(QStringList() << tr("Painting") << tr("Temperature"), Uid, 1));
-    entries.append(ProbeMenuEntry(QStringList() << tr("Painting") << tr("Pixel Energy"), Uid, 2));
-    return entries;
-}
+    QStringList currentPath() const;
+    QVariant currentData() const;
+    void setPath(const QStringList &path);
 
-QWidget * PaintProbe::createView(int viewId)
-{
-    Q_UNUSED(viewId);
-    PaintTemperatureView * ptView = new PaintTemperatureView;
-    return ptView;
-}
+signals:
+    void treeChanged();
+    void pathSelected(const QStringList &path, const QVariant &userData);
 
-void PaintProbe::slotActivate()
-{
-}
+private slots:
+    void slotComboIndexChanged(int index);
+};
 
-void PaintProbe::slotDeactivate()
-{
-    emit deactivated();
-}
+} // namespace Internal
+} // namespace Inspector
 
-void PaintProbe::slotLock()
-{
-    foreach (PaintTemperatureView * view, m_views)
-        view->setEnabled(false);
-}
-
-void PaintProbe::slotUnlock()
-{
-    foreach (PaintTemperatureView * view, m_views)
-        view->setEnabled(true);
-}
+#endif // COMBOTREEWIDGET_H

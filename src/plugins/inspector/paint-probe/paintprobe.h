@@ -36,7 +36,7 @@ namespace Inspector {
 namespace Internal {
 class PaintTemperatureView;
 
-class PaintProbe : public AbstractTest
+class PaintProbe : public AbstractProbe
 {
     Q_OBJECT
 
@@ -47,7 +47,7 @@ public:
     // ::AbstractTest
     enum { Uid = 0x01 };
     QString name() const;
-    TestMenu menu() const;
+    ProbeMenuEntries menuEntries() const;
     QWidget * createView(int viewId);
 
     // ::AbstractTest

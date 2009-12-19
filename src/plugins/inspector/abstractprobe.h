@@ -31,45 +31,45 @@
 #define ABSTRACTPROBE_H
 
 #include <QObject>
+#include <QIcon>
 class QWidget;
 
 namespace Inspector {
 namespace Internal {
 class ProbeController;
 
-struct TestMenuItem {
-    QString name;
-    bool enabled;
-    int testId;
+struct ProbeMenuEntry {
+    QStringList path;
+    QIcon icon;
+    int probeId;
     int viewId;
-    QList<TestMenuItem> children;
 
-    TestMenuItem(const QString & name, bool enabled, int testId, int viewId)
-        : name(name), enabled(enabled), testId(testId), viewId(viewId) {}
+    ProbeMenuEntry(const QStringList &path, int probeId, int viewId)
+        : path(path), probeId(probeId), viewId(viewId) {}
 };
 
-typedef QList<TestMenuItem> TestMenu;
+typedef QList<ProbeMenuEntry> ProbeMenuEntries;
 
-class AbstractTest : public QObject
+class AbstractProbe : public QObject
 {
     Q_OBJECT
 
 public:
-    AbstractTest(QObject *parent = 0);
-    virtual ~AbstractTest();
+    AbstractProbe(QObject *parent = 0);
+    virtual ~AbstractProbe();
 
-    // describe the Test
+    // describe the Probe
     enum { Uid = 0x00 };
     virtual QString name() const = 0;
-    virtual TestMenu menu() const = 0;
+    virtual ProbeMenuEntries menuEntries() const = 0;
     //virtual QList<int> cmdClasses() const = 0;
     virtual QWidget * createView(int viewId) = 0;
     //virtual * createCommSession(int cmdClass) = 0;
 
 signals:
-    // tells TestContol to activate this test
+    // tells ProbeContoller to activate this probe
     void requestActivation();
-    // tells ProbeController that this test is idle again
+    // tells ProbeController that this probe is idle again
     void deactivated();
 
 protected slots:
@@ -86,7 +86,7 @@ private:
     void controlDeactivate();
     void controlRefuse();
     void controlWait();
-    struct AbstractTestPrivate * d;
+    struct AbstractProbePrivate * d;
 };
 
 } // namespace Internal
