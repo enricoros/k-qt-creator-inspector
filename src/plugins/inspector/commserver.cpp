@@ -54,7 +54,6 @@ CommServer::CommServer(QObject * parent)
     : QObject(parent)
     , m_socket(0)
     , m_sEnabled(false)
-    , m_sDebugging(false)
     , m_sHelpers(false)
     , m_sInjected(false)
     , m_sConnected(false)
@@ -88,7 +87,7 @@ QString CommServer::serverName() const
 #include <QImage>
 bool CommServer::processIncomingData(quint32 code1, quint32 code2, QByteArray * data)
 {
-    InspectorFrame * window = InspectorInstance::instance()->defaultWindow();
+    //InspectorFrame * window = InspectorInstance::instance()->window();
     // ### FIXME, do something about this
 
     // 1. Service
@@ -162,11 +161,6 @@ bool CommServer::processIncomingData(quint32 code1, quint32 code2, QByteArray * 
     // warn
     qWarning() << "unhandled message" << code1 << code2 << *data;
     return false;
-}
-
-void CommServer::setDebugging(bool on)
-{
-    m_sDebugging = on;
 }
 
 void CommServer::setHelpersPresent(bool on)

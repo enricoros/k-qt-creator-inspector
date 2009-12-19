@@ -39,7 +39,7 @@ namespace Internal {
 
 /**
   Features to add:
-   - model to store all the activations like "active tests", commands log, past tests, etc...
+   - model to store all the activations like "active probes", commands log, past probes, etc...
 **/
 class ProbeController : public QObject
 {
@@ -49,22 +49,26 @@ public:
     ProbeController(QObject *parent = 0);
     ~ProbeController();
 
-    void addTest(AbstractTest *);
-    void removeTest(AbstractTest *);
+    void addProbe(AbstractProbe *);
+    void removeProbe(AbstractProbe *);
 
-    TestMenu mergedMenu() const;
+    // operate on probes
+    ProbeMenuEntries allMenuEntries() const;
+
+    // TEMP
+    void activatePTProbe();
+
+signals:
+    void probesChanged();
 
 private:
-    void mergeToMenu(const TestMenu & menu);
-    void unmergeFromMenu(const TestMenu & menu);
-    QList<AbstractTest *> m_activeTests;
-    QList<AbstractTest *> m_tests;
-    TestMenu m_menu;
+    QList<AbstractProbe *> m_activeProbes;
+    QList<AbstractProbe *> m_probes;
 
 private slots:
-    void slotTestActivationRequested();
-    void slotTestDeactivated();
-    void slotTestDestroyed();
+    void slotProbeActivationRequested();
+    void slotProbeDeactivated();
+    void slotProbeDestroyed();
 };
 
 } // namespace Internal

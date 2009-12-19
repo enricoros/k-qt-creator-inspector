@@ -29,6 +29,7 @@
 
 #include "ptview.h"
 
+#include "inspectorplugin.h"
 #include "inspectorinstance.h"
 
 #include <QIcon>
@@ -79,7 +80,7 @@ void PaintTemperatureView::on_runButton_clicked()
     QVariantList args;
     args << passesBox->value() << lowBox->value() << highBox->value() << innerBox->value() << widthBox->value() << heightBox->value() << debugBox->isChecked();
     // execute the probe
-    InspectorInstance::instance()->defaultServerCallFunction("qWindowTemperature", args);
+    Inspector::defaultInstance()->commCallFunction("qWindowTemperature", args);
     //newTestGroup->setEnabled(false);
 }
 

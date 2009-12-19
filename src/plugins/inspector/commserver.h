@@ -39,6 +39,7 @@ class QLocalServer;
 namespace Inspector {
 namespace Internal {
 class InspectorFrame;
+class InspectorInstance;
 }
 
 class Q_DECL_EXPORT CommServer : public QObject
@@ -55,7 +56,6 @@ public:
     bool processIncomingData(quint32 code1, quint32 code2, QByteArray * data);
 
     // externally set information
-    void setDebugging(bool on);
     void setHelpersPresent(bool on);
     void setHelpersInjected(bool on);
 
@@ -77,7 +77,6 @@ private:
     QByteArray m_incomingData;
 
     bool m_sEnabled;
-    bool m_sDebugging;
     bool m_sHelpers;
     bool m_sInjected;
     bool m_sConnected;

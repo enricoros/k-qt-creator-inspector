@@ -8,6 +8,7 @@ include(inspector_dependencies.pri)
 HEADERS += \
     abstractprobe.h \
     abstractview.h \
+    combotreewidget.h \
     commserver.h \
     defaultview.h \
     infodialog.h \
@@ -26,6 +27,7 @@ HEADERS += \
 SOURCES += \
     abstractprobe.cpp \
     abstractview.cpp \
+    combotreewidget.cpp \
     commserver.cpp \
     defaultview.cpp \
     infodialog.cpp \

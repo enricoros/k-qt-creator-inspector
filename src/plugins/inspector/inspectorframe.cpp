@@ -29,7 +29,7 @@
 
 #include "inspectorframe.h"
 
-#include <utils/styledbar.h>
+#include "combotreewidget.h"
 #include "commserver.h"
 #include "infodialog.h"
 #include "inspectorinstance.h"
@@ -37,8 +37,6 @@
 #include "probecontroller.h"
 #include "ui_commview.h"
 
-#include <QtGui/QComboBox>
-#include <QtGui/QHBoxLayout>
 #include <QtGui/QLabel>
 #include <QGradient>
 #include <QPainter>
@@ -126,62 +124,77 @@ class ViewContainerWidget : public QWidget
         //QLabel * m_disabledLabel;
 };
 
-InspectorFrame::InspectorFrame(ProbeController *control, QWidget *parent)
+InspectorFrame::InspectorFrame(QWidget *parent)
   : QWidget(parent)
-  , m_probeController(control)
+  , m_extInstance(0)
+  , m_menuWidget(0)
   , m_viewWidget(0)
   , m_taskbarWidget(0)
 {
     // ToolBar
-    QWidget *toolBar = new Utils::StyledBar(this);
-    QHBoxLayout *tLayout = new QHBoxLayout(toolBar);
-    tLayout->setMargin(0);
-    tLayout->setSpacing(0);
-
-    m_mainCombo = new QComboBox(toolBar);
-    connect(m_mainCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(slotMainComboChanged(int)));
-    m_subCombo = new QComboBox(toolBar);
-    connect(m_subCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(slotSubComboChanged(int)));
-    tLayout->addWidget(m_mainCombo);
-    //tLayout->addWidget(new QLabel(tr(" section "), toolBar));
-    tLayout->addWidget(m_subCombo);
-    tLayout->addStretch(10);
-
+    m_menuWidget = new ComboTreeWidget(this);
+    connect(m_menuWidget, SIGNAL(pathSelected(QStringList,QVariant)), this, SLOT(slotMenuChanged(QStringList,QVariant)));
     m_viewWidget = new ViewContainerWidget(this);
-
     m_taskbarWidget = new TaskbarWidget(this);
 
     // Main Layout
     QVBoxLayout * vLayout = new QVBoxLayout(this);
     vLayout->setMargin(0);
     vLayout->setSpacing(0);
-    vLayout->addWidget(toolBar);
+    vLayout->addWidget(m_menuWidget);
     vLayout->addWidget(m_viewWidget);
     vLayout->addWidget(m_taskbarWidget);
-
-    updateMainCombo();
 }
 
-void InspectorFrame::setInstance(InspectorInstance * /*instance*/)
+void InspectorFrame::setInstance(Inspector::InspectorInstance *instance)
 {
-    qWarning("InspectorFrame::setInstance: TODO!!");
+    // remove references to any previous instance
+    if (m_extInstance) {
+        m_menuWidget->clear();
+        m_viewWidget->setWidget(new QWidget);
+        m_taskbarWidget->clear();
+    }
+
+    m_extInstance = instance;
+
+    if (m_extInstance) {
+        // update menu
+        ProbeMenuEntries entries = m_extInstance->probeController()->allMenuEntries();
+        foreach (const ProbeMenuEntry &entry, entries) {
+            if ((entry.probeId & 0xFF000000) || (entry.viewId & 0xFFFFFF00)) {
+                qWarning("InspectorFrame::setInstance: probeId (%d) or viewId (%d) not valid", entry.probeId, entry.viewId);
+                continue;
+            }
+            quint32 compoId = (entry.probeId << 8) + entry.viewId;
+            m_menuWidget->addPath(entry.path, compoId, entry.icon);
+        }
+
+        // show the default view about this probe
+        showDefaultView();
+
+        // TODO link the taskbar
+        //m_taskbarWidget-> ...
+    }
 }
 
 void InspectorFrame::showDefaultView()
 {
-    Inspector::CommServer *server = Inspector::InspectorInstance::instance()->defaultComm();
+    if (!m_extInstance)
+        return;
+    Inspector::CommServer *server = m_extInstance->commServer();
     if (!server) {
         m_viewWidget->setWidget(new QWidget);
         return;
     }
 
     Internal::InfoDialog *info = new Internal::InfoDialog;
-    info->setFieldState(info->debLabel, server->m_sDebugging ? 1 : -1);
+    bool debugging = m_extInstance->debugging();
+    info->setFieldState(info->debLabel, debugging ? 1 : -1);
     info->setFieldState(info->enaButton, server->m_sEnabled ? 1 : -1);
-    info->setFieldState(info->hlpLabel, server->m_sHelpers ? 1 : server->m_sDebugging ? -1 : 0);
-    info->setFieldState(info->injLabel, server->m_sInjected ? 1 : server->m_sDebugging ? -1 : 0);
-    info->setFieldState(info->conLabel, server->m_sConnected ? 1 : server->m_sDebugging ? -1 : 0);
-    info->setFieldState(info->workLabel, (server->m_sDebugging && server->m_sEnabled && server->m_sInjected && server->m_sConnected) ? 1 : 0);
+    info->setFieldState(info->hlpLabel, server->m_sHelpers ? 1 : debugging ? -1 : 0);
+    info->setFieldState(info->injLabel, server->m_sInjected ? 1 : debugging ? -1 : 0);
+    info->setFieldState(info->conLabel, server->m_sConnected ? 1 : debugging ? -1 : 0);
+    info->setFieldState(info->workLabel, (debugging && server->m_sEnabled && server->m_sInjected && server->m_sConnected) ? 1 : 0);
 
     m_viewWidget->setWidget(info);
 
@@ -203,85 +216,14 @@ void InspectorFrame::showSubSelectorView()
     QPropertyAnimation * ani = new QPropertyAnimation(arrowLabel, "pos");
     ani->setEasingCurve(QEasingCurve::OutElastic);
     ani->setDuration(800);
-    ani->setEndValue(QPoint(m_subCombo->x() + (m_subCombo->width() - pix.width()) / 2, 0));
+    ani->setEndValue(200 /*QPoint(m_subCombo->x() + (m_subCombo->width() - pix.width()) / 2, 0)*/);
     ani->start(QPropertyAnimation::DeleteWhenStopped);
     m_viewWidget->setWidget(holder);
 }
 
-void InspectorFrame::updateMainCombo()
+void InspectorFrame::activateView(int probeId, int viewId)
 {
-    // TODO: keep care of the current state while updating: some items may be
-    // unavailable
-
-    // regen the combo
-    int prevIndex = m_mainCombo->currentIndex();
-    int prevTestId = prevIndex >= 0 ? m_mainCombo->itemData(prevIndex).toInt() : 0;
-    m_mainCombo->clear();
-    m_mainCombo->addItem(QIcon(":/inspector/images/menu-icon.png"), tr("Status"));
-
-    // add all the top-level items
-    m_mergedMenu = m_probeController->mergedMenu();
-    foreach (const TestMenuItem & item, m_mergedMenu) {
-        if (item.enabled) {
-            m_mainCombo->addItem(item.name);
-            if (prevTestId == item.testId)
-                m_mainCombo->setCurrentIndex(m_mainCombo->count() - 1);
-        }
-    }
-
-    // select the first item, if no other selected
-    if (m_mainCombo->currentIndex() < 0)
-        m_mainCombo->setCurrentIndex(0);
-}
-
-void InspectorFrame::slotMainComboChanged(int mainIndex)
-{
-    // reset subcombo
-    m_subCombo->hide();
-    m_subCombo->clear();
-
-    // handle deault view
-    if (!mainIndex) {
-        showDefaultView();
-        return;
-    }
-    --mainIndex;
-
-    // handle the selection on the main combo
-    TestMenuItem subMenu = m_mergedMenu.at(mainIndex);
-    if (!subMenu.children.isEmpty()) {
-        foreach (const TestMenuItem & item, subMenu.children) {
-            if (item.enabled)
-                m_subCombo->addItem(item.name);
-        }
-        if (m_subCombo->count()) {
-            m_subCombo->adjustSize();
-            m_subCombo->show();
-        }
-    } else if (subMenu.testId) {
-        activateView(subMenu.testId, subMenu.viewId);
-    } else
-        qWarning("InspectorFrame::slotMainChanged: can't handle this combo selection");
-}
-
-void InspectorFrame::slotSubComboChanged(int subIndex)
-{
-    // get the item
-    int mainIndex = m_mainCombo->currentIndex() - 1;
-    if (mainIndex < 0 || mainIndex >= m_mergedMenu.count())
-        return;
-    const TestMenuItem & menu = m_mergedMenu.at(mainIndex);
-    if (subIndex < 0 || subIndex >= menu.children.count())
-        return;
-    const TestMenuItem & item = menu.children.at(subIndex);
-
-    // activate the related view
-    activateView(item.testId, item.viewId);
-}
-
-void InspectorFrame::activateView(int testId, int viewId)
-{
-    qWarning("View activation TODO");
+    qWarning("InspectorFrame::activateView: %d %d", probeId, viewId);
 }
 
 } // namespace Internal

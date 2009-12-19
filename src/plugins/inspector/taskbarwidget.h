@@ -43,6 +43,8 @@ class TaskbarWidget : public QWidget
 public:
     TaskbarWidget(QWidget *parent = 0);
 
+    void clear();
+
     // ::QWidget
     void paintEvent(QPaintEvent *);
 

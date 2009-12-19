@@ -40,71 +40,69 @@ ProbeController::ProbeController(QObject *parent)
 
 ProbeController::~ProbeController()
 {
-    // delete all the tests (bypassing the 'destroyed' hook)
-    QList<AbstractTest *> listCopy = m_tests;
-    m_tests.clear();
+    // delete all the probes (bypassing the 'destroyed' hook)
+    QList<AbstractProbe *> listCopy = m_probes;
+    m_probes.clear();
     qDeleteAll(listCopy);
 }
 
-void ProbeController::addTest(AbstractTest * test)
+void ProbeController::addProbe(AbstractProbe * probe)
 {
-    if (!test) {
-        qWarning("ProbeController::addTest: skipping 0 pointer");
+    if (!probe) {
+        qWarning("ProbeController::addProbe: skipping 0 pointer");
         return;
     }
-    // register the Test
-    connect(test, SIGNAL(requestActivation()), this, SLOT(slotTestActivationRequested()));
-    connect(test, SIGNAL(deactivated()), this, SLOT(slotTestDeactivated()));
-    connect(test, SIGNAL(destroyed()), this, SLOT(slotTestDestroyed()));
-    mergeToMenu(test->menu());
-    m_tests.append(test);
+    // register the Probe
+    connect(probe, SIGNAL(requestActivation()), this, SLOT(slotProbeActivationRequested()));
+    connect(probe, SIGNAL(deactivated()), this, SLOT(slotProbeDeactivated()));
+    connect(probe, SIGNAL(destroyed()), this, SLOT(slotProbeDestroyed()));
+    m_probes.append(probe);
+    emit probesChanged();
 }
 
-void ProbeController::removeTest(AbstractTest * test)
+void ProbeController::removeProbe(AbstractProbe * probe)
 {
-    if (!test) {
-        qWarning("ProbeController::removeTest: skipping 0 pointer");
+    if (!probe) {
+        qWarning("ProbeController::removeProbe: skipping 0 pointer");
         return;
     }
-    // unregister the Test
-    unmergeFromMenu(test->menu());
-    disconnect(test, 0, this, 0);
-    m_tests.removeAll(test);
-    m_activeTests.removeAll(test);
+    // unregister the Probe
+    disconnect(probe, 0, this, 0);
+    m_probes.removeAll(probe);
+    m_activeProbes.removeAll(probe);
+    emit probesChanged();
 }
 
-TestMenu ProbeController::mergedMenu() const
+ProbeMenuEntries ProbeController::allMenuEntries() const
 {
-    return m_menu;
+    ProbeMenuEntries allEntries;
+    foreach (AbstractProbe * probe, m_probes)
+        allEntries.append(probe->menuEntries());
+    return allEntries;
 }
 
-void ProbeController::mergeToMenu(const TestMenu & menu)
+void ProbeController::activatePTProbe()
 {
-    qWarning("ProbeController::mergeToMenu: FIXME");
-    m_menu.append(menu);
+    qWarning("ProbeController::activatePTProbe: TODO");
 }
 
-void ProbeController::unmergeFromMenu(const TestMenu & /*menu*/)
+void ProbeController::slotProbeActivationRequested()
 {
-    qWarning("ProbeController::unmergeFromMenu: TODO");
+    AbstractProbe * probe = static_cast<AbstractProbe *>(sender());
+    probe->controlActivate();
+    if (!m_activeProbes.contains(probe))
+        m_activeProbes.append(probe);
 }
 
-void ProbeController::slotTestActivationRequested()
+void ProbeController::slotProbeDeactivated()
 {
-    AbstractTest * test = static_cast<AbstractTest *>(sender());
-    test->controlActivate();
-    m_activeTests.append(test);
+    AbstractProbe * probe = static_cast<AbstractProbe *>(sender());
+    m_activeProbes.removeAll(probe);
 }
 
-void ProbeController::slotTestDeactivated()
+void ProbeController::slotProbeDestroyed()
 {
-    AbstractTest * test = static_cast<AbstractTest *>(sender());
-    m_activeTests.removeAll(test);
-}
-
-void ProbeController::slotTestDestroyed()
-{
-    AbstractTest * test = static_cast<AbstractTest *>(sender());
-    if (m_tests.contains(test))
-        removeTest(test);
+    AbstractProbe * probe = static_cast<AbstractProbe *>(sender());
+    if (m_probes.contains(probe))
+        removeProbe(probe);
 }

@@ -3364,7 +3364,10 @@ void GdbEngine::handleDebuggingHelperSetup(const GdbResponse &response)
 
 void GdbEngine::handleDebuggingHelperInspector(const GdbResponse &response)
 {
+    /* NOTE: this code is not yet used - shows some ideas on how to perform checks that are
+             really needed by the Inspector Plugin */
     qWarning() << "INSPECTOR HELPER CALLED"; // << (int)record.resultClass << record.data.toString();
+    Q_UNUSED(response)
 
     /// Add check for: Present and with 4 symbols with {0, 0, 0, 0} values (otherwise another handler is installed)
     // "$5 = {signal_begin_callback = 0, slot_begin_callback = 0, signal_end_callback = 0, slot_end_callback = 0}"

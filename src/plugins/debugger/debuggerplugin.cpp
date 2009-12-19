@@ -68,6 +68,7 @@
 
 #include <inspector/commserver.h>
 #include <inspector/inspectorinstance.h>
+#include <inspector/inspectorplugin.h>
 
 #include <projectexplorer/projectexplorer.h>
 #include <projectexplorer/projectexplorerconstants.h>
@@ -943,8 +944,7 @@ bool DebuggerPlugin::initialize(const QStringList &arguments, QString *errorMess
         this, SLOT(editorOpened(Core::IEditor*)));
 
     // Inspector connection (temp HACK to issue debugger commands)
-    Inspector::CommServer * commServer = Inspector::InspectorInstance::
-        instance()->defaultComm();
+    Inspector::CommServer * commServer = Inspector::defaultInstance()->commServer();
     connect(commServer, SIGNAL(debuggerCallFunction(QString,QVariantList)),
             m_manager, SLOT(callFunction(QString,QVariantList)));
 
@@ -1249,9 +1249,8 @@ void DebuggerPlugin::handleStateChanged(int state)
     m_startRemoteAction->setEnabled(!started && !starting);
     m_detachAction->setEnabled(detachable);
 
-    // sync Inspector Plugin status
-    Inspector::InspectorInstance::instance()
-            ->defaultComm()->setDebugging(started);
+    // notify Inspector Plugin about the debuggee state
+    Inspector::defaultInstance()->setDebugging(started);
 }
 
 void DebuggerPlugin::writeSettings() const

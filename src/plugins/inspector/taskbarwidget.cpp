@@ -69,6 +69,11 @@ TaskbarWidget::TaskbarWidget(QWidget *parent)
     hLay->addStretch(1);
 }
 
+void TaskbarWidget::clear()
+{
+    qWarning("TaskbarWidget::clear: TODO");
+}
+
 static void drawVerticalShadow(QPainter * painter, int width, int height)
 {
     QLinearGradient lg( 0, 0, 0, height );

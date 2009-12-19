@@ -30,8 +30,8 @@
 #include "inspectorinstance.h"
 #include "commserver.h"
 #include "infodialog.h"
-#include "inspectorplugin.h"
 #include "inspectorframe.h"
+#include "inspectorplugin.h"
 #include "notificationwidget.h"
 #include "probecontroller.h"
 #include "paint-probe/paintprobe.h"
@@ -43,50 +43,68 @@
 #include "../../../share/qtcreator/gdbmacros/perfunction.h"
 
 using namespace Inspector;
-using namespace Inspector::Internal;
 
-InspectorInstance *InspectorInstance::s_instance = 0;
-
-InspectorInstance::InspectorInstance(Internal::InspectorPlugin *plugin, QObject *parent)
+InspectorInstance::InspectorInstance(QObject *parent)
   : QObject(parent)
-  , m_plugin(plugin)
   , m_enabled(false)
+  , m_debugPaintFlag(false)
+  , m_sDebugging(false)
 {
-    // save the instance (there is only 1 manager)
-    s_instance = this;
-
     // create the Server
-    CommServer * server = new CommServer;
-    connect(server, SIGNAL(newWarnings(int)), this, SLOT(slotNewWarnings(int)));
-    m_servers << server;
+    m_commServer = new CommServer;
+    connect(m_commServer, SIGNAL(newWarnings(int)), this, SLOT(slotNewWarnings(int)));
 
     // create the Notification
-    m_notification = new NotificationWidget;
+    m_notification = new Internal::NotificationWidget;
     connect(m_notification, SIGNAL(clicked()), this, SLOT(slotShowProbeMode()));
     m_notification->hide();
     // add it to CORE (add it now, even if not visible, to stay on top later)
     Core::ICore::instance()->modeManager()->addWidget(m_notification);
 
     // create the Test Control & Tests
-    m_probeController = new ProbeController(this);
-    m_probeController->addTest(new PaintProbe);
-
-    // create the Window
-    m_window = new InspectorFrame(m_probeController);
-    m_window->showDefaultView();
+    m_probeController = new Internal::ProbeController(this);
+    m_probeController->addProbe(new Internal::PaintProbe);
 }
 
 InspectorInstance::~InspectorInstance()
 {
-    // m_window is deleted by the plugin system (added by InspectorPlugin)
+    delete m_probeController;
     delete m_notification;
-    qDeleteAll(m_servers);
-    s_instance = 0;
+    delete m_commServer;
 }
 
-InspectorInstance *InspectorInstance::instance()
+Inspector::CommServer * InspectorInstance::commServer() const
 {
-    return s_instance;
+    return m_commServer;
+}
+
+int InspectorInstance::activationFlags() const
+{
+    // flags are in perfunction.h
+    int flags = Inspector::Internal::AF_None;
+    if (m_debugPaintFlag)
+        flags |= Inspector::Internal::AF_PaintDebug;
+    return flags;
+}
+
+void InspectorInstance::commCallFunction(const QString &name, QVariantList args)
+{
+    emit m_commServer->debuggerCallFunction(name, args);
+}
+
+void InspectorInstance::setDebugging(bool on)
+{
+    m_sDebugging = on;
+}
+
+bool InspectorInstance::debugging() const
+{
+    return m_sDebugging;
+}
+
+void InspectorInstance::setEnabled(bool enabled)
+{
+    m_enabled = enabled;
 }
 
 bool InspectorInstance::enabled() const
@@ -94,46 +112,20 @@ bool InspectorInstance::enabled() const
     return m_enabled;
 }
 
-Internal::InspectorFrame * InspectorInstance::defaultWindow() const
+void InspectorInstance::setDebugPaint(bool checked)
 {
-    return m_window;
-}
-
-CommServer * InspectorInstance::defaultComm() const
-{
-    return m_servers.isEmpty() ? 0 : m_servers.first();
-}
-
-int InspectorInstance::activationFlags() const
-{
-    // flags are in perfunction.h
-    int flags = Inspector::Internal::AF_None;
-    if (m_plugin->showPaint())
-        flags |= Inspector::Internal::AF_PaintDebug;
-    return flags;
-}
-
-void InspectorInstance::defaultServerCallFunction(const QString &name, QVariantList args)
-{
-    if (!m_servers.isEmpty())
-        emit m_servers.first()->debuggerCallFunction(name, args);
-}
-
-void InspectorInstance::slotSetEnabled(bool enabled)
-{
-    m_enabled = enabled;
+    m_debugPaintFlag = checked;
 }
 
 void InspectorInstance::slotShowInformation()
 {
-    CommServer * server = defaultComm();
     Internal::InfoDialog info;
-    info.setFieldState(info.debLabel, server->m_sDebugging ? 1 : -1);
-    info.setFieldState(info.enaButton, server->m_sEnabled ? 1 : -1);
-    info.setFieldState(info.hlpLabel, server->m_sHelpers ? 1 : server->m_sDebugging ? -1 : 0);
-    info.setFieldState(info.injLabel, server->m_sInjected ? 1 : server->m_sDebugging ? -1 : 0);
-    info.setFieldState(info.conLabel, server->m_sConnected ? 1 : server->m_sDebugging ? -1 : 0);
-    info.setFieldState(info.workLabel, (server->m_sDebugging && server->m_sEnabled && server->m_sInjected && server->m_sConnected) ? 1 : 0);
+    info.setFieldState(info.debLabel, m_sDebugging ? 1 : -1);
+    info.setFieldState(info.enaButton, m_commServer->m_sEnabled ? 1 : -1);
+    info.setFieldState(info.hlpLabel, m_commServer->m_sHelpers ? 1 : m_sDebugging ? -1 : 0);
+    info.setFieldState(info.injLabel, m_commServer->m_sInjected ? 1 : m_sDebugging ? -1 : 0);
+    info.setFieldState(info.conLabel, m_commServer->m_sConnected ? 1 : m_sDebugging ? -1 : 0);
+    info.setFieldState(info.workLabel, (m_sDebugging && m_commServer->m_sEnabled && m_commServer->m_sInjected && m_commServer->m_sConnected) ? 1 : 0);
     info.exec();
 }
 

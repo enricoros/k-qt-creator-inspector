@@ -31,6 +31,7 @@
 #include "inspectorinstance.h"
 #include "notificationwidget.h"
 #include "inspectorframe.h"
+#include "probecontroller.h"
 
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/basemode.h>
@@ -50,23 +51,37 @@
 
 using namespace Inspector::Internal;
 
-InspectorPlugin::InspectorPlugin()
-  : m_instance(0)
-  , m_aMemMonitor(0)
-  , m_aShowPaint(0)
-  , m_defaultActive(false)
+Q_DECL_EXPORT Inspector::InspectorInstance * Inspector::defaultInstance()
 {
+    return InspectorPlugin::defaultInstance();
+}
+
+InspectorPlugin *Inspector::Internal::InspectorPlugin::s_instance = 0;
+
+InspectorPlugin::InspectorPlugin()
+  : ExtensionSystem::IPlugin()
+  , m_window(0)
+  , m_pluginEnabled(false)
+{
+    // reference the plugin instance (for static accessors)
+    s_instance = this;
 }
 
 InspectorPlugin::~InspectorPlugin()
 {
-    // objects registered with 'addAutoReleasedObject' will be removed
-    // automatically
+    // goodbye plugin
+    s_instance = 0;
+
+    // objects registered with 'addAutoReleasedObject' will be removed automatically, like:
+    // m_window is deleted by the plugin system
+    m_window = 0;
 }
 
-bool InspectorPlugin::showPaint() const
+Inspector::InspectorInstance * InspectorPlugin::defaultInstance()
 {
-    return m_aShowPaint ? m_aShowPaint->isChecked() : false;
+    if (!s_instance || s_instance->m_instances.isEmpty())
+        return 0;
+    return s_instance->m_instances.first();
 }
 
 bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_message)
@@ -76,12 +91,17 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     // check arguments
     parseArguments(arguments);
 
-    // create the Manager
-    m_instance = new Inspector::InspectorInstance(this);
-    m_instance->slotSetEnabled(m_defaultActive);
-    addAutoReleasedObject(m_instance);
+    // create a single Instance - SINGLE debuggee is supposed here
+    Inspector::InspectorInstance *instance = new Inspector::InspectorInstance;
+    m_instances.append(instance);
+    instance->setEnabled(m_pluginEnabled);
+    addAutoReleasedObject(instance);
 
     // UI
+
+    // create the Window
+    m_window = new InspectorFrame;
+    m_window->setInstance(instance);
 
     // get core objects
     Core::ICore *core = Core::ICore::instance();
@@ -104,18 +124,18 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
 
     QAction *enableAction = new QAction(tr("Enable"), this);
     enableAction->setCheckable(true);
-    enableAction->setChecked(m_instance->enabled());
-    connect(enableAction, SIGNAL(toggled(bool)), m_instance, SLOT(slotSetEnabled(bool)));
+    enableAction->setChecked(instance->enabled());
+    connect(enableAction, SIGNAL(toggled(bool)), this, SLOT(slotSetEnabled(bool)));
     command = actionManager->registerAction(enableAction, "Inspector.Enable", globalContext);
     inspContainer->addAction(command);
 
     QAction *infoAction = new QAction(tr("Information..."), this);
-    connect(infoAction, SIGNAL(triggered()), m_instance, SLOT(slotShowInformation()));
+    connect(infoAction, SIGNAL(triggered()), instance, SLOT(slotShowInformation()));
     command = actionManager->registerAction(infoAction, "Inspector.Information", globalContext);
     inspContainer->addAction(command);
 
     QAction *workBenchAction = new QAction(tr("Workbench"), this);
-    connect(workBenchAction, SIGNAL(triggered()), m_instance, SLOT(slotShowProbeMode()));
+    connect(workBenchAction, SIGNAL(triggered()), instance, SLOT(slotShowProbeMode()));
     command = actionManager->registerAction(workBenchAction, "Inspector.ShowWorkBench", globalContext);
     inspContainer->addAction(command);
 
@@ -124,15 +144,17 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     command = actionManager->registerAction(sep, QLatin1String("Inspector.Sep.One"), globalContext);
     inspContainer->addAction(command);
 
-    m_aShowPaint = new QAction(tr("Show Painted Areas"), this);
-    m_aShowPaint->setCheckable(true);
-    command = actionManager->registerAction(m_aShowPaint, "Inspector.ShowPaintedAreas", globalContext);
+    QAction *debugPaintAction = new QAction(tr("Show Painted Areas"), this);
+    debugPaintAction->setCheckable(true);
+    command = actionManager->registerAction(debugPaintAction, "Inspector.ShowPaintedAreas", globalContext);
     inspContainer->addAction(command);
+    connect(debugPaintAction, SIGNAL(toggled(bool)), this, SLOT(slotDebugPaintToggled(bool)));
 
-    m_aMemMonitor = new QAction(tr("Allocation Analysis"), this);
-    m_aMemMonitor->setCheckable(true);
-    command = actionManager->registerAction(m_aMemMonitor, "Inspector.AnalyzeAllocations", globalContext);
+    QAction *allocAction = new QAction(tr("Allocation Analysis"), this);
+    allocAction->setCheckable(true);
+    command = actionManager->registerAction(allocAction, "Inspector.AnalyzeAllocations", globalContext);
     inspContainer->addAction(command);
+    //connect(allocAction, SIGNAL(toggled(bool)), this, SLOT(slotDebugAllocationToggled(bool)));
 
     sep = new QAction(tr("Runtime Analysis"), this);
     sep->setSeparator(true);
@@ -141,19 +163,20 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
 
 #if 1
     QAction *temperatureAction = new QAction(tr("Painting Temperature"), this);
-    connect(temperatureAction, SIGNAL(triggered()), m_instance, SLOT(slotPaintingTemperature()));
+    connect(temperatureAction, SIGNAL(triggered()), this, SLOT(slotTempPaintingTemperature()));
     command = actionManager->registerAction(temperatureAction, "Inspector.ShowTemperature", debuggerContext);
     inspContainer->addAction(command);
 #endif
 
-    Core::BaseMode * probeMode = new Core::BaseMode;
-    probeMode->setName(tr("Probe"));
-    probeMode->setIcon(QIcon(":/inspector/images/probe-icon-32.png"));
-    probeMode->setPriority(Inspector::Internal::P_MODE_PROBE);
-    probeMode->setWidget(m_instance->defaultWindow());
-    probeMode->setUniqueModeName(Inspector::Internal::MODE_PROBE);
-    probeMode->setContext(globalContext);
-    addAutoReleasedObject(probeMode);
+    // create the Mode, that registers the widget too
+    Core::BaseMode * inspectorMode = new Core::BaseMode;
+    inspectorMode->setName(tr("Probe"));
+    inspectorMode->setIcon(QIcon(":/inspector/images/probe-icon-32.png"));
+    inspectorMode->setPriority(Inspector::Internal::P_MODE_PROBE);
+    inspectorMode->setWidget(m_window);
+    inspectorMode->setUniqueModeName(Inspector::Internal::MODE_PROBE);
+    inspectorMode->setContext(globalContext);
+    addAutoReleasedObject(inspectorMode);
 
 //    connect(core->modeManager(), SIGNAL(currentModeChanged(Core::IMode*)),
 //            this, SLOT(modeChanged(Core::IMode*)), Qt::QueuedConnection);
@@ -165,10 +188,28 @@ void InspectorPlugin::extensionsInitialized()
 {
 }
 
+void InspectorPlugin::slotDebugPaintToggled(bool checked)
+{
+    m_instances.first()->setDebugPaint(checked);
+}
+
+void InspectorPlugin::slotTempPaintingTemperature()
+{
+    defaultInstance()->probeController()->activatePTProbe();
+}
+
+void InspectorPlugin::slotSetEnabled(bool enabled)
+{
+    // enable/disable all Instances
+    m_pluginEnabled = enabled;
+    foreach (InspectorInstance * instance, m_instances)
+        instance->setEnabled(enabled);
+}
+
 void InspectorPlugin::parseArguments(const QStringList &arguments)
 {
     if (arguments.contains("-inspectoron", Qt::CaseInsensitive))
-        m_defaultActive = true;
+        m_pluginEnabled = true;
 }
 
 Q_EXPORT_PLUGIN(InspectorPlugin)

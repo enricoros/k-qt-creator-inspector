@@ -37,9 +37,10 @@ class QComboBox;
 class QVBoxLayout;
 
 namespace Inspector {
+class InspectorInstance;
 namespace Internal {
+class ComboTreeWidget;
 class TaskbarWidget;
-class ProbeController;
 class ViewContainerWidget;
 
 class InspectorFrame : public QWidget
@@ -47,30 +48,24 @@ class InspectorFrame : public QWidget
     Q_OBJECT
 
 public:
-    InspectorFrame(ProbeController * control, QWidget *parent = 0);
+    InspectorFrame(QWidget *parent = 0);
 
-    // the instance of which we'll show the Probes
-    void setInstance(InspectorInstance * instance);
+    void setInstance(Inspector::InspectorInstance *instance);
 
     /// displays the only hardcoded view. all the others are plugged in
     void showDefaultView();
     void showSubSelectorView();
 
-
 private slots:
-    void updateMainCombo();
-    void slotMainComboChanged(int);
-    void slotSubComboChanged(int);
+    void slotMenuChanged(const QStringList &path, const QVariant &data);
 
 private:
-    void activateView(int testId, int viewId);
+    void activateView(int probeId, int viewId);
 
-    ProbeController *m_probeController;
-    QComboBox *m_mainCombo;
-    QComboBox *m_subCombo;
-    ViewContainerWidget *m_viewWidget;
-    TaskbarWidget *m_taskbarWidget;
-    TestMenu m_mergedMenu;
+    InspectorInstance *     m_extInstance;
+    ComboTreeWidget *       m_menuWidget;
+    ViewContainerWidget *   m_viewWidget;
+    TaskbarWidget *         m_taskbarWidget;
 };
 
 } // namespace Internal

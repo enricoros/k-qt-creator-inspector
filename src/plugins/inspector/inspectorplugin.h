@@ -31,17 +31,28 @@
 #define INSPECTORPLUGIN_H
 
 #include <extensionsystem/iplugin.h>
+
 class QAction;
 
 namespace Inspector {
+
 class InspectorInstance;
+
+/// main accessor when using this plugin from the outside. we suppose a single debuggee for now.
+InspectorInstance * defaultInstance();
+
 namespace Internal {
+
+class InspectorFrame;
 
 // constants
 const char * const MODE_PROBE           = "Probe";
 const int          P_MODE_PROBE         = 5;
 
-class InspectorPlugin : public ExtensionSystem::IPlugin
+/**
+    \brief QtCreator plugin that exposes a framework for runtime probing
+*/
+class Q_DECL_EXPORT InspectorPlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
 
@@ -49,19 +60,24 @@ public:
     InspectorPlugin();
     ~InspectorPlugin();
 
-    // TODO: relocate
-    bool showPaint() const;
+    // single debuggee assumption lies here: we use a single instance from the outside
+    static InspectorInstance * defaultInstance();
 
     // ::ExtensionSystem::IPlugin
     bool initialize(const QStringList &arguments, QString *error_message);
     void extensionsInitialized();
 
+private slots:
+    void slotDebugPaintToggled(bool checked);
+    void slotTempPaintingTemperature();
+    void slotSetEnabled(bool enabled);
+
 private:
     void parseArguments(const QStringList & arguments);
-    InspectorInstance *m_instance;
-    QAction *m_aMemMonitor;
-    QAction *m_aShowPaint;
-    bool m_defaultActive;
+    static InspectorPlugin *s_instance;
+    QList<InspectorInstance *> m_instances;
+    Internal::InspectorFrame *m_window;
+    bool m_pluginEnabled;
 };
 
 } // namespace Internal

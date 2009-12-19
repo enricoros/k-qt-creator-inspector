@@ -151,6 +151,8 @@ class TaskItem : public QGraphicsWidget
 
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = 0)
         {
+            Q_UNUSED(option);
+            Q_UNUSED(widget);
             painter->setRenderHint(QPainter::Antialiasing, true);
             painter->setPen(QPen(Qt::lightGray, 1));
             painter->setBrush(m_brush);

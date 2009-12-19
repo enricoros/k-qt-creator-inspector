@@ -48,22 +48,25 @@ class Q_DECL_EXPORT InspectorInstance : public QObject
     Q_OBJECT
 
 public:
-    InspectorInstance(Internal::InspectorPlugin *plugin, QObject *parent = 0);
+    InspectorInstance(QObject *parent = 0);
     ~InspectorInstance();
 
-    static InspectorInstance * instance();
+    Internal::ProbeController *probeController() const { return m_probeController; }
 
-    bool enabled() const;
-
-    Internal::InspectorFrame *defaultWindow() const;
-    CommServer *defaultComm() const;
+    CommServer * commServer() const;
     int activationFlags() const; //TEMP relocate
 
     // ### TEMP emits default server's debuggerCallFunction
-    void defaultServerCallFunction(const QString & name, QVariantList args = QVariantList());
+    void commCallFunction(const QString & name, QVariantList args = QVariantList());
+
+    // externally set information
+    void setDebugging(bool on);
+    bool debugging() const;
+    void setEnabled(bool enabled);
+    bool enabled() const;
+    void setDebugPaint(bool checked);
 
 public slots:
-    void slotSetEnabled(bool enabled);
     void slotShowInformation();
     void slotShowProbeMode();
 
@@ -71,13 +74,12 @@ private slots:
     void slotNewWarnings(int count);
 
 private:
-    static InspectorInstance *s_instance;
-    QList<CommServer*> m_servers;
-    Internal::InspectorPlugin *m_plugin;
-    Internal::InspectorFrame *m_window;
+    CommServer * m_commServer;
     Internal::NotificationWidget *m_notification;
     Internal::ProbeController *m_probeController;
     bool m_enabled;
+    bool m_debugPaintFlag;
+    bool m_sDebugging;
 };
 
 } // namespace Inspector
