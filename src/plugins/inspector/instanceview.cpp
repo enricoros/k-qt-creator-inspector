@@ -37,6 +37,7 @@ InstanceView::InstanceView(QWidget *parent)
   , m_errorPixmap(":/inspector/images/status-err.png")
 {
     setupUi(this);
+    debugToolBox->hide();
 }
 
 void InstanceView::setFieldState(QWidget *field, int state)

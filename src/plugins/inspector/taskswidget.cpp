@@ -46,10 +46,6 @@ TasksWidget::TasksWidget(QWidget *parent)
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     setFrameStyle(QFrame::NoFrame);
-    QPalette pal;
-    pal.setBrush(QPalette::Base, QColor(80, 80, 90));
-    viewport()->setPalette(pal);
-
     setScene(m_scene);
 }
 
