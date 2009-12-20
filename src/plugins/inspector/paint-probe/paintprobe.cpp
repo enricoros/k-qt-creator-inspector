@@ -28,15 +28,9 @@
 **************************************************************************/
 
 #include "paintprobe.h"
-
-#include "ptview.h"
-
-#include <QAbstractTransition>
-#include <QStateMachine>
-#include <QState>
+#include "painttemperatureview.h"
 
 using namespace Inspector::Internal;
-
 
 PaintProbe::PaintProbe(QObject *parent)
   : AbstractProbe(parent)
@@ -61,35 +55,45 @@ ProbeMenuEntries PaintProbe::menuEntries() const
     return entries;
 }
 
-QWidget * PaintProbe::createView(int viewId)
+AbstractView *PaintProbe::createView(int viewId)
 {
-    switch (viewId) {
-    case 1:
-        return new PaintTemperatureView;
-    default:
+    AbstractView *view = 0;
+    if (viewId == 1)
+        view = new PaintTemperatureView;
+    else
         qWarning("PaintProbe::createView: unknown view %d", viewId);
-        break;
+    if (view) {
+        connect(view, SIGNAL(destroyed()), this, SLOT(slotViewDestroyed()));
+        m_views.append(view);
     }
-    return 0;
+    return view;
 }
 
 void PaintProbe::slotActivate()
 {
+    qWarning("PaintProbe::slotActivate: ACTIVATED");
 }
 
 void PaintProbe::slotDeactivate()
 {
+    qWarning("PaintProbe::slotDeactivate: DEACTIVATED");
     emit deactivated();
 }
 
 void PaintProbe::slotLock()
 {
-    foreach (PaintTemperatureView * view, m_views)
+    foreach (AbstractView * view, m_views)
         view->setEnabled(false);
 }
 
 void PaintProbe::slotUnlock()
 {
-    foreach (PaintTemperatureView * view, m_views)
+    foreach (AbstractView * view, m_views)
         view->setEnabled(true);
+}
+
+void PaintProbe::slotViewDestroyed()
+{
+    AbstractView *view = static_cast<AbstractView *>(sender());
+    m_views.removeAll(view);
 }

@@ -30,10 +30,18 @@
 #ifndef ABSTRACTVIEW_H
 #define ABSTRACTVIEW_H
 
-#include <QObject>
+#include <QWidget>
 
 namespace Inspector {
 namespace Internal {
+
+class AbstractView : public QWidget
+{
+    Q_OBJECT
+
+public:
+    AbstractView(QWidget *parent = 0);
+};
 
 } // namespace Internal
 } // namespace Inspector

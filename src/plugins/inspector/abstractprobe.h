@@ -32,10 +32,11 @@
 
 #include <QObject>
 #include <QIcon>
-class QWidget;
+#include <QList>
 
 namespace Inspector {
 namespace Internal {
+class AbstractView;
 class ProbeController;
 
 struct ProbeMenuEntry {
@@ -64,7 +65,7 @@ public:
     virtual ProbeMenuEntries menuEntries() const = 0;
     //virtual QList<int> cmdClasses() const = 0;
     //virtual * createCommSession(int cmdClass) = 0;
-    virtual QWidget * createView(int viewId) = 0;
+    virtual AbstractView * createView(int viewId) = 0;
 
 signals:
     // tells ProbeContoller to activate this probe

@@ -34,7 +34,6 @@
 
 namespace Inspector {
 namespace Internal {
-class PaintTemperatureView;
 
 class PaintProbe : public AbstractProbe
 {
@@ -44,21 +43,22 @@ public:
     PaintProbe(QObject *parent = 0);
     ~PaintProbe();
 
-    // ::AbstractTest
+    // ::AbstractProbe
     enum { Uid = 0x01 };
     int uid() const { return Uid; }
     QString name() const;
     ProbeMenuEntries menuEntries() const;
-    QWidget * createView(int viewId);
-
-    // ::AbstractTest
+    AbstractView *createView(int viewId);
     void slotActivate();
     void slotDeactivate();
     void slotLock();
     void slotUnlock();
 
 private:
-    QList<PaintTemperatureView *> m_views;
+    QList<AbstractView *> m_views;
+
+private slots:
+    void slotViewDestroyed();
 };
 
 } // namespace Internal
