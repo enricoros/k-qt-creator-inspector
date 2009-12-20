@@ -30,13 +30,12 @@
 #include "commserver.h"
 #include "inspectorinstance.h"
 #include "inspectorframe.h"
-
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/modemanager.h>
-
 #include <QDebug>
 #include <QIcon>
+#include <QImage>
 #include <QLabel>
 #include <QLocalServer>
 #include <QLocalSocket>
@@ -48,7 +47,6 @@
 #include "../../../share/qtcreator/gdbmacros/perfunction.h"
 
 using namespace Inspector;
-using namespace Inspector::Internal;
 
 CommServer::CommServer(QObject * parent)
     : QObject(parent)
@@ -74,17 +72,94 @@ CommServer::~CommServer()
     delete m_localServer;
 }
 
-bool CommServer::enabled() const
-{
-    return m_sEnabled;
-}
-
 QString CommServer::serverName() const
 {
     return m_localServer->serverName();
 }
 
-#include <QImage>
+bool CommServer::serverListening() const
+{
+    return m_sEnabled;
+}
+
+bool CommServer::clientConnected() const
+{
+    return m_sConnected;
+}
+
+void CommServer::setHelpersPresent(bool on)
+{
+    m_sHelpers = on;
+}
+
+void CommServer::setHelpersInjected(bool on)
+{
+    m_sInjected = on;
+}
+
+void CommServer::slotIncomingConnection()
+{
+    while (m_localServer->hasPendingConnections()) {
+        QLocalSocket * nextConnection = m_localServer->nextPendingConnection();
+        if (m_socket) {
+            QMessageBox::information(0, tr("Inspector-Probe Connection"), tr("A client is already connected and another is trying to... something wrong?"));
+            continue;
+        }
+
+        // set the connection
+        m_socket = nextConnection;
+        m_sConnected = true;
+        connect(m_socket, SIGNAL(readyRead()), this, SLOT(slotReadConnection()));
+        connect(m_socket, SIGNAL(disconnected()), this, SLOT(slotDisconnected()));
+        connect(m_socket, SIGNAL(error(QLocalSocket::LocalSocketError)), this, SLOT(slotConnError(QLocalSocket::LocalSocketError)));
+    }
+}
+
+void CommServer::slotReadConnection()
+{
+    m_incomingData += m_socket->readAll();
+
+    // drop overgrowing internal buffer
+    if (m_incomingData.size() > 10000000) {
+        qWarning() << "CommServer::slotReadConnection: dropping XXL message from the Probe";
+        m_incomingData = QByteArray();
+        return;
+    }
+
+    // process all incoming information
+    while (!m_incomingData.isEmpty()) {
+
+        // partial/incomplete chunks: save for later
+        quint32 chunkSize = Inspector::Internal::messageLength(m_incomingData);
+        if (!chunkSize || m_incomingData.length() < (int)chunkSize)
+            break;
+
+        // decode chunk
+        quint32 code1, code2;
+        QByteArray payload;
+        bool decoded = Inspector::Internal::demarshallMessage(m_incomingData, &code1, &code2, &payload);
+        if (!decoded)
+            qWarning() << "CommServer::slotReadConnection: error decoding a message";
+        else
+            processIncomingData(code1, code2, &payload);
+
+        // remove chunk from incoming data
+        m_incomingData.remove(0, chunkSize);
+    }
+}
+
+void CommServer::slotDisconnected()
+{
+    m_socket->deleteLater();
+    m_socket = 0;
+    m_sConnected = false;
+}
+
+void CommServer::slotConnError(QLocalSocket::LocalSocketError error)
+{
+    qWarning() << "CommServer::slotConnError: error" << error;
+}
+
 bool CommServer::processIncomingData(quint32 code1, quint32 code2, QByteArray * data)
 {
     //InspectorFrame * window = InspectorInstance::instance()->window();
@@ -161,77 +236,4 @@ bool CommServer::processIncomingData(quint32 code1, quint32 code2, QByteArray * 
     // warn
     qWarning() << "unhandled message" << code1 << code2 << *data;
     return false;
-}
-
-void CommServer::setHelpersPresent(bool on)
-{
-    m_sHelpers = on;
-}
-
-void CommServer::setHelpersInjected(bool on)
-{
-    m_sInjected = on;
-}
-
-void CommServer::slotIncomingConnection()
-{
-    while (m_localServer->hasPendingConnections()) {
-        QLocalSocket * nextConnection = m_localServer->nextPendingConnection();
-        if (m_socket) {
-            QMessageBox::information(0, tr("Inspector-Probe Connection"), tr("A client is already connected and another is trying to... something wrong?"));
-            continue;
-        }
-
-        // set the connection
-        m_socket = nextConnection;
-        m_sConnected = true;
-        connect(m_socket, SIGNAL(readyRead()), this, SLOT(slotReadConnection()));
-        connect(m_socket, SIGNAL(disconnected()), this, SLOT(slotDisconnected()));
-        connect(m_socket, SIGNAL(error(QLocalSocket::LocalSocketError)), this, SLOT(slotConnError(QLocalSocket::LocalSocketError)));
-    }
-}
-
-void CommServer::slotReadConnection()
-{
-    m_incomingData += m_socket->readAll();
-
-    // drop overgrowing internal buffer
-    if (m_incomingData.size() > 10000000) {
-        qWarning() << "CommServer::slotReadConnection: dropping XXL message from the Probe";
-        m_incomingData = QByteArray();
-        return;
-    }
-
-    // process all incoming information
-    while (!m_incomingData.isEmpty()) {
-
-        // partial/incomplete chunks: save for later
-        quint32 chunkSize = Inspector::Internal::messageLength(m_incomingData);
-        if (!chunkSize || m_incomingData.length() < (int)chunkSize)
-            break;
-
-        // decode chunk
-        quint32 code1, code2;
-        QByteArray payload;
-        bool decoded = Inspector::Internal::demarshallMessage(m_incomingData, &code1, &code2, &payload);
-        if (!decoded)
-            qWarning() << "CommServer::slotReadConnection: error decoding a message";
-        else
-            processIncomingData(code1, code2, &payload);
-
-        // remove chunk from incoming data
-        m_incomingData.remove(0, chunkSize);
-    }
-}
-
-void CommServer::slotDisconnected()
-{
-    m_socket->deleteLater();
-    m_socket = 0;
-    m_sConnected = false;
-}
-
-void CommServer::slotConnError(QLocalSocket::LocalSocketError error)
-{
-    qWarning() << "CommServer::slotConnError: error" << error;
 }

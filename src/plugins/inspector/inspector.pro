@@ -22,7 +22,7 @@ HEADERS += \
     tasksscene.h \
     taskswidget.h \
     paint-probe/paintprobe.h \
-    paint-probe/ptview.h
+    paint-probe/painttemperatureview.h
 
 SOURCES += \
     abstractprobe.cpp \
@@ -41,12 +41,12 @@ SOURCES += \
     tasksscene.cpp \
     taskswidget.cpp \
     paint-probe/paintprobe.cpp \
-    paint-probe/ptview.cpp
+    paint-probe/painttemperatureview.cpp
 
 FORMS += \
     commview.ui \
     infodialog.ui \
-    paint-probe/ptview.ui
+    paint-probe/painttemperatureview.ui
 
 RESOURCES += \
     inspector.qrc

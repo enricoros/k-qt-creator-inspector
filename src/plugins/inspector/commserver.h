@@ -50,10 +50,9 @@ public:
     CommServer(QObject * parent = 0);
     ~CommServer();
 
-    bool enabled() const; //CHANGE ME
     QString serverName() const;
-
-    bool processIncomingData(quint32 code1, quint32 code2, QByteArray * data);
+    bool serverListening() const; //CHANGE ME
+    bool clientConnected() const;
 
     // externally set information
     void setHelpersPresent(bool on);
@@ -70,6 +69,8 @@ private slots:
     void slotConnError(QLocalSocket::LocalSocketError error);
 
 private:
+    bool processIncomingData(quint32 code1, quint32 code2, QByteArray * data);
+
     friend class InspectorInstance;
     friend class Internal::InspectorFrame;
     QLocalServer *m_localServer;

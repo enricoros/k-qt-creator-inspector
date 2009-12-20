@@ -27,16 +27,16 @@
 **
 **************************************************************************/
 
-#ifndef PTVIEW_H
-#define PTVIEW_H
+#ifndef PAINTTEMPERATUREVIEW_H
+#define PAINTTEMPERATUREVIEW_H
 
-#include <QWidget>
-#include "ui_ptview.h"
+#include "abstractview.h"
+#include "ui_painttemperatureview.h"
 
 namespace Inspector {
 namespace Internal {
 
-class PaintTemperatureView : public QWidget, public Ui::PTView
+class PaintTemperatureView : public AbstractView, public Ui::PaintTemperatureView
 {
     Q_OBJECT
 
@@ -50,10 +50,10 @@ private slots:
     void on_defaultsButton_clicked();
     void on_runButton_clicked();
     void slotCheckPasses();
-    void slotUpdatePops();
+    void slotUpdateWeight();
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // PTVIEW_H
+#endif // PAINTTEMPERATUREVIEW_H

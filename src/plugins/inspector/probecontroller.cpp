@@ -28,8 +28,8 @@
 **************************************************************************/
 
 #include "probecontroller.h"
-
 #include "abstractprobe.h"
+#include "abstractview.h"
 
 using namespace Inspector::Internal;
 
@@ -89,7 +89,7 @@ QStringList ProbeController::probeNames() const
     return names;
 }
 
-QWidget *ProbeController::createView(int probeUid, int viewId) const
+AbstractView *ProbeController::createView(int probeUid, int viewId) const
 {
     AbstractProbe * probe = probeForUid(probeUid);
     if (!probe) {

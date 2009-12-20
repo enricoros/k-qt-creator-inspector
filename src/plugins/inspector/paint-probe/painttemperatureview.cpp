@@ -27,7 +27,7 @@
 **
 **************************************************************************/
 
-#include "ptview.h"
+#include "painttemperatureview.h"
 
 #include "inspectorplugin.h"
 #include "inspectorinstance.h"
@@ -40,16 +40,16 @@
 using namespace Inspector::Internal;
 
 PaintTemperatureView::PaintTemperatureView(QWidget *parent)
-  : QWidget(parent)
+  : AbstractView(parent)
 {
     setupUi(this);
     connect(passesBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckPasses()));
     connect(lowBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckPasses()));
     connect(highBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckPasses()));
-    connect(passesBox, SIGNAL(valueChanged(int)), this, SLOT(slotUpdatePops()));
-    connect(innerBox, SIGNAL(valueChanged(int)), this, SLOT(slotUpdatePops()));
-    connect(widthBox, SIGNAL(valueChanged(int)), this, SLOT(slotUpdatePops()));
-    connect(heightBox, SIGNAL(valueChanged(int)), this, SLOT(slotUpdatePops()));
+    connect(passesBox, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateWeight()));
+    connect(innerBox, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateWeight()));
+    connect(widthBox, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateWeight()));
+    connect(heightBox, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateWeight()));
 
     // apply the smaller font to a label
     QFont smallerFont = disclaimerLabel->font();
@@ -99,7 +99,7 @@ void PaintTemperatureView::slotCheckPasses()
     samplesBox->setPalette(pal);
 }
 
-void PaintTemperatureView::slotUpdatePops()
+void PaintTemperatureView::slotUpdateWeight()
 {
     qreal pops = 100 * (qreal)passesBox->value() * (qreal)innerBox->value() / (qreal)(widthBox->value() * heightBox->value());
     popsBox->setText(tr("%1%").arg(QString::number(pops)));

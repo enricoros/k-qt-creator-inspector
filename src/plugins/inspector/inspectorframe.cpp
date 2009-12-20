@@ -28,15 +28,14 @@
 **************************************************************************/
 
 #include "inspectorframe.h"
-
+#include "abstractview.h"
 #include "combotreewidget.h"
 #include "commserver.h"
 #include "infodialog.h"
 #include "inspectorinstance.h"
-#include "taskbarwidget.h"
 #include "probecontroller.h"
+#include "taskbarwidget.h"
 #include "ui_commview.h"
-
 #include <QtGui/QLabel>
 #include <QGradient>
 #include <QPainter>
@@ -222,10 +221,10 @@ void InspectorFrame::slotMenuChanged(const QStringList &/*path*/, const QVariant
     // create a probe view
     int probeId = compoId >> 8;
     int viewId = compoId & 0xFF;
-    QWidget * view = m_extInstance->probeController()->createView(probeId, viewId);
+    AbstractView * view = m_extInstance->probeController()->createView(probeId, viewId);
     if (!view) {
         qWarning("InspectorFrame::slotMenuChanged: can't create view %d for probe %d", viewId, probeId);
-        view = new QWidget();
+        view = new AbstractView;
     }
     m_viewWidget->setWidget(view);
 }

@@ -55,7 +55,7 @@ public:
     // operate on probes
     ProbeMenuEntries menuEntries() const;
     QStringList probeNames() const;
-    QWidget * createView(int probeUid, int viewId) const;
+    AbstractView *createView(int probeUid, int viewId) const;
 
     // TEMP
     void activatePTProbe();

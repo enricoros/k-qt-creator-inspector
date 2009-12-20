@@ -29,3 +29,10 @@
 
 #include "abstractview.h"
 
+using namespace Inspector::Internal;
+
+AbstractView::AbstractView(QWidget *parent)
+  : QWidget(parent)
+{
+}
+
