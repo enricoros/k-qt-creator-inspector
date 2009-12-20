@@ -67,7 +67,6 @@ public:
     void setDebugPaint(bool checked);
 
 public slots:
-    void slotShowInformation();
     void slotShowProbeMode();
 
 private slots:

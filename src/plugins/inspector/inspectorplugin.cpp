@@ -129,11 +129,6 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     command = actionManager->registerAction(enableAction, "Inspector.Enable", globalContext);
     inspContainer->addAction(command);
 
-    QAction *infoAction = new QAction(tr("Information..."), this);
-    connect(infoAction, SIGNAL(triggered()), instance, SLOT(slotShowInformation()));
-    command = actionManager->registerAction(infoAction, "Inspector.Information", globalContext);
-    inspContainer->addAction(command);
-
     QAction *workBenchAction = new QAction(tr("Workbench"), this);
     connect(workBenchAction, SIGNAL(triggered()), instance, SLOT(slotShowProbeMode()));
     command = actionManager->registerAction(workBenchAction, "Inspector.ShowWorkBench", globalContext);

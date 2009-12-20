@@ -10,11 +10,10 @@ HEADERS += \
     abstractview.h \
     combotreewidget.h \
     commserver.h \
-    defaultview.h \
-    infodialog.h \
     inspectorframe.h \
     inspectorinstance.h \
     inspectorplugin.h \
+    instanceview.h \
     notificationwidget.h \
     plotgrid.h \
     probecontroller.h \
@@ -29,11 +28,10 @@ SOURCES += \
     abstractview.cpp \
     combotreewidget.cpp \
     commserver.cpp \
-    defaultview.cpp \
-    infodialog.cpp \
     inspectorframe.cpp \
     inspectorinstance.cpp \
     inspectorplugin.cpp \
+    instanceview.cpp \
     notificationwidget.cpp \
     plotgrid.cpp \
     probecontroller.cpp \
@@ -44,8 +42,7 @@ SOURCES += \
     paint-probe/painttemperatureview.cpp
 
 FORMS += \
-    commview.ui \
-    infodialog.ui \
+    instanceview.ui \
     paint-probe/painttemperatureview.ui
 
 RESOURCES += \
