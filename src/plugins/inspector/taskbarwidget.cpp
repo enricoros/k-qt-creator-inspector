@@ -52,7 +52,7 @@ TaskbarWidget::TaskbarWidget(QWidget *parent)
     setPalette(pal);
     setAutoFillBackground(true);
 
-    QLabel * l1 = new QLabel(tr("Task Graph:"), this);
+    QLabel * l1 = new QLabel(tr("Task Graph (test)"), this);
     TasksWidget * w1 = new TasksWidget(this);
     QToolButton * b1 = new QToolButton(this);
     b1->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
