@@ -49,7 +49,7 @@ ProbeController::~ProbeController()
 void ProbeController::addProbe(AbstractProbe * probe)
 {
     if (!probe) {
-        qWarning("ProbeController::addProbe: skipping 0 pointer");
+        qWarning("ProbeController::addProbe: skipping null probe");
         return;
     }
     // register the Probe
@@ -63,7 +63,7 @@ void ProbeController::addProbe(AbstractProbe * probe)
 void ProbeController::removeProbe(AbstractProbe * probe)
 {
     if (!probe) {
-        qWarning("ProbeController::removeProbe: skipping 0 pointer");
+        qWarning("ProbeController::removeProbe: skipping null probe");
         return;
     }
     // unregister the Probe
@@ -73,17 +73,43 @@ void ProbeController::removeProbe(AbstractProbe * probe)
     emit probesChanged();
 }
 
-ProbeMenuEntries ProbeController::allMenuEntries() const
+ProbeMenuEntries ProbeController::menuEntries() const
 {
-    ProbeMenuEntries allEntries;
-    foreach (AbstractProbe * probe, m_probes)
-        allEntries.append(probe->menuEntries());
-    return allEntries;
+    ProbeMenuEntries entries;
+    foreach (AbstractProbe *probe, m_probes)
+        entries.append(probe->menuEntries());
+    return entries;
+}
+
+QStringList ProbeController::probeNames() const
+{
+    QStringList names;
+    foreach (AbstractProbe *probe, m_probes)
+        names.append(probe->name());
+    return names;
+}
+
+QWidget *ProbeController::createView(int probeUid, int viewId) const
+{
+    AbstractProbe * probe = probeForUid(probeUid);
+    if (!probe) {
+        qWarning("ProbeController::createView: unknown probe Uid %d", probeUid);
+        return 0;
+    }
+    return probe->createView(viewId);
 }
 
 void ProbeController::activatePTProbe()
 {
     qWarning("ProbeController::activatePTProbe: TODO");
+}
+
+AbstractProbe *ProbeController::probeForUid(int probeUid) const
+{
+    foreach (AbstractProbe *probe, m_probes)
+        if (probe->uid() == probeUid)
+            return probe;
+    return 0;
 }
 
 void ProbeController::slotProbeActivationRequested()

@@ -131,19 +131,19 @@ InspectorFrame::InspectorFrame(QWidget *parent)
   , m_viewWidget(0)
   , m_taskbarWidget(0)
 {
-    // ToolBar
+    QVBoxLayout * layout = new QVBoxLayout(this);
+    layout->setMargin(0);
+    layout->setSpacing(0);
+
     m_menuWidget = new ComboTreeWidget(this);
     connect(m_menuWidget, SIGNAL(pathSelected(QStringList,QVariant)), this, SLOT(slotMenuChanged(QStringList,QVariant)));
-    m_viewWidget = new ViewContainerWidget(this);
-    m_taskbarWidget = new TaskbarWidget(this);
+    layout->addWidget(m_menuWidget);
 
-    // Main Layout
-    QVBoxLayout * vLayout = new QVBoxLayout(this);
-    vLayout->setMargin(0);
-    vLayout->setSpacing(0);
-    vLayout->addWidget(m_menuWidget);
-    vLayout->addWidget(m_viewWidget);
-    vLayout->addWidget(m_taskbarWidget);
+    m_viewWidget = new ViewContainerWidget(this);
+    layout->addWidget(m_viewWidget);
+
+    m_taskbarWidget = new TaskbarWidget(this);
+    layout->addWidget(m_taskbarWidget);
 }
 
 void InspectorFrame::setInstance(Inspector::InspectorInstance *instance)
@@ -158,9 +158,11 @@ void InspectorFrame::setInstance(Inspector::InspectorInstance *instance)
     m_extInstance = instance;
 
     if (m_extInstance) {
-        // update menu
+        // menu: add default entry
         m_menuWidget->addItem(QStringList() << tr("Status"), (quint32)0, QIcon(":/inspector/images/menu-icon.png"));
-        ProbeMenuEntries entries = m_extInstance->probeController()->allMenuEntries();
+
+        // menu: add all entries by the plugged probes
+        ProbeMenuEntries entries = m_extInstance->probeController()->menuEntries();
         foreach (const ProbeMenuEntry &entry, entries) {
             if ((entry.probeId & 0xFF000000) || (entry.viewId & 0xFFFFFF00)) {
                 qWarning("InspectorFrame::setInstance: probeId (%d) or viewId (%d) not valid", entry.probeId, entry.viewId);
@@ -196,6 +198,7 @@ void InspectorFrame::showDefaultView()
     info->setFieldState(info->injLabel, server->m_sInjected ? 1 : debugging ? -1 : 0);
     info->setFieldState(info->conLabel, server->m_sConnected ? 1 : debugging ? -1 : 0);
     info->setFieldState(info->workLabel, (debugging && server->m_sEnabled && server->m_sInjected && server->m_sConnected) ? 1 : 0);
+    info->modLabel->setText(m_extInstance->probeController()->probeNames().join(","));
 
     m_viewWidget->setWidget(info);
 
@@ -207,29 +210,24 @@ void InspectorFrame::showDefaultView()
 */
 }
 
-void InspectorFrame::showSubSelectorView()
+void InspectorFrame::slotMenuChanged(const QStringList &/*path*/, const QVariant &data)
 {
-    QWidget *holder = new QWidget;
-    QLabel *arrowLabel = new QLabel(holder);
-    QPixmap pix(":/inspector/images/submenu-up.png");
-    arrowLabel->setPixmap(pix);
-    arrowLabel->setFixedSize(pix.size());
-    QPropertyAnimation * ani = new QPropertyAnimation(arrowLabel, "pos");
-    ani->setEasingCurve(QEasingCurve::OutElastic);
-    ani->setDuration(800);
-    ani->setEndValue(200 /*QPoint(m_subCombo->x() + (m_subCombo->width() - pix.width()) / 2, 0)*/);
-    ani->start(QPropertyAnimation::DeleteWhenStopped);
-    m_viewWidget->setWidget(holder);
-}
-
-void InspectorFrame::slotMenuChanged(const QStringList &path, const QVariant &data)
-{
-    Q_UNUSED(path)
+    // show the default view, if requested
     quint32 compoId = data.toInt();
+    if (!compoId) {
+        showDefaultView();
+        return;
+    }
+
+    // create a probe view
     int probeId = compoId >> 8;
     int viewId = compoId & 0xFF;
-    //m_extInstance->probeController()->
-
+    QWidget * view = m_extInstance->probeController()->createView(probeId, viewId);
+    if (!view) {
+        qWarning("InspectorFrame::slotMenuChanged: can't create view %d for probe %d", viewId, probeId);
+        view = new QWidget();
+    }
+    m_viewWidget->setWidget(view);
 }
 
 } // namespace Internal

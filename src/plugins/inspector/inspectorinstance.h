@@ -51,10 +51,10 @@ public:
     InspectorInstance(QObject *parent = 0);
     ~InspectorInstance();
 
-    Internal::ProbeController *probeController() const { return m_probeController; }
+    CommServer *commServer() const;
+    Internal::ProbeController *probeController() const;
 
-    CommServer * commServer() const;
-    int activationFlags() const; //TEMP relocate
+    int probeActivationFlags() const; //TEMP relocate
 
     // ### TEMP emits default server's debuggerCallFunction
     void commCallFunction(const QString & name, QVariantList args = QVariantList());

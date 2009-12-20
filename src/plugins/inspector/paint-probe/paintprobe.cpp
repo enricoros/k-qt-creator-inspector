@@ -50,7 +50,7 @@ PaintProbe::~PaintProbe()
 
 QString PaintProbe::name() const
 {
-    return tr("Paint Temperature Test");
+    return tr("Painting Tests");
 }
 
 ProbeMenuEntries PaintProbe::menuEntries() const
@@ -63,9 +63,14 @@ ProbeMenuEntries PaintProbe::menuEntries() const
 
 QWidget * PaintProbe::createView(int viewId)
 {
-    Q_UNUSED(viewId);
-    PaintTemperatureView * ptView = new PaintTemperatureView;
-    return ptView;
+    switch (viewId) {
+    case 1:
+        return new PaintTemperatureView;
+    default:
+        qWarning("PaintProbe::createView: unknown view %d", viewId);
+        break;
+    }
+    return 0;
 }
 
 void PaintProbe::slotActivate()

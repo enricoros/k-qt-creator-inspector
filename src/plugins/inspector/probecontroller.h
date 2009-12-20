@@ -53,7 +53,9 @@ public:
     void removeProbe(AbstractProbe *);
 
     // operate on probes
-    ProbeMenuEntries allMenuEntries() const;
+    ProbeMenuEntries menuEntries() const;
+    QStringList probeNames() const;
+    QWidget * createView(int probeUid, int viewId) const;
 
     // TEMP
     void activatePTProbe();
@@ -62,8 +64,9 @@ signals:
     void probesChanged();
 
 private:
-    QList<AbstractProbe *> m_activeProbes;
+    AbstractProbe * probeForUid(int probeId) const;
     QList<AbstractProbe *> m_probes;
+    QList<AbstractProbe *> m_activeProbes;
 
 private slots:
     void slotProbeActivationRequested();

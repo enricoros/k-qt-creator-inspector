@@ -573,7 +573,7 @@ void GdbEngine::tryActivateInspectorHelpersClassic()
         return;
     }
     QString serverName = commServer->serverName();
-    int activationFlags = inspInstance->activationFlags();
+    int activationFlags = inspInstance->probeActivationFlags();
 
     // disable the inspector plugin if no server name
     if (serverName.isNull()) {
