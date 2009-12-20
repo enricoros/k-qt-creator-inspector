@@ -29,123 +29,271 @@
 
 #include "combotreewidget.h"
 
+#include <QComboBox>
 #include <QHBoxLayout>
+#include <QList>
+#include <QModelIndex>
+#include <QPainter>
+#include <QStyledItemDelegate>
 
-using namespace Inspector::Internal;
+namespace Inspector {
+namespace Internal {
+
+class NodesDelegate : public QStyledItemDelegate
+{
+public:
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+    {
+        if (index.data(Qt::UserRole).isNull())
+            painter->fillRect(option.rect, Qt::lightGray);
+        QStyledItemDelegate::paint(painter, option, index);
+    }
+};
+
+class NodesComboBox : public QComboBox
+{
+public:
+    NodesComboBox(int level, QWidget *parent = 0)
+      : QComboBox(parent)
+      , m_level(level)
+    {
+        setItemDelegate(new NodesDelegate);
+    }
+
+    int level() const
+    {
+        return m_level;
+    }
+
+private:
+    int m_level;
+};
+
+struct MenuNode {
+    // description
+    QString name;
+    QVariant data;
+    QIcon icon;
+
+    // tree-like structure
+    MenuNode * parent;
+    QList<MenuNode *> children;
+
+    MenuNode(const QString &name = QString(), const QVariant &data = QVariant(), const QIcon &icon = QIcon())
+        : name(name), data(data), icon(icon), parent(0)
+    {
+    }
+
+    ~MenuNode()
+    {
+        if (parent)
+            parent->children.removeAll(this);
+        qDeleteAll(children);
+    }
+
+    MenuNode *findChild(const QString &childName)
+    {
+        foreach (MenuNode *child, children)
+            if (child->name == childName)
+                return child;
+        return 0;
+    }
+
+    MenuNode *getChild(const QString &childName)
+    {
+        MenuNode *childNode = findChild(childName);
+        if (!childNode) {
+            childNode = new MenuNode(childName);
+            childNode->parent = this;
+            children.append(childNode);
+        }
+        return childNode;
+    }
+};
+
 
 ComboTreeWidget::ComboTreeWidget(QWidget *parent)
   : Utils::StyledBar(parent)
+  , m_rootNode(new MenuNode)
 {
-    // set the horizontal layout
-    QHBoxLayout *hLay = new QHBoxLayout(this);
-    hLay->setMargin(0);
-    hLay->setSpacing(0);
-    setLayout(hLay);
-
-    /*
-    m_mainCombo = new QComboBox(toolBar);
-    connect(m_mainCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(slotMainComboChanged(int)));
-    m_subCombo = new QComboBox(toolBar);
-    connect(m_subCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(slotSubComboChanged(int)));
-    hLay->addWidget(m_mainCombo);
-    //tLayout->addWidget(new QLabel(tr(" section "), toolBar));
-    hLay->addWidget(m_subCombo);
-    hLay->addStretch(10);
-    */
+    QHBoxLayout *layout = new QHBoxLayout(this);
+    layout->setMargin(0);
+    layout->setSpacing(0);
+    layout->addStretch(5);
+    setLayout(layout);
 }
 
-void ComboTreeWidget::addPath(const QStringList &path, const QVariant &userData, const QIcon &icon)
+ComboTreeWidget::~ComboTreeWidget()
 {
-    qWarning("ComboTreeWidget::addPath: TODO");
-    Q_UNUSED(path);
-    Q_UNUSED(userData);
-    Q_UNUSED(icon);
+    qDeleteAll(m_comboPath);
+    delete m_rootNode;
 }
 
-void ComboTreeWidget::removePath(const QStringList &path)
+void ComboTreeWidget::addItem(const QStringList &path, const QVariant &userData, const QIcon &icon)
 {
-    qWarning("ComboTreeWidget::removePath: TODO");
-    Q_UNUSED(path);
+    // update the tree
+    MenuNode *node = m_rootNode;
+    foreach (const QString &token, path) {
+        node = node->getChild(token);
+        if (token == path.last()) {
+            node->data = userData;
+            node->icon = icon;
+        }
+    }
+
+    // update the visual path
+    syncLeafPath();
+
+    // notify about the changes
+    emit treeChanged();
+}
+
+void ComboTreeWidget::removeItem(const QStringList &path)
+{
+    // find out the node sequence for the path
+    QList<MenuNode *> stack;
+    MenuNode *node = m_rootNode;
+    foreach (const QString &token, path) {
+        if ((node = node->findChild(token))) {
+            stack.append(node);
+        } else {
+            qWarning("ComboTreeWidget::removePath: the given path is not present");
+            break;
+        }
+    }
+
+    // backtraverse the node sequence deleting empty branches
+    while (!stack.isEmpty()) {
+        MenuNode * node = stack.takeLast();
+        if (node->children.isEmpty())
+            delete node;
+        else
+            break;
+        m_nodePath.removeAll(node);
+    }
+
+    // update the visual path
+    syncLeafPath();
+
+    // notify about the changes
+    emit treeChanged();
 }
 
 void ComboTreeWidget::clear()
 {
-    // TODO: remove all the combos...
+    // fast clear: recreate the private data
+    m_nodePath.clear();
+    qDeleteAll(m_comboPath);
+    m_comboPath.clear();
+    delete m_rootNode;
+    m_rootNode = new MenuNode;
 
-    // TODO: add the default menu item wiht data (quint32)0x00
-    /*int prevIndex = m_mainCombo->currentIndex();
-    int prevProbeId = prevIndex >= 0 ? m_mainCombo->itemData(prevIndex).toInt() : 0;
-    m_mainCombo->clear();
-    m_mainCombo->addItem(QIcon(":/inspector/images/menu-icon.png"), tr("Status"));
-    */
+    // update the visual path
+    syncLeafPath();
+
+    // notify about the changes
+    emit treeChanged();
+}
+
+void ComboTreeWidget::setCurrentPath(const QStringList &path)
+{
+    m_nodePath.clear();
+    MenuNode *node = m_rootNode;
+    foreach (const QString &token, path) {
+        node = node->findChild(token);
+        if (!node)
+            break;
+        m_nodePath.append(node);
+    }
+    syncLeafPath();
 }
 
 QStringList ComboTreeWidget::currentPath() const
 {
-    qWarning("ComboTreeWidget::currentPath: TODO");
-    return QStringList();
+    QStringList path;
+    foreach (MenuNode *node, m_nodePath)
+        path.append(node->name);
+    return path;
 }
 
 QVariant ComboTreeWidget::currentData() const
 {
-    qWarning("ComboTreeWidget::currentData: TODO");
-    return 42;
+    if (m_nodePath.isEmpty())
+        return QVariant();
+    return m_nodePath.last()->data;
 }
 
-void ComboTreeWidget::setPath(const QStringList &path)
+void ComboTreeWidget::paintEvent(QPaintEvent *event)
 {
-    qWarning("ComboTreeWidget::setPath: TODO");
-    Q_UNUSED(path);
+    Utils::StyledBar::paintEvent(event);
 }
 
-void ComboTreeWidget::slotComboIndexChanged(int index)
+void ComboTreeWidget::slotComboIndexChanged(int comboIndex)
 {
-    qWarning("ComboTreeWidget::slotComboIndexChanged: TODO %d", index);
-}
-
-/*
-void InspectorFrame::slotMainComboChanged(int mainIndex)
-{
-    // reset subcombo
-    m_subCombo->hide();
-    m_subCombo->clear();
-
-    // handle deault view
-    if (!mainIndex) {
-        showDefaultView();
+    // change the right node in the path and pune exceeding ones
+    NodesComboBox *combo = static_cast<NodesComboBox *>(sender());
+    int pathLevel = combo->level();
+    if (pathLevel >= m_nodePath.count())
         return;
+    MenuNode *parentNode = m_nodePath[pathLevel]->parent;
+    if (comboIndex < 0 || comboIndex >= parentNode->children.count())
+        return;
+    m_nodePath[pathLevel] = parentNode->children[comboIndex];
+    while (m_nodePath.count() > (pathLevel + 1))
+        m_nodePath.removeLast();
+
+    // update leaf path, both visually and in the nodePath
+    syncLeafPath();
+
+    // notify about the change if a leaf was selected
+    if (!m_nodePath.isEmpty() && m_nodePath.last()->data.isValid())
+        emit pathSelected(currentPath(), currentData());
+}
+
+void ComboTreeWidget::syncLeafPath()
+{
+    int pathLevel = 0;
+    MenuNode *parentNode = m_rootNode;
+    for (; parentNode && !parentNode->children.isEmpty(); ++pathLevel) {
+
+        // complete path
+        if (m_nodePath.count() <= pathLevel)
+            m_nodePath.append(parentNode->children.first());
+        MenuNode *pathNode = m_nodePath.at(pathLevel);
+
+        // get the combo for the level, or append one if missing
+        NodesComboBox *combo = 0;
+        if (m_comboPath.count() <= pathLevel) {
+            combo = new NodesComboBox(pathLevel, this);
+            connect(combo, SIGNAL(activated(int)), this, SLOT(slotComboIndexChanged(int)));
+            static_cast<QHBoxLayout *>(layout())->insertWidget(layout()->count() - 1, combo, 1);
+            m_comboPath.append(combo);
+        } else {
+            combo = m_comboPath.at(pathLevel);
+            combo->clear();
+        }
+
+        // repopulate combo with children items (and select the active one)
+        bool parentSet = false;
+        foreach (MenuNode *child, parentNode->children) {
+            combo->addItem(child->icon, child->name, child->data);
+            if (child == pathNode) {
+                combo->setCurrentIndex(combo->count() - 1);
+                parentNode = child;
+                parentSet = true;
+            }
+        }
+        if (!parentSet)
+            break;
     }
-    --mainIndex;
 
-    // handle the selection on the main combo
-    ProbeMenuItem subMenu = m_mergedMenu.at(mainIndex);
-    if (!subMenu.children.isEmpty()) {
-        foreach (const ProbeMenuItem & item, subMenu.children) {
-            if (item.enabled)
-                m_subCombo->addItem(item.name);
-        }
-        if (m_subCombo->count()) {
-            m_subCombo->adjustSize();
-            m_subCombo->show();
-        }
-    } else if (subMenu.testId) {
-        activateView(subMenu.testId, subMenu.viewId);
-    } else
-        qWarning("InspectorFrame::slotMainChanged: can't handle this combo selection");
+    // delete exceeding combo boxes
+    while (m_comboPath.count() > pathLevel)
+        delete m_comboPath.takeLast();
+
+    // relayout combos (width may have changed)
+    layout()->activate();
 }
 
-void InspectorFrame::slotSubComboChanged(int subIndex)
-{
-    // get the item
-    int mainIndex = m_mainCombo->currentIndex() - 1;
-    if (mainIndex < 0 || mainIndex >= m_mergedMenu.count())
-        return;
-    const ProbeMenuItem & menu = m_mergedMenu.at(mainIndex);
-    if (subIndex < 0 || subIndex >= menu.children.count())
-        return;
-    const ProbeMenuItem & item = menu.children.at(subIndex);
-
-    // activate the related view
-    activateView(item.testId, item.viewId);
-}
-*/
+} // namespace Internal
+} // namespace Inspector

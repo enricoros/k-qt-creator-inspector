@@ -60,8 +60,6 @@ private slots:
     void slotMenuChanged(const QStringList &path, const QVariant &data);
 
 private:
-    void activateView(int probeId, int viewId);
-
     InspectorInstance *     m_extInstance;
     ComboTreeWidget *       m_menuWidget;
     ViewContainerWidget *   m_viewWidget;

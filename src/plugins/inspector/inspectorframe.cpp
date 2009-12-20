@@ -159,6 +159,7 @@ void InspectorFrame::setInstance(Inspector::InspectorInstance *instance)
 
     if (m_extInstance) {
         // update menu
+        m_menuWidget->addItem(QStringList() << tr("Status"), (quint32)0, QIcon(":/inspector/images/menu-icon.png"));
         ProbeMenuEntries entries = m_extInstance->probeController()->allMenuEntries();
         foreach (const ProbeMenuEntry &entry, entries) {
             if ((entry.probeId & 0xFF000000) || (entry.viewId & 0xFFFFFF00)) {
@@ -166,7 +167,7 @@ void InspectorFrame::setInstance(Inspector::InspectorInstance *instance)
                 continue;
             }
             quint32 compoId = (entry.probeId << 8) + entry.viewId;
-            m_menuWidget->addPath(entry.path, compoId, entry.icon);
+            m_menuWidget->addItem(entry.path, compoId, entry.icon);
         }
 
         // show the default view about this probe
@@ -221,9 +222,14 @@ void InspectorFrame::showSubSelectorView()
     m_viewWidget->setWidget(holder);
 }
 
-void InspectorFrame::activateView(int probeId, int viewId)
+void InspectorFrame::slotMenuChanged(const QStringList &path, const QVariant &data)
 {
-    qWarning("InspectorFrame::activateView: %d %d", probeId, viewId);
+    Q_UNUSED(path)
+    quint32 compoId = data.toInt();
+    int probeId = compoId >> 8;
+    int viewId = compoId & 0xFF;
+    //m_extInstance->probeController()->
+
 }
 
 } // namespace Internal
