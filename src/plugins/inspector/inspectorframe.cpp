@@ -31,12 +31,11 @@
 #include "abstractview.h"
 #include "combotreewidget.h"
 #include "commserver.h"
-#include "infodialog.h"
 #include "inspectorinstance.h"
+#include "instanceview.h"
 #include "probecontroller.h"
 #include "taskbarwidget.h"
 #include "ui_commview.h"
-#include <QtGui/QLabel>
 #include <QGradient>
 #include <QPainter>
 #include <QPaintEvent>
@@ -171,15 +170,35 @@ void InspectorFrame::setInstance(Inspector::InspectorInstance *instance)
             m_menuWidget->addItem(entry.path, compoId, entry.icon);
         }
 
-        // show the default view about this probe
-        showDefaultView();
+        // show information about the current instance
+        showInstanceView();
 
         // TODO link the taskbar
         //m_taskbarWidget-> ...
     }
 }
 
-void InspectorFrame::showDefaultView()
+void InspectorFrame::slotMenuChanged(const QStringList &/*path*/, const QVariant &data)
+{
+    // show the default view, if requested
+    quint32 compoId = data.toInt();
+    if (!compoId) {
+        showInstanceView();
+        return;
+    }
+
+    // create a probe view
+    int probeId = compoId >> 8;
+    int viewId = compoId & 0xFF;
+    AbstractView * view = m_extInstance ? m_extInstance->probeController()->createView(probeId, viewId) : 0;
+    if (!view) {
+        qWarning("InspectorFrame::slotMenuChanged: can't create view %d for probe %d", viewId, probeId);
+        view = new AbstractView;
+    }
+    m_viewWidget->setWidget(view);
+}
+
+void InspectorFrame::showInstanceView()
 {
     if (!m_extInstance)
         return;
@@ -189,43 +208,16 @@ void InspectorFrame::showDefaultView()
         return;
     }
 
-    Internal::InfoDialog *info = new Internal::InfoDialog;
     bool debugging = m_extInstance->debugging();
-    info->setFieldState(info->debLabel, debugging ? 1 : -1);
-    info->setFieldState(info->enaButton, server->m_sEnabled ? 1 : -1);
-    info->setFieldState(info->hlpLabel, server->m_sHelpers ? 1 : debugging ? -1 : 0);
-    info->setFieldState(info->injLabel, server->m_sInjected ? 1 : debugging ? -1 : 0);
-    info->setFieldState(info->conLabel, server->m_sConnected ? 1 : debugging ? -1 : 0);
-    info->setFieldState(info->workLabel, (debugging && server->m_sEnabled && server->m_sInjected && server->m_sConnected) ? 1 : 0);
-    info->modLabel->setText(m_extInstance->probeController()->probeNames().join(","));
+    InstanceView *view = new InstanceView;
+    view->modLabel->setText(m_extInstance->probeController()->probeNames().join(","));
+    view->setFieldState(view->debLabel, debugging ? 1 : -1);
+    view->setFieldState(view->enaButton, server->m_sEnabled ? 1 : -1);
+    view->setFieldState(view->hlpLabel, server->m_sHelpers ? 1 : debugging ? -1 : 0);
+    view->setFieldState(view->injLabel, server->m_sInjected ? 1 : debugging ? -1 : 0);
+    view->setFieldState(view->conLabel, server->m_sConnected ? 1 : debugging ? -1 : 0);
+    view->setFieldState(view->workLabel, (debugging && server->m_sEnabled && server->m_sInjected && server->m_sConnected) ? 1 : 0);
 
-    m_viewWidget->setWidget(info);
-
-/*
-    QWidget *w = new QWidget;
-    Ui::CommView * ui = new Ui::CommView;
-    ui->setupUi(w);
-    m_viewWidget->setWidget(w);
-*/
-}
-
-void InspectorFrame::slotMenuChanged(const QStringList &/*path*/, const QVariant &data)
-{
-    // show the default view, if requested
-    quint32 compoId = data.toInt();
-    if (!compoId) {
-        showDefaultView();
-        return;
-    }
-
-    // create a probe view
-    int probeId = compoId >> 8;
-    int viewId = compoId & 0xFF;
-    AbstractView * view = m_extInstance->probeController()->createView(probeId, viewId);
-    if (!view) {
-        qWarning("InspectorFrame::slotMenuChanged: can't create view %d for probe %d", viewId, probeId);
-        view = new AbstractView;
-    }
     m_viewWidget->setWidget(view);
 }
 

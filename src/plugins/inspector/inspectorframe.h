@@ -50,15 +50,15 @@ class InspectorFrame : public QWidget
 public:
     InspectorFrame(QWidget *parent = 0);
 
+    /// sets the Instance handled by this widget
     void setInstance(Inspector::InspectorInstance *instance);
-
-    /// displays the only hardcoded view. all the others are plugged in
-    void showDefaultView();
 
 private slots:
     void slotMenuChanged(const QStringList &path, const QVariant &data);
 
 private:
+    /// displays an internal view that shows information about the current Instance
+    void showInstanceView();
     InspectorInstance *     m_extInstance;
     ComboTreeWidget *       m_menuWidget;
     ViewContainerWidget *   m_viewWidget;

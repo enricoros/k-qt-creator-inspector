@@ -27,30 +27,49 @@
 **
 **************************************************************************/
 
-#ifndef INFODIALOG_H
-#define INFODIALOG_H
+#include "instanceview.h"
 
-#include <QDialog>
-#include "ui_infodialog.h"
+using namespace Inspector::Internal;
 
-namespace Inspector {
-namespace Internal {
-
-class InfoDialog : public QDialog, public Ui::InfoDialog
+InstanceView::InstanceView(QWidget *parent)
+  : AbstractView(parent)
+  , m_okPixmap(":/inspector/images/status-ok.png")
+  , m_errorPixmap(":/inspector/images/status-err.png")
 {
-    Q_OBJECT
+    setupUi(this);
+}
 
-public:
-    InfoDialog(QWidget *parent = 0);
+void InstanceView::setFieldState(QWidget *field, int state)
+{
+    if (QAbstractButton *b = dynamic_cast<QAbstractButton *>(field)) {
+        switch (state) {
+            case 0:
+                b->setText(tr("?"));
+                break;
+            case 1:
+                b->setIcon(m_okPixmap);
+                if (b->isCheckable())
+                    b->setChecked(true);
+                break;
+            case -1:
+                b->setIcon(m_errorPixmap);
+                if (b->isCheckable())
+                    b->setChecked(false);
+                break;
+        }
+    }
 
-    void setFieldState(QWidget * field, int state);
-
-private:
-    QPixmap m_pOk;
-    QPixmap m_pErr;
-};
-
-} // namespace Internal
-} // namespace Inspector
-
-#endif // INFODIALOG_H
+    if (QLabel *l = dynamic_cast<QLabel *>(field)) {
+        switch (state) {
+            case 0:
+                l->setText(tr("unknown"));
+                break;
+            case 1:
+                l->setPixmap(m_okPixmap);
+                break;
+            case -1:
+                l->setPixmap(m_errorPixmap);
+                break;
+        }
+    }
+}

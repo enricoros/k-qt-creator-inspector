@@ -29,7 +29,6 @@
 
 #include "inspectorinstance.h"
 #include "commserver.h"
-#include "infodialog.h"
 #include "inspectorframe.h"
 #include "inspectorplugin.h"
 #include "notificationwidget.h"
@@ -120,19 +119,6 @@ bool InspectorInstance::enabled() const
 void InspectorInstance::setDebugPaint(bool checked)
 {
     m_debugPaintFlag = checked;
-}
-
-void InspectorInstance::slotShowInformation()
-{
-    Internal::InfoDialog info;
-    info.setFieldState(info.debLabel, m_sDebugging ? 1 : -1);
-    info.setFieldState(info.enaButton, m_commServer->m_sEnabled ? 1 : -1);
-    info.setFieldState(info.hlpLabel, m_commServer->m_sHelpers ? 1 : m_sDebugging ? -1 : 0);
-    info.setFieldState(info.injLabel, m_commServer->m_sInjected ? 1 : m_sDebugging ? -1 : 0);
-    info.setFieldState(info.conLabel, m_commServer->m_sConnected ? 1 : m_sDebugging ? -1 : 0);
-    info.setFieldState(info.workLabel, (m_sDebugging && m_commServer->m_sEnabled && m_commServer->m_sInjected && m_commServer->m_sConnected) ? 1 : 0);
-    info.modLabel->setText(m_probeController->probeNames().join(","));
-    info.exec();
 }
 
 void InspectorInstance::slotShowProbeMode()
