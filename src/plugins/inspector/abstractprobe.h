@@ -44,8 +44,8 @@ struct ProbeMenuEntry {
     int probeId;
     int viewId;
 
-    ProbeMenuEntry(const QStringList &path, int probeId, int viewId)
-        : path(path), probeId(probeId), viewId(viewId) {}
+    ProbeMenuEntry(const QStringList &path, int probeId, int viewId, const QIcon &icon = QIcon())
+        : path(path), icon(icon), probeId(probeId), viewId(viewId) {}
 };
 
 typedef QList<ProbeMenuEntry> ProbeMenuEntries;
@@ -63,8 +63,8 @@ public:
     virtual QString name() const = 0;
     virtual ProbeMenuEntries menuEntries() const = 0;
     //virtual QList<int> cmdClasses() const = 0;
-    virtual QWidget * createView(int viewId) = 0;
     //virtual * createCommSession(int cmdClass) = 0;
+    virtual QWidget * createView(int viewId) = 0;
 
 signals:
     // tells ProbeContoller to activate this probe
