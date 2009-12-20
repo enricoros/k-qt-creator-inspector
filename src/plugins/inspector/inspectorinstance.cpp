@@ -73,12 +73,17 @@ InspectorInstance::~InspectorInstance()
     delete m_commServer;
 }
 
-Inspector::CommServer * InspectorInstance::commServer() const
+CommServer *InspectorInstance::commServer() const
 {
     return m_commServer;
 }
 
-int InspectorInstance::activationFlags() const
+Internal::ProbeController *InspectorInstance::probeController() const
+{
+    return m_probeController;
+}
+
+int InspectorInstance::probeActivationFlags() const
 {
     // flags are in perfunction.h
     int flags = Inspector::Internal::AF_None;
@@ -126,6 +131,7 @@ void InspectorInstance::slotShowInformation()
     info.setFieldState(info.injLabel, m_commServer->m_sInjected ? 1 : m_sDebugging ? -1 : 0);
     info.setFieldState(info.conLabel, m_commServer->m_sConnected ? 1 : m_sDebugging ? -1 : 0);
     info.setFieldState(info.workLabel, (m_sDebugging && m_commServer->m_sEnabled && m_commServer->m_sInjected && m_commServer->m_sConnected) ? 1 : 0);
+    info.modLabel->setText(m_probeController->probeNames().join(","));
     info.exec();
 }
 

@@ -54,7 +54,6 @@ public:
 
     /// displays the only hardcoded view. all the others are plugged in
     void showDefaultView();
-    void showSubSelectorView();
 
 private slots:
     void slotMenuChanged(const QStringList &path, const QVariant &data);

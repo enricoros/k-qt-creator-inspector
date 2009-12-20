@@ -39,7 +39,7 @@ namespace Inspector {
 class InspectorInstance;
 
 /// main accessor when using this plugin from the outside. we suppose a single debuggee for now.
-InspectorInstance * defaultInstance();
+Q_DECL_EXPORT InspectorInstance * defaultInstance();
 
 namespace Internal {
 
@@ -52,7 +52,7 @@ const int          P_MODE_PROBE         = 5;
 /**
     \brief QtCreator plugin that exposes a framework for runtime probing
 */
-class Q_DECL_EXPORT InspectorPlugin : public ExtensionSystem::IPlugin
+class InspectorPlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
 

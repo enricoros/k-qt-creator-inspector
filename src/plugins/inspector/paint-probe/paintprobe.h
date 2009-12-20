@@ -46,6 +46,7 @@ public:
 
     // ::AbstractTest
     enum { Uid = 0x01 };
+    int uid() const { return Uid; }
     QString name() const;
     ProbeMenuEntries menuEntries() const;
     QWidget * createView(int viewId);

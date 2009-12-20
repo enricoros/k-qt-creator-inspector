@@ -59,7 +59,7 @@ public:
     virtual ~AbstractProbe();
 
     // describe the Probe
-    enum { Uid = 0x00 };
+    virtual int uid() const = 0;
     virtual QString name() const = 0;
     virtual ProbeMenuEntries menuEntries() const = 0;
     //virtual QList<int> cmdClasses() const = 0;
