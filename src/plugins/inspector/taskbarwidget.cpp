@@ -46,7 +46,9 @@ TaskbarWidget::TaskbarWidget(QWidget *parent)
 {
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     QPalette pal;
-    pal.setBrush(QPalette::Window, Qt::lightGray);
+    pal.setBrush(QPalette::Window, QColor(100, 100, 100));
+    pal.setBrush(QPalette::WindowText, Qt::white);
+    pal.setBrush(QPalette::Base, Qt::transparent);
     setPalette(pal);
     setAutoFillBackground(true);
 
@@ -61,12 +63,13 @@ TaskbarWidget::TaskbarWidget(QWidget *parent)
     b2->setText(tr("Sample Task 2"));
     b2->setIcon(QIcon(":/inspector/images/status-err.png"));
 
-    QHBoxLayout * hLay = new QHBoxLayout(this);
-    hLay->addWidget(l1, 0);
-    hLay->addWidget(w1, 1);
-    hLay->addWidget(b1, 0);
-    hLay->addWidget(b2, 0);
-    hLay->addStretch(1);
+    QHBoxLayout * layout = new QHBoxLayout(this);
+    layout->setContentsMargins(9, 2, 9, 1);
+    layout->addWidget(l1, 0);
+    layout->addWidget(w1, 1);
+    layout->addWidget(b1, 0);
+    layout->addWidget(b2, 0);
+    layout->addStretch(1);
 }
 
 void TaskbarWidget::clear()
