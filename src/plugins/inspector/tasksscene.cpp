@@ -133,14 +133,14 @@ class TaskItem : public QGraphicsWidget
         TaskItem(int start, QGraphicsItem * parent = 0)
           : QGraphicsWidget(parent)
         {
-            setPos(start, 2);
-            resize(1, TasksScene::fixedHeight() - 4);
-            m_brush = QColor::fromHsv(qrand() % 360, 255, 180, 128);
+            setPos(start - 1, 2);
+            resize(2, TasksScene::fixedHeight() - 4);
+            m_brush = QColor::fromHsv(60 * (qrand() % 6), 255, 200, 128);
         }
 
         void setEnd(int end)
         {
-            resize(end - (int)x(), TasksScene::fixedHeight() - 4);
+            resize(end - (int)x() + 1, TasksScene::fixedHeight() - 4);
             int pInc = qrand() % 4;
             if (m_percs.isEmpty())
                 m_percs.append(pInc);
@@ -153,22 +153,22 @@ class TaskItem : public QGraphicsWidget
         {
             Q_UNUSED(option);
             Q_UNUSED(widget);
-            painter->setRenderHint(QPainter::Antialiasing, true);
-            painter->setPen(QPen(Qt::lightGray, 1));
-            painter->setBrush(m_brush);
-            QRectF rect = boundingRect().adjusted(0.5, 0.5, -0.5, -0.5);
+            QRect rect = boundingRect().toRect().adjusted(0, 0, -1, -1);
             if (rect.width() > 2) {
-                painter->drawRoundedRect(boundingRect().adjusted(0.5, 0.5, -0.5, -0.5), 4, 4, Qt::AbsoluteSize);
+                painter->setRenderHint(QPainter::Antialiasing, false);
+                painter->setPen(QPen(Qt::lightGray, 1));
+                painter->setBrush(m_brush);
+                painter->drawRect(rect);
 
                 // draw the percent polygon
                 int h = size().height();
                 int x = 0;
                 foreach (int val, m_percs) {
                     int y = h * (0.9 - 0.8*(qreal)val / 100.0);
-                    painter->fillRect(x++, y, 1, h - y, Qt::lightGray);
+                    painter->fillRect(++x, y, 1, h - y - 1, QColor(255, 255, 255, 64));
                 }
 
-                QRect r = boundingRect().toRect().adjusted(2, 1, -2, 0);
+                QRect r = rect.adjusted(2, 1, -2, 1);
                 if (r.width() > 2) {
                     QFont font = painter->font();
                     font.setPointSize(font.pointSize() - 2);
@@ -176,9 +176,9 @@ class TaskItem : public QGraphicsWidget
                     painter->setPen(Qt::black);
                     painter->setBrush(Qt::NoBrush);
                     painter->setRenderHint(QPainter::TextAntialiasing, true);
-                    painter->drawText(r.adjusted(1, 1, 1, 1), Qt::AlignVCenter, tr("fake"));
+                    painter->drawText(r.adjusted(1, 1, 1, 1), Qt::AlignVCenter, tr("..."));
                     painter->setPen(Qt::white);
-                    painter->drawText(r, Qt::AlignVCenter, tr("fake"));
+                    painter->drawText(r, Qt::AlignVCenter, tr("..."));
                 }
             }
         }
