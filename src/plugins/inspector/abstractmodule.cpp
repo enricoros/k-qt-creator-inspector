@@ -28,7 +28,6 @@
 **************************************************************************/
 
 #include "abstractmodule.h"
-
 #include <QAbstractTransition>
 #include <QStateMachine>
 #include <QState>
@@ -68,6 +67,7 @@ struct Inspector::Internal::AbstractModulePrivate {
 
 AbstractModule::AbstractModule(QObject *parent)
   : QObject(parent)
+  , m_instance(0)
   , d(new AbstractModulePrivate)
 {
     // 1. state machine configuration
@@ -101,6 +101,11 @@ AbstractModule::AbstractModule(QObject *parent)
 AbstractModule::~AbstractModule()
 {
     delete d;
+}
+
+Inspector::Instance *AbstractModule::parentInstance() const
+{
+    return m_instance;
 }
 
 void AbstractModule::slotActivate()

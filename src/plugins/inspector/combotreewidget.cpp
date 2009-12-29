@@ -28,7 +28,6 @@
 **************************************************************************/
 
 #include "combotreewidget.h"
-
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QList>

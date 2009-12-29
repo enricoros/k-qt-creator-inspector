@@ -59,7 +59,7 @@ AbstractView *PaintModule::createView(int viewId)
 {
     AbstractView *view = 0;
     if (viewId == 1)
-        view = new PaintTemperatureView;
+        view = new PaintTemperatureView(this);
     else
         qWarning("PaintModule::createView: unknown view %d", viewId);
     if (view) {

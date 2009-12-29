@@ -38,6 +38,7 @@ class QComboBox;
 
 namespace Inspector {
 namespace Internal {
+
 class MenuNode;
 class NodesComboBox;
 

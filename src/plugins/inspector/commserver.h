@@ -37,9 +37,12 @@
 class QLocalServer;
 
 namespace Inspector {
+
 namespace Internal {
+
 class InspectorFrame;
 class Instance;
+
 }
 
 class Q_DECL_EXPORT CommServer : public QObject

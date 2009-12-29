@@ -36,8 +36,11 @@ class QComboBox;
 class QVBoxLayout;
 
 namespace Inspector {
+
 class Instance;
+
 namespace Internal {
+
 class ComboTreeWidget;
 class TaskbarWidget;
 class ViewContainerWidget;

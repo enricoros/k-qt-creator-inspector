@@ -31,8 +31,13 @@
 
 using namespace Inspector::Internal;
 
-AbstractView::AbstractView(QWidget *parent)
-  : QWidget(parent)
+AbstractView::AbstractView(AbstractModule *parentModule)
+  : QWidget(0)
+  , m_parentModule(parentModule)
 {
 }
 
+AbstractModule *AbstractView::parentModule() const
+{
+    return m_parentModule;
+}

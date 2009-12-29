@@ -30,14 +30,16 @@
 #include "modulecontroller.h"
 #include "abstractmodule.h"
 #include "abstractview.h"
+#include "instance.h"
 #include "module-painting/paintmodule.h"
 
 using namespace Inspector::Internal;
 
-ModuleController::ModuleController(QObject *parent)
-  : QObject(parent)
+ModuleController::ModuleController(Inspector::Instance *instance)
+  : QObject(instance)
+  , m_instance(instance)
 {
-    addModule(new Internal::PaintModule);
+    addModule(new PaintModule);
 }
 
 ModuleController::~ModuleController()
@@ -55,6 +57,7 @@ void ModuleController::addModule(AbstractModule * module)
         return;
     }
     // register the AbstractModule
+    module->m_instance = m_instance;
     connect(module, SIGNAL(requestActivation()), this, SLOT(slotModuleActivationRequested()));
     connect(module, SIGNAL(deactivated()), this, SLOT(slotModuleDeactivated()));
     connect(module, SIGNAL(destroyed()), this, SLOT(slotModuleDestroyed()));
@@ -69,6 +72,7 @@ void ModuleController::removeModule(AbstractModule * module)
         return;
     }
     // unregister the AbstractModule
+    module->m_instance = 0;
     disconnect(module, 0, this, 0);
     m_modules.removeAll(module);
     m_activeModules.removeAll(module);

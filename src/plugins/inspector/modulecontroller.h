@@ -35,6 +35,9 @@
 #include "abstractmodule.h"
 
 namespace Inspector {
+
+class Instance;
+
 namespace Internal {
 
 /**
@@ -46,7 +49,7 @@ class ModuleController : public QObject
     Q_OBJECT
 
 public:
-    ModuleController(QObject *parent = 0);
+    ModuleController(Inspector::Instance *instance);
     ~ModuleController();
 
     void addModule(AbstractModule *);
@@ -61,7 +64,8 @@ signals:
     void modulesChanged();
 
 private:
-    AbstractModule * moduleForUid(int moduleId) const;
+    AbstractModule * moduleForUid(int moduleUid) const;
+    Inspector::Instance *m_instance;
     QList<AbstractModule *> m_modules;
     QList<AbstractModule *> m_activeModules;
 

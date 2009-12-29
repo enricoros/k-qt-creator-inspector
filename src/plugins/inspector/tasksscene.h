@@ -36,6 +36,7 @@
 
 namespace Inspector {
 namespace Internal {
+
 class TaskItem;
 
 class TasksScene : public QGraphicsScene

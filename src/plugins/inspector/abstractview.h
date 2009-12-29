@@ -35,12 +35,23 @@
 namespace Inspector {
 namespace Internal {
 
+class AbstractModule;
+
+/**
+  \brief A QWidget subclass created by AbstractModules
+*/
 class AbstractView : public QWidget
 {
     Q_OBJECT
 
 public:
-    AbstractView(QWidget *parent = 0);
+    AbstractView(AbstractModule *parentModule);
+
+    AbstractModule *parentModule() const;
+
+private:
+    AbstractView();
+    AbstractModule *m_parentModule;
 };
 
 } // namespace Internal

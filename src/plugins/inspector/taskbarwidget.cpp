@@ -28,9 +28,7 @@
 **************************************************************************/
 
 #include "taskbarwidget.h"
-
 #include "taskswidget.h"
-
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPaintEvent>
