@@ -48,7 +48,7 @@
 #include <QWidget>
 #include <QFont>
 
-#define PP_NAME "QtCreator Performance Plugin"
+#define PP_NAME "QtCreator Inspector Plugin"
 
 /**
    This file shamelessyly hijacks the event dispatching callbacks and the
@@ -147,7 +147,7 @@ class PerfCommClient {
             m_sock->connectToServer(serverName);
             m_connected = m_sock->waitForConnected(10000);
             if (!m_connected)
-                printError("can't establish connection to the performance server");
+                printError("can't establish connection to the Inspector server");
         }
 
         ~PerfCommClient()
@@ -176,27 +176,27 @@ class PerfCommClient {
 
         bool sendRaw(quint32 code1, quint32 code2, const QByteArray &data)
         {
-            return sendData(Performance::Internal::marshallMessage(code1, code2, data));
+            return sendData(Inspector::Internal::marshallMessage(code1, code2, data));
         }
 
         bool sendService(quint32 code2, const QByteArray &data)
         {
-            return sendData(Performance::Internal::marshallMessage(0x01, code2, data));
+            return sendData(Inspector::Internal::marshallMessage(0x01, code2, data));
         }
 
         bool sendMessage(const QString & string)
         {
-            return sendData(Performance::Internal::marshallMessage(0x02, 0x01, string.toLatin1()));
+            return sendData(Inspector::Internal::marshallMessage(0x02, 0x01, string.toLatin1()));
         }
 
         bool sendError(const QString & string)
         {
-            return sendData(Performance::Internal::marshallMessage(0x02, 0x02, string.toLatin1()));
+            return sendData(Inspector::Internal::marshallMessage(0x02, 0x02, string.toLatin1()));
         }
 
         bool sendPercent(int value)
         {
-            return sendData(Performance::Internal::marshallMessage(0x02, 0x03, QString::number(value).toLatin1()));
+            return sendData(Inspector::Internal::marshallMessage(0x02, 0x03, QString::number(value).toLatin1()));
         }
 
         bool sendImage(const QImage & image)
@@ -206,12 +206,12 @@ class PerfCommClient {
             dataWriter << image.size();
             dataWriter << (quint32)image.format();
             dataWriter << QByteArray((const char *)image.bits(), image.numBytes());
-            return sendData(Performance::Internal::marshallMessage(0x02, 0x04, imageData));
+            return sendData(Inspector::Internal::marshallMessage(0x02, 0x04, imageData));
         }
 
         bool sendTiming(double time)
         {
-            return sendData(Performance::Internal::marshallMessage(0x03, 0x01, QString::number(time).toLatin1()));
+            return sendData(Inspector::Internal::marshallMessage(0x03, 0x01, QString::number(time).toLatin1()));
         }
 
         void printError(const QString & string) const
@@ -339,7 +339,7 @@ Q_DECL_EXPORT bool qPerfActivate(const char * serverName, int activationFlags)
         ppCommClient = new PerfCommClient(serverName);
 
     // 2. activation flags
-    ppDebugPainting = activationFlags & Performance::Internal::AF_PaintDebug;
+    ppDebugPainting = activationFlags & Inspector::Internal::AF_PaintDebug;
 
     // 3. signal spy callback
     QSignalSpyCallbackSet set = {0, 0/*slotBeginCallback*/, 0, 0/*slotEndCallback*/};
