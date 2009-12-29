@@ -32,7 +32,6 @@
 #include "notificationwidget.h"
 #include "inspectorframe.h"
 #include "modulecontroller.h"
-
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/basemode.h>
 #include <coreplugin/coreconstants.h>
@@ -41,7 +40,6 @@
 #include <coreplugin/uniqueidmanager.h>
 #include <debugger/debuggerconstants.h>
 #include <projectexplorer/projectexplorerconstants.h>
-
 #include <QtCore/QDebug>
 #include <QtCore/QtPlugin>
 #include <QtGui/QAction>

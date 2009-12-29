@@ -35,10 +35,17 @@
 #include <QList>
 
 namespace Inspector {
+
+class Instance;
+
 namespace Internal {
+
 class AbstractView;
 class ModuleController;
 
+/**
+  \brief Describes the items to put in the menus by one module
+*/
 struct ModuleMenuEntry {
     QStringList path;
     QIcon icon;
@@ -51,6 +58,12 @@ struct ModuleMenuEntry {
 
 typedef QList<ModuleMenuEntry> ModuleMenuEntries;
 
+/**
+  \brief Encapsulates functionalities relative to a probing context
+
+  Handles a certain type of tests, encapsulates communication, database,
+  views and activation logic.
+*/
 class AbstractModule : public QObject
 {
     Q_OBJECT
@@ -65,7 +78,10 @@ public:
     virtual ModuleMenuEntries menuEntries() const = 0;
     //virtual QList<int> cmdClasses() const = 0;
     //virtual * createCommSession(int cmdClass) = 0;
-    virtual AbstractView * createView(int viewId) = 0;
+    virtual AbstractView *createView(int viewId) = 0;
+
+    // useful references
+    Inspector::Instance *parentInstance() const;
 
 signals:
     // requests ModuleContoller to activate this module
@@ -87,7 +103,8 @@ private:
     void controlDeactivate();
     void controlRefuse();
     void controlWait();
-    struct AbstractModulePrivate * d;
+    Inspector::Instance *m_instance;
+    struct AbstractModulePrivate *d;
 };
 
 } // namespace Internal

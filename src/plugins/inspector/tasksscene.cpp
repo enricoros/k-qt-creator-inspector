@@ -28,9 +28,7 @@
 **************************************************************************/
 
 #include "tasksscene.h"
-
 #include "taskswidget.h"
-
 #include <QGraphicsItem>
 #include <QGraphicsWidget>
 #include <QGraphicsSceneMouseEvent>

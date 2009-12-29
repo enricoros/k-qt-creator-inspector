@@ -35,12 +35,16 @@
 #include <QVariantList>
 
 namespace Inspector {
+
 class CommServer;
+
 namespace Internal {
+
 class NotificationWidget;
 class InspectorPlugin;
 class InspectorFrame;
 class ModuleController;
+
 }
 
 class Q_DECL_EXPORT Instance : public QObject

@@ -32,7 +32,7 @@
 using namespace Inspector::Internal;
 
 InstanceView::InstanceView(QWidget *parent)
-  : AbstractView(parent)
+  : QWidget(parent)
   , m_okPixmap(":/inspector/images/status-ok.png")
   , m_errorPixmap(":/inspector/images/status-err.png")
 {

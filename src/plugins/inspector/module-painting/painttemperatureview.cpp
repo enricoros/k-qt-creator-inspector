@@ -28,11 +28,10 @@
 **************************************************************************/
 
 #include "painttemperatureview.h"
-
+#include "abstractmodule.h"
 #include "commserver.h"
 #include "inspectorplugin.h"
 #include "instance.h"
-
 #include <QIcon>
 #include <QLabel>
 #include <QPixmap>
@@ -40,8 +39,8 @@
 
 using namespace Inspector::Internal;
 
-PaintTemperatureView::PaintTemperatureView(QWidget *parent)
-  : AbstractView(parent)
+PaintTemperatureView::PaintTemperatureView(AbstractModule *parentModule)
+  : AbstractView(parentModule)
 {
     setupUi(this);
     connect(passesBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckPasses()));
@@ -53,9 +52,8 @@ PaintTemperatureView::PaintTemperatureView(QWidget *parent)
     connect(heightBox, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateWeight()));
 
     // apply the smaller font to a label
-    QFont smallerFont = disclaimerLabel->font();
+    QFont smallerFont = samplesLabel->font();
     smallerFont.setPointSize(smallerFont.pointSize() - 1);
-    disclaimerLabel->setFont(smallerFont);
     samplesLabel->setFont(smallerFont);
     samplesBox->setFont(smallerFont);
     popsLabel->setFont(smallerFont);
@@ -80,9 +78,7 @@ void PaintTemperatureView::on_runButton_clicked()
     // Build the args list: passes << headDrops << tailDrops << innerPasses << chunkWidth << chunkHeight << consoleDebug
     QVariantList args;
     args << passesBox->value() << lowBox->value() << highBox->value() << innerBox->value() << widthBox->value() << heightBox->value() << debugBox->isChecked();
-    // execute a probe's function
-#warning Use the comm server we are linked to
-    Inspector::defaultInstance()->commServer()->callProbeFunction("qWindowTemperature", args);
+    parentModule()->parentInstance()->commServer()->callProbeFunction("qWindowTemperature", args);
 }
 
 void PaintTemperatureView::slotCheckPasses()

@@ -41,7 +41,7 @@ class PaintTemperatureView : public AbstractView, public Ui::PaintTemperatureVie
     Q_OBJECT
 
 public:
-    PaintTemperatureView(QWidget *parent = 0);
+    PaintTemperatureView(AbstractModule *parentModule);
 
 private:
     QPixmap m_pixmap;

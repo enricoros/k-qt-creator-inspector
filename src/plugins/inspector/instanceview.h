@@ -30,13 +30,13 @@
 #ifndef INSTANCEVIEW_H
 #define INSTANCEVIEW_H
 
-#include "abstractview.h"
+#include <QWidget>
 #include "ui_instanceview.h"
 
 namespace Inspector {
 namespace Internal {
 
-class InstanceView : public AbstractView, public Ui::InstanceView
+class InstanceView : public QWidget, public Ui::InstanceView
 {
     Q_OBJECT
 

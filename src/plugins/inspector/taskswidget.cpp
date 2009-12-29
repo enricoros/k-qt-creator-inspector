@@ -28,9 +28,7 @@
 **************************************************************************/
 
 #include "taskswidget.h"
-
 #include "tasksscene.h"
-
 #include <QPalette>
 
 using namespace Inspector::Internal;

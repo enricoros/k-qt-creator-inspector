@@ -35,7 +35,6 @@
 #include "instanceview.h"
 #include "modulecontroller.h"
 #include "taskbarwidget.h"
-#include "ui_commview.h"
 #include <QGradient>
 #include <QPainter>
 #include <QPaintEvent>
@@ -194,7 +193,8 @@ void InspectorFrame::slotMenuChanged(const QStringList &/*path*/, const QVariant
     AbstractView * view = m_extInstance ? m_extInstance->moduleController()->createView(moduleUid, viewId) : 0;
     if (!view) {
         qWarning("InspectorFrame::slotMenuChanged: can't create view %d for module %d", viewId, moduleUid);
-        view = new AbstractView;
+        m_viewWidget->setWidget(new QWidget);
+        return;
     }
     m_viewWidget->setWidget(view);
 }

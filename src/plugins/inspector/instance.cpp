@@ -33,7 +33,6 @@
 #include "inspectorplugin.h"
 #include "notificationwidget.h"
 #include "modulecontroller.h"
-
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/modemanager.h>
