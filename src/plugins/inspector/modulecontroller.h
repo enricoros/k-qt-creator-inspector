@@ -27,61 +27,51 @@
 **
 **************************************************************************/
 
-#ifndef INSPECTORINSTANCE_H
-#define INSPECTORINSTANCE_H
+#ifndef MODULECONTROLLER_H
+#define MODULECONTROLLER_H
 
 #include <QObject>
 #include <QList>
-#include <QVariantList>
+#include "abstractmodule.h"
 
 namespace Inspector {
-class CommServer;
 namespace Internal {
-class NotificationWidget;
-class InspectorPlugin;
-class InspectorFrame;
-class ProbeController;
-}
 
-class Q_DECL_EXPORT InspectorInstance : public QObject
+/**
+  Features to add:
+   - model to store all the activations like "active modules", commands log, past modules, etc...
+**/
+class ModuleController : public QObject
 {
     Q_OBJECT
 
 public:
-    InspectorInstance(QObject *parent = 0);
-    ~InspectorInstance();
+    ModuleController(QObject *parent = 0);
+    ~ModuleController();
 
-    CommServer *commServer() const;
-    Internal::ProbeController *probeController() const;
+    void addModule(AbstractModule *);
+    void removeModule(AbstractModule *);
 
-    int probeActivationFlags() const; //TEMP relocate
-
-    // externally set information
-    void setDebugging(bool on);
-    bool debugging() const;
-    void setEnabled(bool enabled);
-    bool enabled() const;
-    bool debugPaint() const;
+    // operate on modules
+    ModuleMenuEntries menuEntries() const;
+    QStringList moduleNames() const;
+    AbstractView *createView(int moduleUid, int viewId) const;
 
 signals:
-    void requestDisplay();
-
-public slots:
-    void setDebugPaint(bool enabled);
-
-private slots:
-    void slotNotificationTriggered();
-    void slotNewWarnings(int count);
+    void modulesChanged();
 
 private:
-    CommServer * m_commServer;
-    Internal::NotificationWidget *m_notification;
-    Internal::ProbeController *m_probeController;
-    bool m_enabled;
-    bool m_debugPaintFlag;
-    bool m_sDebugging;
+    AbstractModule * moduleForUid(int moduleId) const;
+    QList<AbstractModule *> m_modules;
+    QList<AbstractModule *> m_activeModules;
+
+private slots:
+    void slotModuleActivationRequested();
+    void slotModuleDeactivated();
+    void slotModuleDestroyed();
 };
 
+} // namespace Internal
 } // namespace Inspector
 
-#endif // INSPECTORINSTANCE_H
+#endif // MODULECONTROLLER_H

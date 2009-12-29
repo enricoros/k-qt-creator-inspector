@@ -67,7 +67,7 @@
 #include <coreplugin/manhattanstyle.h>
 
 #include <inspector/commserver.h>
-#include <inspector/inspectorinstance.h>
+#include <inspector/instance.h>
 #include <inspector/inspectorplugin.h>
 
 #include <projectexplorer/projectexplorer.h>

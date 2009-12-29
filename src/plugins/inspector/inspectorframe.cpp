@@ -31,9 +31,9 @@
 #include "abstractview.h"
 #include "combotreewidget.h"
 #include "commserver.h"
-#include "inspectorinstance.h"
+#include "instance.h"
 #include "instanceview.h"
-#include "probecontroller.h"
+#include "modulecontroller.h"
 #include "taskbarwidget.h"
 #include "ui_commview.h"
 #include <QGradient>
@@ -56,7 +56,7 @@ class ViewContainerWidget : public QWidget
           //, m_disabledLabel(0)
         {
             // precache watermark pixmap
-            QSvgRenderer wmRender(QString(":/inspector/images/probe-watermark.svg"));
+            QSvgRenderer wmRender(QString(":/inspector/images/inspector-watermark.svg"));
             if (wmRender.isValid()) {
                 m_watermarkPixmap = QPixmap(wmRender.defaultSize());
                 m_watermarkPixmap.fill(Qt::transparent);
@@ -144,7 +144,7 @@ InspectorFrame::InspectorFrame(QWidget *parent)
     layout->addWidget(m_taskbarWidget);
 }
 
-void InspectorFrame::setInstance(Inspector::InspectorInstance *instance)
+void InspectorFrame::setInstance(Inspector::Instance *instance)
 {
     // remove references to any previous instance
     if (m_extInstance) {
@@ -160,14 +160,14 @@ void InspectorFrame::setInstance(Inspector::InspectorInstance *instance)
         // menu: add default entry
         m_menuWidget->addItem(QStringList() << tr("Status"), (quint32)0, QIcon(":/inspector/images/menu-icon.png"));
 
-        // menu: add all entries by the plugged probes
-        ProbeMenuEntries entries = m_extInstance->probeController()->menuEntries();
-        foreach (const ProbeMenuEntry &entry, entries) {
-            if ((entry.probeId & 0xFF000000) || (entry.viewId & 0xFFFFFF00)) {
-                qWarning("InspectorFrame::setInstance: probeId (%d) or viewId (%d) not valid", entry.probeId, entry.viewId);
+        // menu: add all entries by the plugged modules
+        ModuleMenuEntries entries = m_extInstance->moduleController()->menuEntries();
+        foreach (const ModuleMenuEntry &entry, entries) {
+            if ((entry.moduleUid & 0xFF000000) || (entry.viewId & 0xFFFFFF00)) {
+                qWarning("InspectorFrame::setInstance: moduleUid (%d) or viewId (%d) not valid", entry.moduleUid, entry.viewId);
                 continue;
             }
-            quint32 compoId = (entry.probeId << 8) + entry.viewId;
+            quint32 compoId = (entry.moduleUid << 8) + entry.viewId;
             m_menuWidget->addItem(entry.path, compoId, entry.icon);
         }
 
@@ -188,12 +188,12 @@ void InspectorFrame::slotMenuChanged(const QStringList &/*path*/, const QVariant
         return;
     }
 
-    // create a probe view
-    int probeId = compoId >> 8;
+    // create the view of a module
+    int moduleUid = compoId >> 8;
     int viewId = compoId & 0xFF;
-    AbstractView * view = m_extInstance ? m_extInstance->probeController()->createView(probeId, viewId) : 0;
+    AbstractView * view = m_extInstance ? m_extInstance->moduleController()->createView(moduleUid, viewId) : 0;
     if (!view) {
-        qWarning("InspectorFrame::slotMenuChanged: can't create view %d for probe %d", viewId, probeId);
+        qWarning("InspectorFrame::slotMenuChanged: can't create view %d for module %d", viewId, moduleUid);
         view = new AbstractView;
     }
     m_viewWidget->setWidget(view);
@@ -211,7 +211,7 @@ void InspectorFrame::showInstanceView()
 
     bool debugging = m_extInstance->debugging();
     InstanceView *view = new InstanceView;
-    view->modLabel->setText(m_extInstance->probeController()->probeNames().join(","));
+    view->modLabel->setText(m_extInstance->moduleController()->moduleNames().join(","));
     view->setFieldState(view->debLabel, debugging ? 1 : -1);
     view->setFieldState(view->enaButton, server->m_sEnabled ? 1 : -1);
     view->setFieldState(view->hlpLabel, server->m_sHelpers ? 1 : debugging ? -1 : 0);

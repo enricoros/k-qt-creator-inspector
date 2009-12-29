@@ -38,7 +38,7 @@
 
 #include <extensionsystem/pluginmanager.h>
 #include <inspector/commserver.h>
-#include <inspector/inspectorinstance.h>
+#include <inspector/instance.h>
 #include <inspector/inspectorplugin.h>
 #include <utils/qtcassert.h>
 
@@ -564,7 +564,7 @@ void GdbEngine::tryQueryDebuggingHelpersClassic()
 void GdbEngine::tryActivateInspectorHelpersClassic()
 {
     // get the listening socket name
-    Inspector::InspectorInstance * inspInstance = Inspector::defaultInstance();
+    Inspector::Instance * inspInstance = Inspector::defaultInstance();
     Inspector::CommServer * commServer = inspInstance->commServer();
     if (!inspInstance->enabled()) {
         qWarning("GdbEngine::tryActivateInspectorHelpers: performance helpers not enabled, skipping.");

@@ -27,7 +27,7 @@
 **
 **************************************************************************/
 
-#include "abstractprobe.h"
+#include "abstractmodule.h"
 
 #include <QAbstractTransition>
 #include <QStateMachine>
@@ -62,13 +62,13 @@ private:
     TestEvent::OpType m_opType;
 };
 
-struct Inspector::Internal::AbstractProbePrivate {
+struct Inspector::Internal::AbstractModulePrivate {
     QStateMachine stateMachine;
 };
 
-AbstractProbe::AbstractProbe(QObject *parent)
+AbstractModule::AbstractModule(QObject *parent)
   : QObject(parent)
-  , d(new AbstractProbePrivate)
+  , d(new AbstractModulePrivate)
 {
     // 1. state machine configuration
 
@@ -98,44 +98,44 @@ AbstractProbe::AbstractProbe(QObject *parent)
     d->stateMachine.setInitialState(sIdle);
 }
 
-AbstractProbe::~AbstractProbe()
+AbstractModule::~AbstractModule()
 {
     delete d;
 }
 
-void AbstractProbe::slotActivate()
+void AbstractModule::slotActivate()
 {
 }
 
-void AbstractProbe::slotDeactivate()
+void AbstractModule::slotDeactivate()
 {
     emit deactivated();
 }
 
-void AbstractProbe::slotLock()
+void AbstractModule::slotLock()
 {
 }
 
-void AbstractProbe::slotUnlock()
+void AbstractModule::slotUnlock()
 {
 }
 
-void AbstractProbe::controlActivate()
+void AbstractModule::controlActivate()
 {
     d->stateMachine.postEvent(new TestEvent(TestEvent::Activate));
 }
 
-void AbstractProbe::controlDeactivate()
+void AbstractModule::controlDeactivate()
 {
     d->stateMachine.postEvent(new TestEvent(TestEvent::Deactivate));
 }
 
-void AbstractProbe::controlRefuse()
+void AbstractModule::controlRefuse()
 {
     d->stateMachine.postEvent(new TestEvent(TestEvent::Refuse));
 }
 
-void AbstractProbe::controlWait()
+void AbstractModule::controlWait()
 {
     d->stateMachine.postEvent(new TestEvent(TestEvent::Wait));
 }

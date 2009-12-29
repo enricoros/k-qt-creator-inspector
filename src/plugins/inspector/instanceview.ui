@@ -59,7 +59,7 @@
       </property>
       <attribute name="icon">
        <iconset resource="inspector.qrc">
-        <normaloff>:/inspector/images/probe-icon-32.png</normaloff>:/inspector/images/probe-icon-32.png</iconset>
+        <normaloff>:/inspector/images/inspector-icon-32.png</normaloff>:/inspector/images/inspector-icon-32.png</iconset>
       </attribute>
       <attribute name="title">
        <string>Plugin</string>

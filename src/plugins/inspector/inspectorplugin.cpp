@@ -28,10 +28,10 @@
 **************************************************************************/
 
 #include "inspectorplugin.h"
-#include "inspectorinstance.h"
+#include "instance.h"
 #include "notificationwidget.h"
 #include "inspectorframe.h"
-#include "probecontroller.h"
+#include "modulecontroller.h"
 
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/basemode.h>
@@ -51,7 +51,7 @@
 
 using namespace Inspector::Internal;
 
-Q_DECL_EXPORT Inspector::InspectorInstance * Inspector::defaultInstance()
+Q_DECL_EXPORT Inspector::Instance * Inspector::defaultInstance()
 {
     return InspectorPlugin::defaultInstance();
 }
@@ -81,7 +81,7 @@ InspectorPlugin::~InspectorPlugin()
     m_window = 0;
 }
 
-Inspector::InspectorInstance * InspectorPlugin::defaultInstance()
+Inspector::Instance * InspectorPlugin::defaultInstance()
 {
     if (!s_pluginInstance || s_pluginInstance->m_instances.isEmpty())
         return 0;
@@ -96,7 +96,7 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     parseArguments(arguments);
 
     // create a single Instance - SINGLE debuggee is supposed here
-    Inspector::InspectorInstance *instance = new Inspector::InspectorInstance;
+    Inspector::Instance *instance = new Inspector::Instance;
     m_instances.append(instance);
     instance->setEnabled(m_pluginEnabled);
     connect(instance, SIGNAL(requestDisplay()), this, SLOT(slotDisplayInstance()));
@@ -112,8 +112,8 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     Core::ActionManager *actionManager = core->actionManager();
     QList<int> globalContext = QList<int>()
         << Core::Constants::C_GLOBAL_ID;
-    QList<int> debuggerContext = QList<int>()
-        << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING);
+    //QList<int> debuggerContext = QList<int>()
+    //    << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING);
 
     // create the Menu and add it to the Debug menu
     Core::ActionContainer *inspContainer = actionManager->createMenu("Inspector.Container");
@@ -123,30 +123,22 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     Core::ActionContainer *debugContainer = actionManager->actionContainer(ProjectExplorer::Constants::M_DEBUG);
     debugContainer->addMenu(inspContainer);
 
-    // create (and register to the system) the actions
-    Core::Command *command;
-
     QAction *enableAction = new QAction(tr("Enable"), this);
     enableAction->setCheckable(true);
     enableAction->setChecked(m_pluginEnabled);
-    connect(enableAction, SIGNAL(toggled(bool)), this, SLOT(slotSetEnabled(bool)));
-    command = actionManager->registerAction(enableAction, "Inspector.Enable", globalContext);
+    connect(enableAction, SIGNAL(toggled(bool)), this, SLOT(slotSetPluginEnabled(bool)));
+    Core::Command *command = actionManager->registerAction(enableAction, "Inspector.Enable", globalContext);
     inspContainer->addAction(command);
 
-    QAction *workBenchAction = new QAction(tr("Workbench"), this);
+    QAction *workBenchAction = new QAction(tr("Current Instance"), this);
     connect(workBenchAction, SIGNAL(triggered()), this, SLOT(slotDisplayInstance()));
-    command = actionManager->registerAction(workBenchAction, "Inspector.ShowWorkBench", globalContext);
-    inspContainer->addAction(command);
-
-    QAction *sep = new QAction(tr("Configuration"), this);
-    sep->setSeparator(true);
-    command = actionManager->registerAction(sep, QLatin1String("Inspector.Sep.One"), globalContext);
+    command = actionManager->registerAction(workBenchAction, "Inspector.ShowInstance", globalContext);
     inspContainer->addAction(command);
 
     // create the Mode, that registers the widget too
     Core::BaseMode * inspectorMode = new Core::BaseMode;
     inspectorMode->setName(tr("Probe"));
-    inspectorMode->setIcon(QIcon(":/inspector/images/probe-icon-32.png"));
+    inspectorMode->setIcon(QIcon(":/inspector/images/inspector-icon-32.png"));
     inspectorMode->setPriority(Inspector::Internal::P_MODE_INSPECTOR);
     inspectorMode->setWidget(m_window);
     inspectorMode->setUniqueModeName(Inspector::Internal::MODE_INSPECTOR);
@@ -163,23 +155,23 @@ void InspectorPlugin::extensionsInitialized()
 {
 }
 
-void InspectorPlugin::slotDisplayInstance()
-{
-    // switch window to calling InspectorInstance if present
-    Inspector::InspectorInstance *instance = dynamic_cast<Inspector::InspectorInstance *>(sender());
-    if (instance && m_instances.contains(instance))
-        m_window->setInstance(instance);
-
-    // switch to the Probe view
-    Core::ICore::instance()->modeManager()->activateMode(Inspector::Internal::MODE_INSPECTOR);
-}
-
-void InspectorPlugin::slotSetEnabled(bool enabled)
+void InspectorPlugin::slotSetPluginEnabled(bool enabled)
 {
     // enable/disable all Instances
     m_pluginEnabled = enabled;
-    foreach (InspectorInstance * instance, m_instances)
+    foreach (Instance * instance, m_instances)
         instance->setEnabled(enabled);
+}
+
+void InspectorPlugin::slotDisplayInstance()
+{
+    // switch window to calling Instance if present
+    Inspector::Instance *instance = dynamic_cast<Inspector::Instance *>(sender());
+    if (instance && m_instances.contains(instance))
+        m_window->setInstance(instance);
+
+    // switch to the Inspector view
+    Core::ICore::instance()->modeManager()->activateMode(Inspector::Internal::MODE_INSPECTOR);
 }
 
 void InspectorPlugin::parseArguments(const QStringList &arguments)

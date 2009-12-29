@@ -28,7 +28,7 @@
 **************************************************************************/
 
 #include "commserver.h"
-#include "inspectorinstance.h"
+#include "instance.h"
 #include "inspectorframe.h"
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
@@ -169,7 +169,7 @@ void CommServer::slotConnError(QLocalSocket::LocalSocketError error)
 
 bool CommServer::processIncomingData(quint32 code1, quint32 code2, QByteArray * data)
 {
-    //InspectorFrame * window = InspectorInstance::instance()->window();
+    //InspectorFrame * window = Instance::instance()->window();
     // ### FIXME, do something about this
 
     // 1. Service

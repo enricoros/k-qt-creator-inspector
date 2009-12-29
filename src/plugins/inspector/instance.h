@@ -27,41 +27,61 @@
 **
 **************************************************************************/
 
-#ifndef PAINTPROBE_H
-#define PAINTPROBE_H
+#ifndef INSPECTORINSTANCE_H
+#define INSPECTORINSTANCE_H
 
-#include "abstractprobe.h"
+#include <QObject>
+#include <QList>
+#include <QVariantList>
 
 namespace Inspector {
+class CommServer;
 namespace Internal {
+class NotificationWidget;
+class InspectorPlugin;
+class InspectorFrame;
+class ModuleController;
+}
 
-class PaintProbe : public AbstractProbe
+class Q_DECL_EXPORT Instance : public QObject
 {
     Q_OBJECT
 
 public:
-    PaintProbe(QObject *parent = 0);
-    ~PaintProbe();
+    Instance(QObject *parent = 0);
+    ~Instance();
 
-    // ::AbstractProbe
-    enum { Uid = 0x01 };
-    int uid() const { return Uid; }
-    QString name() const;
-    ProbeMenuEntries menuEntries() const;
-    AbstractView *createView(int viewId);
-    void slotActivate();
-    void slotDeactivate();
-    void slotLock();
-    void slotUnlock();
+    CommServer *commServer() const;
+    Internal::ModuleController *moduleController() const;
 
-private:
-    QList<AbstractView *> m_views;
+    int probeActivationFlags() const; //TEMP relocate
+
+    // externally set information
+    void setDebugging(bool on);
+    bool debugging() const;
+    void setEnabled(bool enabled);
+    bool enabled() const;
+    bool debugPaint() const;
+
+signals:
+    void requestDisplay();
+
+public slots:
+    void setDebugPaint(bool enabled);
 
 private slots:
-    void slotViewDestroyed();
+    void slotNotificationTriggered();
+    void slotNewWarnings(int count);
+
+private:
+    CommServer * m_commServer;
+    Internal::NotificationWidget *m_notification;
+    Internal::ModuleController *m_moduleController;
+    bool m_enabled;
+    bool m_debugPaintFlag;
+    bool m_sDebugging;
 };
 
-} // namespace Internal
 } // namespace Inspector
 
-#endif // PAINTPROBE_H
+#endif // INSPECTORINSTANCE_H
