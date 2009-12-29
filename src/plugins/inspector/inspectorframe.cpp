@@ -148,6 +148,7 @@ void InspectorFrame::setInstance(Inspector::InspectorInstance *instance)
 {
     // remove references to any previous instance
     if (m_extInstance) {
+
         m_menuWidget->clear();
         m_viewWidget->setWidget(new QWidget);
         m_taskbarWidget->clear();

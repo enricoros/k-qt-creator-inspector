@@ -56,7 +56,7 @@ Q_DECL_EXPORT Inspector::InspectorInstance * Inspector::defaultInstance()
     return InspectorPlugin::defaultInstance();
 }
 
-InspectorPlugin *Inspector::Internal::InspectorPlugin::s_instance = 0;
+InspectorPlugin *Inspector::Internal::InspectorPlugin::s_pluginInstance = 0;
 
 InspectorPlugin::InspectorPlugin()
   : ExtensionSystem::IPlugin()
@@ -64,13 +64,17 @@ InspectorPlugin::InspectorPlugin()
   , m_pluginEnabled(false)
 {
     // reference the plugin instance (for static accessors)
-    s_instance = this;
+    s_pluginInstance = this;
 }
 
 InspectorPlugin::~InspectorPlugin()
 {
     // goodbye plugin
-    s_instance = 0;
+    s_pluginInstance = 0;
+
+    // delete instances
+    qDeleteAll(m_instances);
+    m_instances.clear();
 
     // objects registered with 'addAutoReleasedObject' will be removed automatically, like:
     // m_window is deleted by the plugin system
@@ -79,9 +83,9 @@ InspectorPlugin::~InspectorPlugin()
 
 Inspector::InspectorInstance * InspectorPlugin::defaultInstance()
 {
-    if (!s_instance || s_instance->m_instances.isEmpty())
+    if (!s_pluginInstance || s_pluginInstance->m_instances.isEmpty())
         return 0;
-    return s_instance->m_instances.first();
+    return s_pluginInstance->m_instances.first();
 }
 
 bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_message)
@@ -95,7 +99,7 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     Inspector::InspectorInstance *instance = new Inspector::InspectorInstance;
     m_instances.append(instance);
     instance->setEnabled(m_pluginEnabled);
-    addAutoReleasedObject(instance);
+    connect(instance, SIGNAL(requestDisplay()), this, SLOT(slotDisplayInstance()));
 
     // UI
 
@@ -124,13 +128,13 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
 
     QAction *enableAction = new QAction(tr("Enable"), this);
     enableAction->setCheckable(true);
-    enableAction->setChecked(instance->enabled());
+    enableAction->setChecked(m_pluginEnabled);
     connect(enableAction, SIGNAL(toggled(bool)), this, SLOT(slotSetEnabled(bool)));
     command = actionManager->registerAction(enableAction, "Inspector.Enable", globalContext);
     inspContainer->addAction(command);
 
     QAction *workBenchAction = new QAction(tr("Workbench"), this);
-    connect(workBenchAction, SIGNAL(triggered()), instance, SLOT(slotShowProbeMode()));
+    connect(workBenchAction, SIGNAL(triggered()), this, SLOT(slotDisplayInstance()));
     command = actionManager->registerAction(workBenchAction, "Inspector.ShowWorkBench", globalContext);
     inspContainer->addAction(command);
 
@@ -167,9 +171,9 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     Core::BaseMode * inspectorMode = new Core::BaseMode;
     inspectorMode->setName(tr("Probe"));
     inspectorMode->setIcon(QIcon(":/inspector/images/probe-icon-32.png"));
-    inspectorMode->setPriority(Inspector::Internal::P_MODE_PROBE);
+    inspectorMode->setPriority(Inspector::Internal::P_MODE_INSPECTOR);
     inspectorMode->setWidget(m_window);
-    inspectorMode->setUniqueModeName(Inspector::Internal::MODE_PROBE);
+    inspectorMode->setUniqueModeName(Inspector::Internal::MODE_INSPECTOR);
     inspectorMode->setContext(globalContext);
     addAutoReleasedObject(inspectorMode);
 
@@ -181,6 +185,17 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
 
 void InspectorPlugin::extensionsInitialized()
 {
+}
+
+void InspectorPlugin::slotDisplayInstance()
+{
+    // switch window to calling InspectorInstance if present
+    Inspector::InspectorInstance *instance = dynamic_cast<Inspector::InspectorInstance *>(sender());
+    if (instance && m_instances.contains(instance))
+        m_window->setInstance(instance);
+
+    // switch to the Probe view
+    Core::ICore::instance()->modeManager()->activateMode(Inspector::Internal::MODE_INSPECTOR);
 }
 
 void InspectorPlugin::slotDebugPaintToggled(bool checked)

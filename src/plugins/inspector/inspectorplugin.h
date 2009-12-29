@@ -46,8 +46,8 @@ namespace Internal {
 class InspectorFrame;
 
 // constants
-const char * const MODE_PROBE           = "Probe";
-const int          P_MODE_PROBE         = 5;
+const char * const MODE_INSPECTOR   = "Probe";
+const int          P_MODE_INSPECTOR = 5;
 
 /**
     \brief QtCreator plugin that exposes a framework for runtime probing
@@ -61,20 +61,21 @@ public:
     ~InspectorPlugin();
 
     // single debuggee assumption lies here: we use a single instance from the outside
-    static InspectorInstance * defaultInstance();
+    static Inspector::InspectorInstance * defaultInstance();
 
     // ::ExtensionSystem::IPlugin
     bool initialize(const QStringList &arguments, QString *error_message);
     void extensionsInitialized();
 
 private slots:
+    void slotDisplayInstance();
     void slotDebugPaintToggled(bool checked);
     void slotTempPaintingTemperature();
     void slotSetEnabled(bool enabled);
 
 private:
     void parseArguments(const QStringList & arguments);
-    static InspectorPlugin *s_instance;
+    static InspectorPlugin *s_pluginInstance;
     QList<InspectorInstance *> m_instances;
     Internal::InspectorFrame *m_window;
     bool m_pluginEnabled;

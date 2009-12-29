@@ -66,10 +66,11 @@ public:
     bool enabled() const;
     void setDebugPaint(bool checked);
 
-public slots:
-    void slotShowProbeMode();
+signals:
+    void requestDisplay();
 
 private slots:
+    void slotNotificationTriggered();
     void slotNewWarnings(int count);
 
 private:

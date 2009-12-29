@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>528</width>
-    <height>426</height>
+    <width>526</width>
+    <height>424</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -226,8 +226,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>500</width>
-            <height>225</height>
+            <width>94</width>
+            <height>108</height>
            </rect>
           </property>
           <attribute name="label">
@@ -301,8 +301,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>500</width>
-            <height>70</height>
+            <width>498</width>
+            <height>68</height>
            </rect>
           </property>
           <attribute name="label">
@@ -409,7 +409,7 @@ The concept works, however the implementation is still not complete. In particul
    <sender>checkBox</sender>
    <signal>toggled(bool)</signal>
    <receiver>debugToolBox</receiver>
-   <slot>setShown(bool)</slot>
+   <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>43</x>
