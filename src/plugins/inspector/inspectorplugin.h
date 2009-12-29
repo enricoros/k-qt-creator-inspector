@@ -36,10 +36,10 @@ class QAction;
 
 namespace Inspector {
 
-class InspectorInstance;
+class Instance;
 
 /// main accessor when using this plugin from the outside. we suppose a single debuggee for now.
-Q_DECL_EXPORT InspectorInstance * defaultInstance();
+Q_DECL_EXPORT Instance * defaultInstance();
 
 namespace Internal {
 
@@ -61,20 +61,20 @@ public:
     ~InspectorPlugin();
 
     // single debuggee assumption lies here: we use a single instance from the outside
-    static Inspector::InspectorInstance * defaultInstance();
+    static Inspector::Instance * defaultInstance();
 
     // ::ExtensionSystem::IPlugin
     bool initialize(const QStringList &arguments, QString *error_message);
     void extensionsInitialized();
 
 private slots:
+    void slotSetPluginEnabled(bool enabled);
     void slotDisplayInstance();
-    void slotSetEnabled(bool enabled);
 
 private:
     void parseArguments(const QStringList & arguments);
     static InspectorPlugin *s_pluginInstance;
-    QList<InspectorInstance *> m_instances;
+    QList<Instance *> m_instances;
     Internal::InspectorFrame *m_window;
     bool m_pluginEnabled;
 };

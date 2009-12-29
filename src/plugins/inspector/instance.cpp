@@ -27,13 +27,12 @@
 **
 **************************************************************************/
 
-#include "inspectorinstance.h"
+#include "instance.h"
 #include "commserver.h"
 #include "inspectorframe.h"
 #include "inspectorplugin.h"
 #include "notificationwidget.h"
-#include "probecontroller.h"
-#include "paint-probe/paintprobe.h"
+#include "modulecontroller.h"
 
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
@@ -43,7 +42,7 @@
 
 using namespace Inspector;
 
-InspectorInstance::InspectorInstance(QObject *parent)
+Instance::Instance(QObject *parent)
   : QObject(parent)
   , m_enabled(false)
   , m_debugPaintFlag(false)
@@ -61,28 +60,27 @@ InspectorInstance::InspectorInstance(QObject *parent)
     Core::ICore::instance()->modeManager()->addWidget(m_notification);
 
     // create the Test Control & Tests
-    m_probeController = new Internal::ProbeController(this);
-    m_probeController->addProbe(new Internal::PaintProbe);
+    m_moduleController = new Internal::ModuleController(this);
 }
 
-InspectorInstance::~InspectorInstance()
+Instance::~Instance()
 {
-    delete m_probeController;
+    delete m_moduleController;
     delete m_notification;
     delete m_commServer;
 }
 
-CommServer *InspectorInstance::commServer() const
+CommServer *Instance::commServer() const
 {
     return m_commServer;
 }
 
-Internal::ProbeController *InspectorInstance::probeController() const
+Internal::ModuleController *Instance::moduleController() const
 {
-    return m_probeController;
+    return m_moduleController;
 }
 
-int InspectorInstance::probeActivationFlags() const
+int Instance::probeActivationFlags() const
 {
     // flags are in perfunction.h
     int flags = Inspector::Internal::AF_None;
@@ -91,37 +89,37 @@ int InspectorInstance::probeActivationFlags() const
     return flags;
 }
 
-void InspectorInstance::setDebugging(bool on)
+void Instance::setDebugging(bool on)
 {
     m_sDebugging = on;
 }
 
-bool InspectorInstance::debugging() const
+bool Instance::debugging() const
 {
     return m_sDebugging;
 }
 
-void InspectorInstance::setEnabled(bool enabled)
+void Instance::setEnabled(bool enabled)
 {
     m_enabled = enabled;
 }
 
-bool InspectorInstance::enabled() const
+bool Instance::enabled() const
 {
     return m_enabled;
 }
 
-bool InspectorInstance::debugPaint() const
+bool Instance::debugPaint() const
 {
     return m_debugPaintFlag;
 }
 
-void InspectorInstance::setDebugPaint(bool enabled)
+void Instance::setDebugPaint(bool enabled)
 {
     m_debugPaintFlag = enabled;
 }
 
-void InspectorInstance::slotNotificationTriggered()
+void Instance::slotNotificationTriggered()
 {
     // hide the Notification first
     m_notification->clearWarnings();
@@ -131,7 +129,7 @@ void InspectorInstance::slotNotificationTriggered()
     emit requestDisplay();
 }
 
-void InspectorInstance::slotNewWarnings(int count)
+void Instance::slotNewWarnings(int count)
 {
     for (int i = 0; i < count; i++)
         m_notification->addWarning();

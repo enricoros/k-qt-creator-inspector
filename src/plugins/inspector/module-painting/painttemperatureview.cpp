@@ -31,7 +31,7 @@
 
 #include "commserver.h"
 #include "inspectorplugin.h"
-#include "inspectorinstance.h"
+#include "instance.h"
 
 #include <QIcon>
 #include <QLabel>
@@ -80,10 +80,9 @@ void PaintTemperatureView::on_runButton_clicked()
     // Build the args list: passes << headDrops << tailDrops << innerPasses << chunkWidth << chunkHeight << consoleDebug
     QVariantList args;
     args << passesBox->value() << lowBox->value() << highBox->value() << innerBox->value() << widthBox->value() << heightBox->value() << debugBox->isChecked();
-    // execute the probe
+    // execute a probe's function
 #warning Use the comm server we are linked to
     Inspector::defaultInstance()->commServer()->callProbeFunction("qWindowTemperature", args);
-    //newTestGroup->setEnabled(false);
 }
 
 void PaintTemperatureView::slotCheckPasses()

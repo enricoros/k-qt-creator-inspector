@@ -27,41 +27,41 @@
 **
 **************************************************************************/
 
-#include "paintprobe.h"
+#include "paintmodule.h"
 #include "painttemperatureview.h"
 
 using namespace Inspector::Internal;
 
-PaintProbe::PaintProbe(QObject *parent)
-  : AbstractProbe(parent)
+PaintModule::PaintModule(QObject *parent)
+  : AbstractModule(parent)
 {
 }
 
-PaintProbe::~PaintProbe()
+PaintModule::~PaintModule()
 {
     qDeleteAll(m_views);
 }
 
-QString PaintProbe::name() const
+QString PaintModule::name() const
 {
-    return tr("Painting Tests");
+    return tr("Painting Measures");
 }
 
-ProbeMenuEntries PaintProbe::menuEntries() const
+ModuleMenuEntries PaintModule::menuEntries() const
 {
-    ProbeMenuEntries entries;
-    entries.append(ProbeMenuEntry(QStringList() << tr("Painting") << tr("Temperature"), Uid, 1));
-    entries.append(ProbeMenuEntry(QStringList() << tr("Painting") << tr("Pixel Energy"), Uid, 2));
+    ModuleMenuEntries entries;
+    entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Temperature"), Uid, 1));
+    entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Pixel Energy"), Uid, 2));
     return entries;
 }
 
-AbstractView *PaintProbe::createView(int viewId)
+AbstractView *PaintModule::createView(int viewId)
 {
     AbstractView *view = 0;
     if (viewId == 1)
         view = new PaintTemperatureView;
     else
-        qWarning("PaintProbe::createView: unknown view %d", viewId);
+        qWarning("PaintModule::createView: unknown view %d", viewId);
     if (view) {
         connect(view, SIGNAL(destroyed()), this, SLOT(slotViewDestroyed()));
         m_views.append(view);
@@ -69,30 +69,30 @@ AbstractView *PaintProbe::createView(int viewId)
     return view;
 }
 
-void PaintProbe::slotActivate()
+void PaintModule::slotActivate()
 {
-    qWarning("PaintProbe::slotActivate: ACTIVATED");
+    qWarning("PaintModule::slotActivate: ACTIVATED");
 }
 
-void PaintProbe::slotDeactivate()
+void PaintModule::slotDeactivate()
 {
-    qWarning("PaintProbe::slotDeactivate: DEACTIVATED");
+    qWarning("PaintModule::slotDeactivate: DEACTIVATED");
     emit deactivated();
 }
 
-void PaintProbe::slotLock()
+void PaintModule::slotLock()
 {
     foreach (AbstractView * view, m_views)
         view->setEnabled(false);
 }
 
-void PaintProbe::slotUnlock()
+void PaintModule::slotUnlock()
 {
     foreach (AbstractView * view, m_views)
         view->setEnabled(true);
 }
 
-void PaintProbe::slotViewDestroyed()
+void PaintModule::slotViewDestroyed()
 {
     AbstractView *view = static_cast<AbstractView *>(sender());
     m_views.removeAll(view);

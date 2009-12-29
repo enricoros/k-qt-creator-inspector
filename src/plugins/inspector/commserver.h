@@ -39,7 +39,7 @@ class QLocalServer;
 namespace Inspector {
 namespace Internal {
 class InspectorFrame;
-class InspectorInstance;
+class Instance;
 }
 
 class Q_DECL_EXPORT CommServer : public QObject
@@ -73,7 +73,7 @@ private slots:
 private:
     bool processIncomingData(quint32 code1, quint32 code2, QByteArray * data);
 
-    friend class InspectorInstance;
+    friend class Instance;
     friend class Internal::InspectorFrame;
     QLocalServer *m_localServer;
     QLocalSocket *m_socket;

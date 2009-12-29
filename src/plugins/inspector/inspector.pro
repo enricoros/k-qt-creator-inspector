@@ -6,44 +6,44 @@ include(../../qtcreatorplugin.pri)
 include(inspector_dependencies.pri)
 
 HEADERS += \
-    abstractprobe.h \
+    abstractmodule.h \
     abstractview.h \
     combotreewidget.h \
     commserver.h \
     inspectorframe.h \
-    inspectorinstance.h \
+    instance.h \
     inspectorplugin.h \
     instanceview.h \
     notificationwidget.h \
     plotgrid.h \
-    probecontroller.h \
+    modulecontroller.h \
     taskbarwidget.h \
     tasksscene.h \
     taskswidget.h \
-    paint-probe/paintprobe.h \
-    paint-probe/painttemperatureview.h
+    module-painting/paintmodule.h \
+    module-painting/painttemperatureview.h
 
 SOURCES += \
-    abstractprobe.cpp \
+    abstractmodule.cpp \
     abstractview.cpp \
     combotreewidget.cpp \
     commserver.cpp \
     inspectorframe.cpp \
-    inspectorinstance.cpp \
+    instance.cpp \
     inspectorplugin.cpp \
     instanceview.cpp \
     notificationwidget.cpp \
     plotgrid.cpp \
-    probecontroller.cpp \
+    modulecontroller.cpp \
     taskbarwidget.cpp \
     tasksscene.cpp \
     taskswidget.cpp \
-    paint-probe/paintprobe.cpp \
-    paint-probe/painttemperatureview.cpp
+    module-painting/paintmodule.cpp \
+    module-painting/painttemperatureview.cpp
 
 FORMS += \
     instanceview.ui \
-    paint-probe/painttemperatureview.ui
+    module-painting/painttemperatureview.ui
 
 RESOURCES += \
     inspector.qrc

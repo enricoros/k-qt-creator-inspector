@@ -27,8 +27,8 @@
 **
 **************************************************************************/
 
-#ifndef ABSTRACTPROBE_H
-#define ABSTRACTPROBE_H
+#ifndef ABSTRACTMODULE_H
+#define ABSTRACTMODULE_H
 
 #include <QObject>
 #include <QIcon>
@@ -37,40 +37,40 @@
 namespace Inspector {
 namespace Internal {
 class AbstractView;
-class ProbeController;
+class ModuleController;
 
-struct ProbeMenuEntry {
+struct ModuleMenuEntry {
     QStringList path;
     QIcon icon;
-    int probeId;
+    int moduleUid;
     int viewId;
 
-    ProbeMenuEntry(const QStringList &path, int probeId, int viewId, const QIcon &icon = QIcon())
-        : path(path), icon(icon), probeId(probeId), viewId(viewId) {}
+    ModuleMenuEntry(const QStringList &path, int moduleUid, int viewId, const QIcon &icon = QIcon())
+        : path(path), icon(icon), moduleUid(moduleUid), viewId(viewId) {}
 };
 
-typedef QList<ProbeMenuEntry> ProbeMenuEntries;
+typedef QList<ModuleMenuEntry> ModuleMenuEntries;
 
-class AbstractProbe : public QObject
+class AbstractModule : public QObject
 {
     Q_OBJECT
 
 public:
-    AbstractProbe(QObject *parent = 0);
-    virtual ~AbstractProbe();
+    AbstractModule(QObject *parent = 0);
+    virtual ~AbstractModule();
 
-    // describe the Probe
+    // describe the module
     virtual int uid() const = 0;
     virtual QString name() const = 0;
-    virtual ProbeMenuEntries menuEntries() const = 0;
+    virtual ModuleMenuEntries menuEntries() const = 0;
     //virtual QList<int> cmdClasses() const = 0;
     //virtual * createCommSession(int cmdClass) = 0;
     virtual AbstractView * createView(int viewId) = 0;
 
 signals:
-    // tells ProbeContoller to activate this probe
+    // requests ModuleContoller to activate this module
     void requestActivation();
-    // tells ProbeController that this probe is idle again
+    // tells ModuleController that this module is idle again
     void deactivated();
 
 protected slots:
@@ -81,16 +81,16 @@ protected slots:
     virtual void slotUnlock();
 
 private:
-    // used by ProbeController for state transitions
-    friend class ProbeController;
+    // used by ModuleController for state transitions
+    friend class ModuleController;
     void controlActivate();
     void controlDeactivate();
     void controlRefuse();
     void controlWait();
-    struct AbstractProbePrivate * d;
+    struct AbstractModulePrivate * d;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // ABSTRACTPROBE_H
+#endif // ABSTRACTMODULE_H

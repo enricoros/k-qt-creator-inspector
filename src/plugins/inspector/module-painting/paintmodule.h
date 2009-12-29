@@ -27,51 +27,41 @@
 **
 **************************************************************************/
 
-#ifndef PROBECONTROLLER_H
-#define PROBECONTROLLER_H
+#ifndef PAINTMODULE_H
+#define PAINTMODULE_H
 
-#include <QObject>
-#include <QList>
-#include "abstractprobe.h"
+#include "abstractmodule.h"
 
 namespace Inspector {
 namespace Internal {
 
-/**
-  Features to add:
-   - model to store all the activations like "active probes", commands log, past probes, etc...
-**/
-class ProbeController : public QObject
+class PaintModule : public AbstractModule
 {
     Q_OBJECT
 
 public:
-    ProbeController(QObject *parent = 0);
-    ~ProbeController();
+    PaintModule(QObject *parent = 0);
+    ~PaintModule();
 
-    void addProbe(AbstractProbe *);
-    void removeProbe(AbstractProbe *);
-
-    // operate on probes
-    ProbeMenuEntries menuEntries() const;
-    QStringList probeNames() const;
-    AbstractView *createView(int probeUid, int viewId) const;
-
-signals:
-    void probesChanged();
+    // ::AbstractModule
+    enum { Uid = 0x01 };
+    int uid() const { return Uid; }
+    QString name() const;
+    ModuleMenuEntries menuEntries() const;
+    AbstractView *createView(int viewId);
+    void slotActivate();
+    void slotDeactivate();
+    void slotLock();
+    void slotUnlock();
 
 private:
-    AbstractProbe * probeForUid(int probeId) const;
-    QList<AbstractProbe *> m_probes;
-    QList<AbstractProbe *> m_activeProbes;
+    QList<AbstractView *> m_views;
 
 private slots:
-    void slotProbeActivationRequested();
-    void slotProbeDeactivated();
-    void slotProbeDestroyed();
+    void slotViewDestroyed();
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // PROBECONTROLLER_H
+#endif // PAINTMODULE_H

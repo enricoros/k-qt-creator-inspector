@@ -31,13 +31,12 @@
 #define INSPECTORFRAME_H
 
 #include <QWidget>
-#include "abstractprobe.h"
-#include "inspectorinstance.h"
+#include "instance.h"
 class QComboBox;
 class QVBoxLayout;
 
 namespace Inspector {
-class InspectorInstance;
+class Instance;
 namespace Internal {
 class ComboTreeWidget;
 class TaskbarWidget;
@@ -51,7 +50,7 @@ public:
     InspectorFrame(QWidget *parent = 0);
 
     /// sets the Instance handled by this widget
-    void setInstance(Inspector::InspectorInstance *instance);
+    void setInstance(Inspector::Instance *instance);
 
 private slots:
     void slotMenuChanged(const QStringList &path, const QVariant &data);
@@ -59,7 +58,7 @@ private slots:
 private:
     /// displays an internal view that shows information about the current Instance
     void showInstanceView();
-    InspectorInstance *     m_extInstance;
+    Instance *              m_extInstance;
     ComboTreeWidget *       m_menuWidget;
     ViewContainerWidget *   m_viewWidget;
     TaskbarWidget *         m_taskbarWidget;
