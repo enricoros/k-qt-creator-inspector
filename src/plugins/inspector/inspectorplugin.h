@@ -69,8 +69,6 @@ public:
 
 private slots:
     void slotDisplayInstance();
-    void slotDebugPaintToggled(bool checked);
-    void slotTempPaintingTemperature();
     void slotSetEnabled(bool enabled);
 
 private:

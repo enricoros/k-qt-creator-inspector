@@ -54,13 +54,15 @@ public:
     bool serverListening() const; //CHANGE ME
     bool clientConnected() const;
 
+    bool callProbeFunction(const QString & name, QVariantList args = QVariantList());
+
     // externally set information
     void setHelpersPresent(bool on);
     void setHelpersInjected(bool on);
 
 signals:
     void newWarnings(int count);
-    void debuggerCallFunction(const QString & name, QVariantList args = QVariantList());
+    void debuggerCallFunction(const QString & name, QVariantList args);
 
 private slots:
     void slotIncomingConnection();
