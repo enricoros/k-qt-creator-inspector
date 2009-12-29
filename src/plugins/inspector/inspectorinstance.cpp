@@ -49,13 +49,13 @@ InspectorInstance::InspectorInstance(QObject *parent)
   , m_debugPaintFlag(false)
   , m_sDebugging(false)
 {
-    // create the Server
+    // create the CommServer
     m_commServer = new CommServer;
     connect(m_commServer, SIGNAL(newWarnings(int)), this, SLOT(slotNewWarnings(int)));
 
-    // create the Notification
+    // create the NotificationWidget
     m_notification = new Internal::NotificationWidget;
-    connect(m_notification, SIGNAL(clicked()), this, SLOT(slotShowProbeMode()));
+    connect(m_notification, SIGNAL(clicked()), this, SLOT(slotNotificationTriggered()));
     m_notification->hide();
     // add it to CORE (add it now, even if not visible, to stay on top later)
     Core::ICore::instance()->modeManager()->addWidget(m_notification);
@@ -121,14 +121,14 @@ void InspectorInstance::setDebugPaint(bool checked)
     m_debugPaintFlag = checked;
 }
 
-void InspectorInstance::slotShowProbeMode()
+void InspectorInstance::slotNotificationTriggered()
 {
     // hide the Notification first
     m_notification->clearWarnings();
     m_notification->hide();
 
-    // switch to the Probe view
-    Core::ICore::instance()->modeManager()->activateMode(Inspector::Internal::MODE_PROBE);
+    // switch view to this instance
+    emit requestDisplay();
 }
 
 void InspectorInstance::slotNewWarnings(int count)

@@ -192,8 +192,10 @@ void TasksScene::updateCurrentScene()
 {
     if (!m_startTime.isValid())
         return;
+    QList<QGraphicsView *> viewports = views();
+    int minWidth = viewports.isEmpty() ? 0 : viewports.first()->width();
     int contentsWidth = (m_startTime.elapsed() * m_pixelPerSecond) / 1000;
-    setSceneRect(0, 0, contentsWidth, fixedHeight());
+    setSceneRect(0, 0, qMax(contentsWidth, minWidth), fixedHeight());
     update();
 
     // if locked scrolling, update view's scrollbar too
