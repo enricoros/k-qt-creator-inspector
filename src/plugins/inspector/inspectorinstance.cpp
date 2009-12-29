@@ -91,11 +91,6 @@ int InspectorInstance::probeActivationFlags() const
     return flags;
 }
 
-void InspectorInstance::commCallFunction(const QString &name, QVariantList args)
-{
-    emit m_commServer->debuggerCallFunction(name, args);
-}
-
 void InspectorInstance::setDebugging(bool on)
 {
     m_sDebugging = on;
@@ -116,9 +111,14 @@ bool InspectorInstance::enabled() const
     return m_enabled;
 }
 
-void InspectorInstance::setDebugPaint(bool checked)
+bool InspectorInstance::debugPaint() const
 {
-    m_debugPaintFlag = checked;
+    return m_debugPaintFlag;
+}
+
+void InspectorInstance::setDebugPaint(bool enabled)
+{
+    m_debugPaintFlag = enabled;
 }
 
 void InspectorInstance::slotNotificationTriggered()

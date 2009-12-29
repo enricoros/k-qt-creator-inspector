@@ -143,30 +143,6 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     command = actionManager->registerAction(sep, QLatin1String("Inspector.Sep.One"), globalContext);
     inspContainer->addAction(command);
 
-    QAction *debugPaintAction = new QAction(tr("Show Painted Areas"), this);
-    debugPaintAction->setCheckable(true);
-    command = actionManager->registerAction(debugPaintAction, "Inspector.ShowPaintedAreas", globalContext);
-    inspContainer->addAction(command);
-    connect(debugPaintAction, SIGNAL(toggled(bool)), this, SLOT(slotDebugPaintToggled(bool)));
-
-    QAction *allocAction = new QAction(tr("Allocation Analysis"), this);
-    allocAction->setCheckable(true);
-    command = actionManager->registerAction(allocAction, "Inspector.AnalyzeAllocations", globalContext);
-    inspContainer->addAction(command);
-    //connect(allocAction, SIGNAL(toggled(bool)), this, SLOT(slotDebugAllocationToggled(bool)));
-
-    sep = new QAction(tr("Runtime Analysis"), this);
-    sep->setSeparator(true);
-    command = actionManager->registerAction(sep, QLatin1String("Inspector.Sep.Two"), globalContext);
-    inspContainer->addAction(command);
-
-#if 1
-    QAction *temperatureAction = new QAction(tr("Painting Temperature"), this);
-    connect(temperatureAction, SIGNAL(triggered()), this, SLOT(slotTempPaintingTemperature()));
-    command = actionManager->registerAction(temperatureAction, "Inspector.ShowTemperature", debuggerContext);
-    inspContainer->addAction(command);
-#endif
-
     // create the Mode, that registers the widget too
     Core::BaseMode * inspectorMode = new Core::BaseMode;
     inspectorMode->setName(tr("Probe"));
@@ -196,16 +172,6 @@ void InspectorPlugin::slotDisplayInstance()
 
     // switch to the Probe view
     Core::ICore::instance()->modeManager()->activateMode(Inspector::Internal::MODE_INSPECTOR);
-}
-
-void InspectorPlugin::slotDebugPaintToggled(bool checked)
-{
-    m_instances.first()->setDebugPaint(checked);
-}
-
-void InspectorPlugin::slotTempPaintingTemperature()
-{
-    defaultInstance()->probeController()->activatePTProbe();
 }
 
 void InspectorPlugin::slotSetEnabled(bool enabled)

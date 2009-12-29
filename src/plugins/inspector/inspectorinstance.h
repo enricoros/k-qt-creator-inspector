@@ -56,18 +56,18 @@ public:
 
     int probeActivationFlags() const; //TEMP relocate
 
-    // ### TEMP emits default server's debuggerCallFunction
-    void commCallFunction(const QString & name, QVariantList args = QVariantList());
-
     // externally set information
     void setDebugging(bool on);
     bool debugging() const;
     void setEnabled(bool enabled);
     bool enabled() const;
-    void setDebugPaint(bool checked);
+    bool debugPaint() const;
 
 signals:
     void requestDisplay();
+
+public slots:
+    void setDebugPaint(bool enabled);
 
 private slots:
     void slotNotificationTriggered();

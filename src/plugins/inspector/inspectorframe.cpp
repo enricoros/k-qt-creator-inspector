@@ -218,6 +218,8 @@ void InspectorFrame::showInstanceView()
     view->setFieldState(view->injLabel, server->m_sInjected ? 1 : debugging ? -1 : 0);
     view->setFieldState(view->conLabel, server->m_sConnected ? 1 : debugging ? -1 : 0);
     view->setFieldState(view->workLabel, (debugging && server->m_sEnabled && server->m_sInjected && server->m_sConnected) ? 1 : 0);
+    view->setFieldState(view->paintBox, m_extInstance->debugPaint());
+    connect(view->paintBox, SIGNAL(toggled(bool)), m_extInstance, SLOT(setDebugPaint(bool)));
 
     m_viewWidget->setWidget(view);
 }

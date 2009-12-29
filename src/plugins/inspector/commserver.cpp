@@ -87,6 +87,13 @@ bool CommServer::clientConnected() const
     return m_sConnected;
 }
 
+bool CommServer::callProbeFunction(const QString &name, QVariantList args)
+{
+    // this is the ONE AND ONLY link to control the debugger, for now
+    emit debuggerCallFunction(name, args);
+    return true;
+}
+
 void CommServer::setHelpersPresent(bool on)
 {
     m_sHelpers = on;

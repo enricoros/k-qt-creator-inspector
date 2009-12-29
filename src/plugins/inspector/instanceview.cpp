@@ -42,6 +42,11 @@ InstanceView::InstanceView(QWidget *parent)
 
 void InstanceView::setFieldState(QWidget *field, int state)
 {
+    if (QCheckBox *c = dynamic_cast<QCheckBox *>(field)) {
+        c->setChecked(state == 1);
+        return;
+    }
+
     if (QAbstractButton *b = dynamic_cast<QAbstractButton *>(field)) {
         switch (state) {
             case 0:

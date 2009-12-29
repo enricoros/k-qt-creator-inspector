@@ -57,9 +57,6 @@ public:
     QStringList probeNames() const;
     AbstractView *createView(int probeUid, int viewId) const;
 
-    // TEMP
-    void activatePTProbe();
-
 signals:
     void probesChanged();
 

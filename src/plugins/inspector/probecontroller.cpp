@@ -99,11 +99,6 @@ AbstractView *ProbeController::createView(int probeUid, int viewId) const
     return probe->createView(viewId);
 }
 
-void ProbeController::activatePTProbe()
-{
-    qWarning("ProbeController::activatePTProbe: TODO");
-}
-
 AbstractProbe *ProbeController::probeForUid(int probeUid) const
 {
     foreach (AbstractProbe *probe, m_probes)
