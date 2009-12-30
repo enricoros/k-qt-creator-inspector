@@ -27,25 +27,24 @@
 **
 **************************************************************************/
 
-#ifndef INSTANCEVIEW_H
-#define INSTANCEVIEW_H
+#ifndef INFOVIEW_H
+#define INFOVIEW_H
 
-#include <QWidget>
-#include "ui_instanceview.h"
+#include "abstractview.h"
+#include "ui_infoview.h"
 
 namespace Inspector {
 namespace Internal {
 
-class InstanceView : public QWidget, public Ui::InstanceView
+class InfoView : public AbstractView, public Ui::InfoView
 {
     Q_OBJECT
 
 public:
-    InstanceView(QWidget *parent = 0);
-
-    void setFieldState(QWidget *field, int state);
+    InfoView(AbstractModule *parentModule);
 
 private:
+    void setFieldState(QWidget *field, int state);
     QPixmap m_okPixmap;
     QPixmap m_errorPixmap;
 };
@@ -53,4 +52,4 @@ private:
 } // namespace Internal
 } // namespace Inspector
 
-#endif // INSTANCEVIEW_H
+#endif // INFOVIEW_H

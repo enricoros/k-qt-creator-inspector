@@ -28,6 +28,7 @@
 **************************************************************************/
 
 #include "abstractview.h"
+#include "abstractmodule.h"
 
 using namespace Inspector::Internal;
 
@@ -35,9 +36,15 @@ AbstractView::AbstractView(AbstractModule *parentModule)
   : QWidget(0)
   , m_parentModule(parentModule)
 {
+    Q_ASSERT(parentModule);
 }
 
 AbstractModule *AbstractView::parentModule() const
 {
     return m_parentModule;
+}
+
+Inspector::Instance *AbstractView::parentInstance() const
+{
+    return m_parentModule->parentInstance();
 }

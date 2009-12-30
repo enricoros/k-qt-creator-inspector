@@ -44,7 +44,7 @@ public:
     ~PaintModule();
 
     // ::AbstractModule
-    enum { Uid = 0x01 };
+    enum { Uid = 0x02 };
     int uid() const { return Uid; }
     QString name() const;
     ModuleMenuEntries menuEntries() const;

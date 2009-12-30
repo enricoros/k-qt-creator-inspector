@@ -27,67 +27,41 @@
 **
 **************************************************************************/
 
-#ifndef COMMSERVER_H
-#define COMMSERVER_H
+#ifndef INFOMODULE_H
+#define INFOMODULE_H
 
-#include <QObject>
-#include <QByteArray>
-#include <QLocalSocket>
-#include <QVariant>
-class QLocalServer;
+#include "abstractmodule.h"
 
 namespace Inspector {
-
 namespace Internal {
 
-class InfoView;
-class Instance;
-
-}
-
-class Q_DECL_EXPORT CommServer : public QObject
+class InfoModule : public AbstractModule
 {
     Q_OBJECT
 
 public:
-    CommServer(QObject * parent = 0);
-    ~CommServer();
+    InfoModule(QObject *parent = 0);
+    ~InfoModule();
 
-    QString serverName() const;
-    bool serverListening() const; //CHANGE ME
-    bool clientConnected() const;
-
-    bool callProbeFunction(const QString & name, QVariantList args = QVariantList());
-
-    // externally set information
-    void setHelpersPresent(bool on);
-    void setHelpersInjected(bool on);
-
-signals:
-    void newWarnings(int count);
-    void debuggerCallFunction(const QString & name, QVariantList args);
-
-private slots:
-    void slotIncomingConnection();
-    void slotReadConnection();
-    void slotDisconnected();
-    void slotConnError(QLocalSocket::LocalSocketError error);
+    // ::AbstractModule
+    enum { Uid = 0x01 };
+    int uid() const { return Uid; }
+    QString name() const;
+    ModuleMenuEntries menuEntries() const;
+    AbstractView *createView(int viewId);
+    void slotActivate();
+    void slotDeactivate();
+    void slotLock();
+    void slotUnlock();
 
 private:
-    bool processIncomingData(quint32 code1, quint32 code2, QByteArray * data);
+    QList<AbstractView *> m_views;
 
-    friend class Instance;
-    friend class Internal::InfoView;
-    QLocalServer *m_localServer;
-    QLocalSocket *m_socket;
-    QByteArray m_incomingData;
-
-    bool m_sEnabled;
-    bool m_sHelpers;
-    bool m_sInjected;
-    bool m_sConnected;
+private slots:
+    void slotViewDestroyed();
 };
 
+} // namespace Internal
 } // namespace Inspector
 
-#endif
+#endif // INFOMODULE_H
