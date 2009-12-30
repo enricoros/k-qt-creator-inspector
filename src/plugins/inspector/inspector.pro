@@ -13,13 +13,14 @@ HEADERS += \
     inspectorframe.h \
     instance.h \
     inspectorplugin.h \
-    instanceview.h \
     notificationwidget.h \
     plotgrid.h \
     modulecontroller.h \
     taskbarwidget.h \
     tasksscene.h \
     taskswidget.h \
+    module-info/infomodule.h \
+    module-info/infoview.h \
     module-painting/paintmodule.h \
     module-painting/painttemperatureview.h
 
@@ -31,18 +32,19 @@ SOURCES += \
     inspectorframe.cpp \
     instance.cpp \
     inspectorplugin.cpp \
-    instanceview.cpp \
     notificationwidget.cpp \
     plotgrid.cpp \
     modulecontroller.cpp \
     taskbarwidget.cpp \
     tasksscene.cpp \
     taskswidget.cpp \
+    module-info/infomodule.cpp \
+    module-info/infoview.cpp \
     module-painting/paintmodule.cpp \
     module-painting/painttemperatureview.cpp
 
 FORMS += \
-    instanceview.ui \
+    module-info/infoview.ui \
     module-painting/painttemperatureview.ui
 
 RESOURCES += \

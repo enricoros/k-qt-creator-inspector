@@ -27,20 +27,39 @@
 **
 **************************************************************************/
 
-#include "instanceview.h"
+#include "infoview.h"
+#include "abstractmodule.h"
+#include "commserver.h"
+#include "instance.h"
+#include "modulecontroller.h"
 
 using namespace Inspector::Internal;
 
-InstanceView::InstanceView(QWidget *parent)
-  : QWidget(parent)
+InfoView::InfoView(AbstractModule *parentModule)
+  : AbstractView(parentModule)
   , m_okPixmap(":/inspector/images/status-ok.png")
   , m_errorPixmap(":/inspector/images/status-err.png")
 {
     setupUi(this);
     debugToolBox->hide();
+
+    Inspector::Instance *instance = parentInstance();
+    Inspector::CommServer *server = instance->commServer();
+
+    setFieldState(enaButton, server->m_sEnabled ? 1 : -1);
+    modLabel->setText(instance->moduleController()->moduleNames().join(", "));
+
+    bool debugging = instance->debugging();
+    setFieldState(debLabel, debugging ? 1 : -1);
+    setFieldState(injLabel, server->m_sHelpers ? 1 : debugging ? -1 : 0);
+    setFieldState(actLabel, server->m_sInjected ? 1 : debugging ? -1 : 0);
+    setFieldState(conLabel, server->m_sConnected ? 1 : debugging ? -1 : 0);
+    setFieldState(workLabel, (debugging && server->m_sEnabled && server->m_sInjected && server->m_sConnected) ? 1 : -1);
+    setFieldState(paintBox, instance->debugPaint());
+    connect(paintBox, SIGNAL(toggled(bool)), instance, SLOT(setDebugPaint(bool)));
 }
 
-void InstanceView::setFieldState(QWidget *field, int state)
+void InfoView::setFieldState(QWidget *field, int state)
 {
     if (QCheckBox *c = dynamic_cast<QCheckBox *>(field)) {
         c->setChecked(state == 1);

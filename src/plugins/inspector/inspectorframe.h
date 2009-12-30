@@ -59,8 +59,7 @@ private slots:
     void slotMenuChanged(const QStringList &path, const QVariant &data);
 
 private:
-    /// displays an internal view that shows information about the current Instance
-    void showInstanceView();
+    void showView(int moduleUid, int viewId);
     Instance *              m_extInstance;
     ComboTreeWidget *       m_menuWidget;
     ViewContainerWidget *   m_viewWidget;

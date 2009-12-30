@@ -30,17 +30,17 @@
 #include "inspectorframe.h"
 #include "abstractview.h"
 #include "combotreewidget.h"
-#include "commserver.h"
 #include "instance.h"
-#include "instanceview.h"
 #include "modulecontroller.h"
 #include "taskbarwidget.h"
+#include "module-info/infomodule.h"
 #include <QGradient>
 #include <QPainter>
 #include <QPaintEvent>
 #include <QPixmap>
 #include <QPropertyAnimation>
 #include <QSvgRenderer>
+#include <QVBoxLayout>
 
 namespace Inspector {
 namespace Internal {
@@ -147,18 +147,16 @@ void InspectorFrame::setInstance(Inspector::Instance *instance)
 {
     // remove references to any previous instance
     if (m_extInstance) {
-
         m_menuWidget->clear();
         m_viewWidget->setWidget(new QWidget);
         m_taskbarWidget->clear();
     }
 
+    // set the new instance
     m_extInstance = instance;
 
+    // connect it if not null
     if (m_extInstance) {
-        // menu: add default entry
-        m_menuWidget->addItem(QStringList() << tr("Status"), (quint32)0, QIcon(":/inspector/images/menu-icon.png"));
-
         // menu: add all entries by the plugged modules
         ModuleMenuEntries entries = m_extInstance->moduleController()->menuEntries();
         foreach (const ModuleMenuEntry &entry, entries) {
@@ -171,56 +169,45 @@ void InspectorFrame::setInstance(Inspector::Instance *instance)
         }
 
         // show information about the current instance
-        showInstanceView();
+        showView(InfoModule::Uid, 0);
 
         // TODO link the taskbar
-        //m_taskbarWidget-> ...
+        m_taskbarWidget->clear();
     }
 }
 
 void InspectorFrame::slotMenuChanged(const QStringList &/*path*/, const QVariant &data)
 {
-    // show the default view, if requested
+    // sanity check on the menu code
     quint32 compoId = data.toInt();
     if (!compoId) {
-        showInstanceView();
+        qWarning("InspectorFrame::slotMenuChanged: invalid module/view ids, skipping view creation");
         return;
     }
 
     // create the view of a module
     int moduleUid = compoId >> 8;
     int viewId = compoId & 0xFF;
-    AbstractView * view = m_extInstance ? m_extInstance->moduleController()->createView(moduleUid, viewId) : 0;
-    if (!view) {
-        qWarning("InspectorFrame::slotMenuChanged: can't create view %d for module %d", viewId, moduleUid);
-        m_viewWidget->setWidget(new QWidget);
-        return;
-    }
-    m_viewWidget->setWidget(view);
+    showView(moduleUid, viewId);
 }
 
-void InspectorFrame::showInstanceView()
+void InspectorFrame::showView(int moduleUid, int viewId)
 {
-    if (!m_extInstance)
-        return;
-    Inspector::CommServer *server = m_extInstance->commServer();
-    if (!server) {
+    if (!m_extInstance) {
+        qWarning("InspectorFrame::showView: requested view %d:%d with a null instance", moduleUid, viewId);
         m_viewWidget->setWidget(new QWidget);
         return;
     }
 
-    bool debugging = m_extInstance->debugging();
-    InstanceView *view = new InstanceView;
-    view->modLabel->setText(m_extInstance->moduleController()->moduleNames().join(","));
-    view->setFieldState(view->debLabel, debugging ? 1 : -1);
-    view->setFieldState(view->enaButton, server->m_sEnabled ? 1 : -1);
-    view->setFieldState(view->hlpLabel, server->m_sHelpers ? 1 : debugging ? -1 : 0);
-    view->setFieldState(view->injLabel, server->m_sInjected ? 1 : debugging ? -1 : 0);
-    view->setFieldState(view->conLabel, server->m_sConnected ? 1 : debugging ? -1 : 0);
-    view->setFieldState(view->workLabel, (debugging && server->m_sEnabled && server->m_sInjected && server->m_sConnected) ? 1 : 0);
-    view->setFieldState(view->paintBox, m_extInstance->debugPaint());
-    connect(view->paintBox, SIGNAL(toggled(bool)), m_extInstance, SLOT(setDebugPaint(bool)));
+    // ask for view creation
+    AbstractView * view = m_extInstance->moduleController()->createView(moduleUid, viewId);
+    if (!view) {
+        qWarning("InspectorFrame::showView: can't create view %d for module %d", viewId, moduleUid);
+        m_viewWidget->setWidget(new QWidget);
+        return;
+    }
 
+    // set the view
     m_viewWidget->setWidget(view);
 }
 

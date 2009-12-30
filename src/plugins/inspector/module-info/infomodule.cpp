@@ -27,72 +27,69 @@
 **
 **************************************************************************/
 
-#include "paintmodule.h"
-#include "painttemperatureview.h"
+#include "infomodule.h"
+#include "infoview.h"
 
 using namespace Inspector::Internal;
 
-PaintModule::PaintModule(QObject *parent)
+InfoModule::InfoModule(QObject *parent)
   : AbstractModule(parent)
 {
 }
 
-PaintModule::~PaintModule()
+InfoModule::~InfoModule()
 {
     qDeleteAll(m_views);
 }
 
-QString PaintModule::name() const
+QString InfoModule::name() const
 {
-    return tr("Painting Measures");
+    return tr("Information");
 }
 
-ModuleMenuEntries PaintModule::menuEntries() const
+ModuleMenuEntries InfoModule::menuEntries() const
 {
     ModuleMenuEntries entries;
-    entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Temperature"), Uid, 1));
-    entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Pixel Energy"), Uid, 2));
+    entries.append(ModuleMenuEntry(QStringList() << tr("Status"), Uid, 0, QIcon(":/inspector/images/menu-icon.png")));
     return entries;
 }
 
-AbstractView *PaintModule::createView(int viewId)
+AbstractView *InfoModule::createView(int viewId)
 {
-    AbstractView *view = 0;
-    if (viewId == 1) {
-        view = new PaintTemperatureView(this);
-    } else {
-        qWarning("PaintModule::createView: unknown view %d", viewId);
+    if (viewId != 0) {
+        qWarning("InfoModule::createView: unhandled view %d", viewId);
         return 0;
     }
+    AbstractView *view = new InfoView(this);
     connect(view, SIGNAL(destroyed()), this, SLOT(slotViewDestroyed()));
     m_views.append(view);
     return view;
 }
 
-void PaintModule::slotActivate()
+void InfoModule::slotActivate()
 {
-    qWarning("PaintModule::slotActivate: ACTIVATED");
+    qWarning("InfoModule::slotActivate: ACTIVATED");
 }
 
-void PaintModule::slotDeactivate()
+void InfoModule::slotDeactivate()
 {
-    qWarning("PaintModule::slotDeactivate: DEACTIVATED");
+    qWarning("InfoModule::slotDeactivate: DEACTIVATED");
     emit deactivated();
 }
 
-void PaintModule::slotLock()
+void InfoModule::slotLock()
 {
     foreach (AbstractView *view, m_views)
         view->setEnabled(false);
 }
 
-void PaintModule::slotUnlock()
+void InfoModule::slotUnlock()
 {
     foreach (AbstractView *view, m_views)
         view->setEnabled(true);
 }
 
-void PaintModule::slotViewDestroyed()
+void InfoModule::slotViewDestroyed()
 {
     AbstractView *view = static_cast<AbstractView *>(sender());
     m_views.removeAll(view);

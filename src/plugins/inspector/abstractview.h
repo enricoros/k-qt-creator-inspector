@@ -33,6 +33,9 @@
 #include <QWidget>
 
 namespace Inspector {
+
+class Instance;
+
 namespace Internal {
 
 class AbstractModule;
@@ -48,6 +51,7 @@ public:
     AbstractView(AbstractModule *parentModule);
 
     AbstractModule *parentModule() const;
+    Inspector::Instance *parentInstance() const;
 
 private:
     AbstractView();

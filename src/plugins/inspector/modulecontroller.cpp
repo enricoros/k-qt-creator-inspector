@@ -31,6 +31,7 @@
 #include "abstractmodule.h"
 #include "abstractview.h"
 #include "instance.h"
+#include "module-info/infomodule.h"
 #include "module-painting/paintmodule.h"
 
 using namespace Inspector::Internal;
@@ -39,6 +40,7 @@ ModuleController::ModuleController(Inspector::Instance *instance)
   : QObject(instance)
   , m_instance(instance)
 {
+    addModule(new InfoModule);
     addModule(new PaintModule);
 }
 
