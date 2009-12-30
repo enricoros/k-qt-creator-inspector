@@ -29,6 +29,7 @@
 
 #include "plotgrid.h"
 #include <QPainter>
+#include <QPen>
 
 using namespace Inspector::Internal;
 
@@ -42,4 +43,16 @@ void PlotGrid::paintEvent(QPaintEvent */*event*/)
 {
     QPainter p(this);
     m_backRenderer.render(&p);
+    p.setBrush(Qt::NoBrush);
+    p.setPen(QPen(Qt::lightGray));
+    for (qreal x = 0.1; x <= 0.9; x += 0.1) {
+        qreal sx = x * (qreal)width();
+        qreal sy = (qreal)height();
+        p.drawLine(sx, 0, sx, sy);
+    }
+    for (qreal y = 0.2; y <= 0.8; y += 0.2) {
+        qreal sx = (qreal)width();
+        qreal sy = y * (qreal)height();
+        p.drawLine(0, sy, sx, sy);
+    }
 }
