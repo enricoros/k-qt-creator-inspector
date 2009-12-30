@@ -45,7 +45,10 @@ public:
 
     // completely TODO
 
+    // ::QWidget
     void paintEvent(QPaintEvent *event);
+    QSize sizeHint() const { return QSize(640, 80); }
+    QSize minimumSizeHint() const { return QSize(120, 80); }
 
 private:
     QSvgRenderer m_backRenderer;

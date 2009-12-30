@@ -32,8 +32,10 @@
 #include "commserver.h"
 #include "inspectorplugin.h"
 #include "instance.h"
+#include <QApplication>
 #include <QIcon>
 #include <QLabel>
+#include <QPalette>
 #include <QPixmap>
 #include <QPushButton>
 
@@ -54,10 +56,16 @@ PaintTemperatureView::PaintTemperatureView(AbstractModule *parentModule)
     // apply the smaller font to a label
     QFont smallerFont = samplesLabel->font();
     smallerFont.setPointSize(smallerFont.pointSize() - 1);
+    QPalette lighterPal;
+    lighterPal.setColor(QPalette::WindowText, QApplication::palette().color(QPalette::Mid));
     samplesLabel->setFont(smallerFont);
+    samplesLabel->setPalette(lighterPal);
     samplesBox->setFont(smallerFont);
+    samplesBox->setPalette(lighterPal);
     popsLabel->setFont(smallerFont);
+    popsLabel->setPalette(lighterPal);
     popsBox->setFont(smallerFont);
+    popsBox->setPalette(lighterPal);
 
     // init fields
     on_defaultsButton_clicked();
@@ -90,6 +98,7 @@ void PaintTemperatureView::slotCheckPasses()
         samplesBox->setText(tr("invalid"));
         runButton->setEnabled(false);
     } else {
+        pal.setColor(QPalette::WindowText, QApplication::palette().color(QPalette::Mid));
         samplesBox->setText(tr("%1").arg(count));
         runButton->setEnabled(true);
     }

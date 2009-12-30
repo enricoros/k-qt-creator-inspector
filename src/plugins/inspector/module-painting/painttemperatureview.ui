@@ -7,12 +7,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>495</width>
-    <height>401</height>
+    <width>602</width>
+    <height>399</height>
    </rect>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0" colspan="2">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QLabel" name="iconLabel">
@@ -35,188 +35,182 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
        <property name="text">
-        <string>Paint Temperature Test (experimental)</string>
+        <string>&lt;b&gt;Paint Temperature Test&lt;/b&gt; (experimental)</string>
        </property>
       </widget>
      </item>
     </layout>
    </item>
-   <item>
-    <widget class="QSplitter" name="splitter">
+   <item row="1" column="0">
+    <widget class="QTabWidget" name="newTestGroup">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <widget class="QGroupBox" name="newTestGroup">
-      <property name="title">
-       <string>Run a new Test</string>
+     <widget class="QWidget" name="newTestPage1">
+      <property name="autoFillBackground">
+       <bool>true</bool>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <layout class="QFormLayout" name="formLayout">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Passes:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QSpinBox" name="passesBox">
+      <attribute name="title">
+       <string>New Test</string>
+      </attribute>
+      <layout class="QFormLayout" name="formLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Passes:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QSpinBox" name="passesBox">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Low Drops:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QSpinBox" name="lowBox">
+         <property name="maximum">
+          <number>9</number>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>High Drops:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QSpinBox" name="highBox">
+         <property name="maximum">
+          <number>9</number>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="samplesLabel">
+         <property name="text">
+          <string>Samples:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLabel" name="samplesBox">
+         <property name="text">
+          <string notr="true"/>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Inner Loops:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QSpinBox" name="innerBox">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>50</number>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Chunk Size:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QSpinBox" name="widthBox">
            <property name="minimum">
             <number>1</number>
            </property>
            <property name="maximum">
-            <number>10</number>
+            <number>500</number>
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_2">
+         <item>
+          <widget class="QLabel" name="label_7">
            <property name="text">
-            <string>Low Drops:</string>
+            <string>x</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QSpinBox" name="lowBox">
-           <property name="maximum">
-            <number>9</number>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>High Drops:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QSpinBox" name="highBox">
-           <property name="maximum">
-            <number>9</number>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="samplesLabel">
-           <property name="text">
-            <string>Samples:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLabel" name="samplesBox">
-           <property name="text">
-            <string notr="true"/>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_4">
-           <property name="text">
-            <string>Inner Loops:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QSpinBox" name="innerBox">
+         <item>
+          <widget class="QSpinBox" name="heightBox">
            <property name="minimum">
             <number>1</number>
            </property>
            <property name="maximum">
-            <number>50</number>
+            <number>500</number>
            </property>
           </widget>
          </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="label_5">
+         <item>
+          <widget class="QLabel" name="label_8">
            <property name="text">
-            <string>Chunk Size:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
-          <layout class="QHBoxLayout" name="horizontalLayout_2">
-           <item>
-            <widget class="QSpinBox" name="widthBox">
-             <property name="suffix">
-              <string> px</string>
-             </property>
-             <property name="minimum">
-              <number>1</number>
-             </property>
-             <property name="maximum">
-              <number>500</number>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_7">
-             <property name="text">
-              <string>x</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSpinBox" name="heightBox">
-             <property name="suffix">
-              <string> px</string>
-             </property>
-             <property name="minimum">
-              <number>1</number>
-             </property>
-             <property name="maximum">
-              <number>500</number>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item row="6" column="0">
-          <widget class="QLabel" name="popsLabel">
-           <property name="text">
-            <string>Pixel Ops:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1">
-          <widget class="QLabel" name="popsBox">
-           <property name="text">
-            <string notr="true"/>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="1">
-          <widget class="QPushButton" name="defaultsButton">
-           <property name="text">
-            <string>Load Defaults</string>
+            <string>px</string>
            </property>
           </widget>
          </item>
         </layout>
        </item>
-       <item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="popsLabel">
+         <property name="text">
+          <string>Pixel Ops:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QLabel" name="popsBox">
+         <property name="text">
+          <string notr="true"/>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0" colspan="2">
         <widget class="QCheckBox" name="debugBox">
          <property name="text">
           <string notr="true">[DEV] Console Debug</string>
          </property>
         </widget>
        </item>
-       <item>
+       <item row="8" column="0">
+        <widget class="QPushButton" name="defaultsButton">
+         <property name="text">
+          <string>Load Defaults</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="1">
         <widget class="QPushButton" name="runButton">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -227,42 +221,32 @@
          <property name="text">
           <string>Run the Test</string>
          </property>
+         <property name="icon">
+          <iconset resource="../inspector.qrc">
+           <normaloff>:/inspector/images/inspector-icon-32.png</normaloff>:/inspector/images/inspector-icon-32.png</iconset>
+         </property>
         </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>
-     <widget class="QGroupBox" name="resultsGroup">
-      <property name="title">
-       <string>Test Results and Comparison</string>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QTabWidget" name="resultsGroup">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <widget class="QWidget" name="resultsPage1">
+      <property name="autoFillBackground">
+       <bool>true</bool>
       </property>
-      <layout class="QGridLayout" name="gridLayout">
-       <item row="0" column="0">
-        <widget class="QLabel" name="resLabel">
-         <property name="minimumSize">
-          <size>
-           <width>200</width>
-           <height>200</height>
-          </size>
-         </property>
-         <property name="scaledContents">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <attribute name="title">
+       <string>Test Results and Comparison</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3"/>
      </widget>
     </widget>
    </item>
