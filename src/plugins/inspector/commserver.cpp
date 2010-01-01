@@ -29,7 +29,6 @@
 
 #include "commserver.h"
 #include "instance.h"
-#include "inspectorframe.h"
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/modemanager.h>
@@ -169,9 +168,6 @@ void CommServer::slotConnError(QLocalSocket::LocalSocketError error)
 
 bool CommServer::processIncomingData(quint32 code1, quint32 code2, QByteArray * data)
 {
-    //InspectorFrame * window = Instance::instance()->window();
-    // ### FIXME, do something about this
-
     // 1. Service
     if (code1 == 0x01) {
         ///window->serviceText->appendPlainText(QString::number(code2) + " " + QString(*data));

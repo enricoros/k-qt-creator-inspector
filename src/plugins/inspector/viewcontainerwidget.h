@@ -27,59 +27,36 @@
 **
 **************************************************************************/
 
-#ifndef INSPECTORPLUGIN_H
-#define INSPECTORPLUGIN_H
+#ifndef VIEWCONTAINERWIDGET_H
+#define VIEWCONTAINERWIDGET_H
 
-#include <extensionsystem/iplugin.h>
-
-class QAction;
+#include <QWidget>
+#include <QPixmap>
 
 namespace Inspector {
-
-class Instance;
-
-/// main accessor when using this plugin from the outside. we suppose a single debuggee for now.
-Q_DECL_EXPORT Instance * defaultInstance();
-
 namespace Internal {
 
-class Window;
-
-// constants
-const char * const MODE_INSPECTOR   = "Probe";
-const int          P_MODE_INSPECTOR = 5;
-
-/**
-    \brief QtCreator plugin that exposes a framework for runtime probing
-*/
-class InspectorPlugin : public ExtensionSystem::IPlugin
+class ViewContainerWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    InspectorPlugin();
-    ~InspectorPlugin();
+    ViewContainerWidget(QWidget * parent = 0);
 
-    // single debuggee assumption lies here: we use a single instance from the outside
-    static Inspector::Instance * defaultInstance();
+    void setWidget(QWidget * widget);
+    //void setDisableWidget(bool disabled);
 
-    // ::ExtensionSystem::IPlugin
-    bool initialize(const QStringList &arguments, QString *error_message);
-    void extensionsInitialized();
-
-private slots:
-    void slotSetPluginEnabled(bool enabled);
-    void slotDisplayInstance();
+protected:
+    void paintEvent(QPaintEvent * event);
 
 private:
-    void parseArguments(const QStringList & arguments);
-    static InspectorPlugin *s_pluginInstance;
-    QList<Instance *> m_instances;
-    Internal::Window *m_window;
-    bool m_pluginEnabled;
+    QPixmap m_watermarkPixmap;
+    QWidget * m_widget;
+    bool m_disabled;
+    //QLabel * m_disabledLabel;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // INSPECTORPLUGIN_H
+#endif // VIEWCONTAINERWIDGET_H

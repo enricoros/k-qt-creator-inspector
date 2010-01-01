@@ -10,7 +10,6 @@ HEADERS += \
     abstractview.h \
     combotreewidget.h \
     commserver.h \
-    inspectorframe.h \
     instance.h \
     inspectorplugin.h \
     notificationwidget.h \
@@ -19,6 +18,8 @@ HEADERS += \
     taskbarwidget.h \
     tasksscene.h \
     taskswidget.h \
+    viewcontainerwidget.h \
+    window.h \
     module-info/infomodule.h \
     module-info/infoview.h \
     module-painting/paintmodule.h \
@@ -29,7 +30,6 @@ SOURCES += \
     abstractview.cpp \
     combotreewidget.cpp \
     commserver.cpp \
-    inspectorframe.cpp \
     instance.cpp \
     inspectorplugin.cpp \
     notificationwidget.cpp \
@@ -38,6 +38,8 @@ SOURCES += \
     taskbarwidget.cpp \
     tasksscene.cpp \
     taskswidget.cpp \
+    viewcontainerwidget.cpp \
+    window.cpp \
     module-info/infomodule.cpp \
     module-info/infoview.cpp \
     module-painting/paintmodule.cpp \

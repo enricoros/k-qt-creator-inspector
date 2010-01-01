@@ -27,8 +27,8 @@
 **
 **************************************************************************/
 
-#ifndef INSPECTORFRAME_H
-#define INSPECTORFRAME_H
+#ifndef WINDOW_H
+#define WINDOW_H
 
 #include <QWidget>
 #include "instance.h"
@@ -45,12 +45,12 @@ class ComboTreeWidget;
 class TaskbarWidget;
 class ViewContainerWidget;
 
-class InspectorFrame : public QWidget
+class Window : public QWidget
 {
     Q_OBJECT
 
 public:
-    InspectorFrame(QWidget *parent = 0);
+    Window(QWidget *parent = 0);
 
     /// sets the Instance handled by this widget
     void setInstance(Inspector::Instance *instance);
@@ -69,4 +69,4 @@ private:
 } // namespace Internal
 } // namespace Inspector
 
-#endif // INSPECTORFRAME_H
+#endif // WINDOW_H

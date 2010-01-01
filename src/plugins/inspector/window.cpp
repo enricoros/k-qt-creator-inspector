@@ -27,101 +27,20 @@
 **
 **************************************************************************/
 
-#include "inspectorframe.h"
+#include "window.h"
 #include "abstractview.h"
 #include "combotreewidget.h"
 #include "instance.h"
 #include "modulecontroller.h"
 #include "taskbarwidget.h"
+#include "viewcontainerwidget.h"
 #include "module-info/infomodule.h"
-#include <QGradient>
-#include <QPainter>
-#include <QPaintEvent>
-#include <QPixmap>
-#include <QPropertyAnimation>
-#include <QSvgRenderer>
 #include <QVBoxLayout>
 
 namespace Inspector {
 namespace Internal {
 
-class ViewContainerWidget : public QWidget
-{
-    public:
-        ViewContainerWidget(QWidget * parent = 0)
-          : QWidget(parent)
-          , m_widget(0)
-          , m_disabled(false)
-          //, m_disabledLabel(0)
-        {
-            // precache watermark pixmap
-            QSvgRenderer wmRender(QString(":/inspector/images/inspector-watermark.svg"));
-            if (wmRender.isValid()) {
-                m_watermarkPixmap = QPixmap(wmRender.defaultSize());
-                m_watermarkPixmap.fill(Qt::transparent);
-                QPainter wmPainter(&m_watermarkPixmap);
-                wmRender.render(&wmPainter);
-            }
-
-            // create the disabled warning lable
-            //m_disabledLabel = new QLabel(tr("This View is disabled. Probably the View is not available in the current state."), this);
-            //m_disabledLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-            //m_disabledLabel->hide();
-
-            // set a vertical layout
-            QVBoxLayout * lay = new QVBoxLayout(this);
-            //lay->addWidget(m_disabledLabel);
-            setLayout(lay);
-        }
-
-        /*void setDisableWidget(bool disabled)
-        {
-            if (disabled != m_disabled) {
-                m_disabled = disabled;
-                m_disabledLabel->setVisible(disabled);
-                if (m_widget)
-                    m_widget->setEnabled(!m_disabled);
-            }
-        }*/
-
-        void setWidget(QWidget * widget)
-        {
-            delete m_widget;
-            m_widget = widget;
-            if (widget) {
-                widget->setParent(this);
-                layout()->addWidget(widget);
-                //if (m_disabled)
-                //    widget->setEnabled(false);
-            }
-        }
-
-    protected:
-        void paintEvent(QPaintEvent * event)
-        {
-            // draw a light gradient as the background
-            QPainter p(this);
-            QLinearGradient bg(0, 0, 0, 1);
-            bg.setCoordinateMode(QGradient::StretchToDeviceMode);
-            bg.setColorAt(0.0, QColor(247, 247, 247));
-            bg.setColorAt(1.0, QColor(215, 215, 215));
-            p.setCompositionMode(QPainter::CompositionMode_Source);
-            p.fillRect(event->rect(), bg);
-            p.setCompositionMode(QPainter::CompositionMode_SourceOver);
-
-            // draw the watermark
-            if (!m_watermarkPixmap.isNull())
-                p.drawPixmap(isLeftToRight() ? (width() - m_watermarkPixmap.width()) : 0, 0, m_watermarkPixmap);
-        }
-
-    private:
-        QPixmap m_watermarkPixmap;
-        QWidget * m_widget;
-        bool m_disabled;
-        //QLabel * m_disabledLabel;
-};
-
-InspectorFrame::InspectorFrame(QWidget *parent)
+Window::Window(QWidget *parent)
   : QWidget(parent)
   , m_extInstance(0)
   , m_menuWidget(0)
@@ -143,7 +62,7 @@ InspectorFrame::InspectorFrame(QWidget *parent)
     layout->addWidget(m_taskbarWidget);
 }
 
-void InspectorFrame::setInstance(Inspector::Instance *instance)
+void Window::setInstance(Inspector::Instance *instance)
 {
     // remove references to any previous instance
     if (m_extInstance) {
@@ -161,7 +80,7 @@ void InspectorFrame::setInstance(Inspector::Instance *instance)
         ModuleMenuEntries entries = m_extInstance->moduleController()->menuEntries();
         foreach (const ModuleMenuEntry &entry, entries) {
             if ((entry.moduleUid & 0xFF000000) || (entry.viewId & 0xFFFFFF00)) {
-                qWarning("InspectorFrame::setInstance: moduleUid (%d) or viewId (%d) not valid", entry.moduleUid, entry.viewId);
+                qWarning("Window::setInstance: moduleUid (%d) or viewId (%d) not valid", entry.moduleUid, entry.viewId);
                 continue;
             }
             quint32 compoId = (entry.moduleUid << 8) + entry.viewId;
@@ -176,12 +95,12 @@ void InspectorFrame::setInstance(Inspector::Instance *instance)
     }
 }
 
-void InspectorFrame::slotMenuChanged(const QStringList &/*path*/, const QVariant &data)
+void Window::slotMenuChanged(const QStringList &/*path*/, const QVariant &data)
 {
     // sanity check on the menu code
     quint32 compoId = data.toInt();
     if (!compoId) {
-        qWarning("InspectorFrame::slotMenuChanged: invalid module/view ids, skipping view creation");
+        qWarning("Window::slotMenuChanged: invalid module/view ids, skipping view creation");
         return;
     }
 
@@ -191,10 +110,10 @@ void InspectorFrame::slotMenuChanged(const QStringList &/*path*/, const QVariant
     showView(moduleUid, viewId);
 }
 
-void InspectorFrame::showView(int moduleUid, int viewId)
+void Window::showView(int moduleUid, int viewId)
 {
     if (!m_extInstance) {
-        qWarning("InspectorFrame::showView: requested view %d:%d with a null instance", moduleUid, viewId);
+        qWarning("Window::showView: requested view %d:%d with a null instance", moduleUid, viewId);
         m_viewWidget->setWidget(new QWidget);
         return;
     }
@@ -202,7 +121,7 @@ void InspectorFrame::showView(int moduleUid, int viewId)
     // ask for view creation
     AbstractView * view = m_extInstance->moduleController()->createView(moduleUid, viewId);
     if (!view) {
-        qWarning("InspectorFrame::showView: can't create view %d for module %d", viewId, moduleUid);
+        qWarning("Window::showView: can't create view %d for module %d", viewId, moduleUid);
         m_viewWidget->setWidget(new QWidget);
         return;
     }
