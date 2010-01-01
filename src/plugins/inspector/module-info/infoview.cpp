@@ -44,9 +44,10 @@ InfoView::InfoView(AbstractModule *parentModule)
     debugToolBox->hide();
 
     Inspector::Instance *instance = parentInstance();
-    Inspector::CommServer *server = instance->commServer();
+    CommServer *server = instance->commServer();
 
-    setFieldState(enaButton, server->m_sEnabled ? 1 : -1);
+    qWarning("restore infoview");
+    /*setFieldState(enaButton, server->m_sEnabled ? 1 : -1);
     modLabel->setText(instance->moduleController()->moduleNames().join(", "));
 
     bool debugging = instance->debugging();
@@ -57,6 +58,7 @@ InfoView::InfoView(AbstractModule *parentModule)
     setFieldState(workLabel, (debugging && server->m_sEnabled && server->m_sInjected && server->m_sConnected) ? 1 : -1);
     setFieldState(paintBox, instance->debugPaint());
     connect(paintBox, SIGNAL(toggled(bool)), instance, SLOT(setDebugPaint(bool)));
+    */
 }
 
 void InfoView::setFieldState(QWidget *field, int state)

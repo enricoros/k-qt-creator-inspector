@@ -38,34 +38,20 @@ class QLocalServer;
 
 namespace Inspector {
 
+class InstanceModel;
+
 namespace Internal {
 
-class InfoView;
-class Instance;
-
-}
-
-class Q_DECL_EXPORT CommServer : public QObject
+class CommServer : public QObject
 {
     Q_OBJECT
 
 public:
-    CommServer(QObject * parent = 0);
+    CommServer(InstanceModel *, QObject * parent = 0);
     ~CommServer();
-
-    QString serverName() const;
-    bool serverListening() const; //CHANGE ME
-    bool clientConnected() const;
-
-    bool callProbeFunction(const QString & name, QVariantList args = QVariantList());
-
-    // externally set information
-    void setHelpersPresent(bool on);
-    void setHelpersInjected(bool on);
 
 signals:
     void newWarnings(int count);
-    void debuggerCallFunction(const QString & name, QVariantList args);
 
 private slots:
     void slotIncomingConnection();
@@ -76,18 +62,15 @@ private slots:
 private:
     bool processIncomingData(quint32 code1, quint32 code2, QByteArray * data);
 
-    friend class Instance;
-    friend class Internal::InfoView;
+    InstanceModel *m_model;
+
     QLocalServer *m_localServer;
     QLocalSocket *m_socket;
     QByteArray m_incomingData;
 
-    bool m_sEnabled;
-    bool m_sHelpers;
-    bool m_sInjected;
-    bool m_sConnected;
 };
 
+} // namespace Internal
 } // namespace Inspector
 
 #endif

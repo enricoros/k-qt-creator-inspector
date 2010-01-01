@@ -86,7 +86,7 @@ void PaintTemperatureView::on_runButton_clicked()
     // Build the args list: passes << headDrops << tailDrops << innerPasses << chunkWidth << chunkHeight << consoleDebug
     QVariantList args;
     args << passesBox->value() << lowBox->value() << highBox->value() << innerBox->value() << widthBox->value() << heightBox->value() << debugBox->isChecked();
-    parentModule()->parentInstance()->commServer()->callProbeFunction("qWindowTemperature", args);
+    parentModule()->parentInstance()->model()->callProbeFunction("qWindowTemperature", args);
 }
 
 void PaintTemperatureView::slotCheckPasses()

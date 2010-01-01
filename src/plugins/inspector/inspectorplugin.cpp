@@ -96,7 +96,7 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     // create a single Instance - SINGLE debuggee is supposed here
     Inspector::Instance *instance = new Inspector::Instance;
     m_instances.append(instance);
-    instance->setEnabled(m_pluginEnabled);
+    instance->model()->setInstanceEnabled(m_pluginEnabled);
     connect(instance, SIGNAL(requestDisplay()), this, SLOT(slotDisplayInstance()));
 
     // UI
@@ -158,7 +158,7 @@ void InspectorPlugin::slotSetPluginEnabled(bool enabled)
     // enable/disable all Instances
     m_pluginEnabled = enabled;
     foreach (Instance * instance, m_instances)
-        instance->setEnabled(enabled);
+        instance->model()->setInstanceEnabled(enabled);
 }
 
 void InspectorPlugin::slotDisplayInstance()

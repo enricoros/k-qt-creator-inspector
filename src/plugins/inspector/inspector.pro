@@ -11,6 +11,7 @@ HEADERS += \
     combotreewidget.h \
     commserver.h \
     instance.h \
+    instancemodel.h \
     inspectorplugin.h \
     notificationwidget.h \
     plotgrid.h \
@@ -31,6 +32,7 @@ SOURCES += \
     combotreewidget.cpp \
     commserver.cpp \
     instance.cpp \
+    instancemodel.cpp \
     inspectorplugin.cpp \
     notificationwidget.cpp \
     plotgrid.cpp \

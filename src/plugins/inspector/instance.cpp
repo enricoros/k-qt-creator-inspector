@@ -32,22 +32,22 @@
 #include "inspectorplugin.h"
 #include "notificationwidget.h"
 #include "modulecontroller.h"
-#include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/modemanager.h>
 
-#include "../../../share/qtcreator/gdbmacros/perfunction.h"
-
 using namespace Inspector;
+
+#include "instancemodel.h"
 
 Instance::Instance(QObject *parent)
   : QObject(parent)
+  , m_model(new InstanceModel)
   , m_enabled(false)
   , m_debugPaintFlag(false)
   , m_sDebugging(false)
 {
     // create the CommServer
-    m_commServer = new CommServer;
+    m_commServer = new Internal::CommServer(m_model);
     connect(m_commServer, SIGNAL(newWarnings(int)), this, SLOT(slotNewWarnings(int)));
 
     // create the NotificationWidget
@@ -66,9 +66,15 @@ Instance::~Instance()
     delete m_moduleController;
     delete m_notification;
     delete m_commServer;
+    delete m_model;
 }
 
-CommServer *Instance::commServer() const
+InstanceModel *Instance::model() const
+{
+    return m_model;
+}
+
+Internal::CommServer *Instance::commServer() const
 {
     return m_commServer;
 }
@@ -76,45 +82,6 @@ CommServer *Instance::commServer() const
 Internal::ModuleController *Instance::moduleController() const
 {
     return m_moduleController;
-}
-
-int Instance::probeActivationFlags() const
-{
-    // flags are in perfunction.h
-    int flags = Inspector::Internal::AF_None;
-    if (m_debugPaintFlag)
-        flags |= Inspector::Internal::AF_PaintDebug;
-    return flags;
-}
-
-void Instance::setDebugging(bool on)
-{
-    m_sDebugging = on;
-}
-
-bool Instance::debugging() const
-{
-    return m_sDebugging;
-}
-
-void Instance::setEnabled(bool enabled)
-{
-    m_enabled = enabled;
-}
-
-bool Instance::enabled() const
-{
-    return m_enabled;
-}
-
-bool Instance::debugPaint() const
-{
-    return m_debugPaintFlag;
-}
-
-void Instance::setDebugPaint(bool enabled)
-{
-    m_debugPaintFlag = enabled;
 }
 
 void Instance::slotNotificationTriggered()

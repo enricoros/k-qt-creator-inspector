@@ -27,56 +27,60 @@
 **
 **************************************************************************/
 
-#ifndef INSPECTORINSTANCE_H
-#define INSPECTORINSTANCE_H
+#ifndef INSTANCEMODEL_H
+#define INSTANCEMODEL_H
 
-#include <QObject>
-#include <QList>
+#include <QStandardItemModel>
 #include <QVariantList>
-#include "instancemodel.h"
+class QTableView;
 
 namespace Inspector {
 
-
 namespace Internal {
-
-class CommServer;
-class InspectorPlugin;
-class ModuleController;
-class NotificationWidget;
-
 }
 
-class Q_DECL_EXPORT Instance : public QObject
+class Q_DECL_EXPORT InstanceModel : public QStandardItemModel
 {
     Q_OBJECT
 
 public:
-    Instance(QObject *parent = 0);
-    ~Instance();
+    InstanceModel(QObject *parent = 0);
+    ~InstanceModel();
 
-    InstanceModel *model() const;
+    enum { InstanceStatus_Row = 1, ProbeStatus_Row = 2, CommServer_Row = 3 };
 
-    Internal::CommServer *commServer() const;
-    Internal::ModuleController *moduleController() const;
+    // low-level value access
+    void setValue(int row, int column, const QVariant &value, int role = Qt::DisplayRole);
+    QVariant value(int row, int column = 0, int role = Qt::DisplayRole) const;
+
+    // instance status
+    void setInstanceEnabled(bool);
+    bool instanceEnabled() const;
+
+    // probe status
+    void setDebugEnabled(bool);
+    void setDebugStopped(bool);
+    void setProbePresent(bool);
+    void setProbeInjected(bool);
+    void setProbeActive(bool);
+
+    QString localServerName() const;
+    int probeActivationFlags() const; //TEMP relocate
+
+    // temp model-function? maybe better in CommServer? ###
+    bool callProbeFunction(const QString & name, QVariantList args = QVariantList());
+
+public slots:
+    void setDebugPaint(bool enabled);
 
 signals:
-    void requestDisplay();
-
-private slots:
-    void slotNotificationTriggered();
-    void slotNewWarnings(int count);
+    void debuggerCallFunction(const QString & name, QVariantList args);
 
 private:
-    InstanceModel *m_model;
-    Internal::CommServer *m_commServer;
-    Internal::NotificationWidget *m_notification;
-    Internal::ModuleController *m_moduleController;
-    bool m_enabled;
-    bool m_debugPaintFlag;
-    bool m_sDebugging;
+    void openDebugWidget();
+    QTableView *m_debugView;
 };
 
 } // namespace Inspector
 
-#endif // INSPECTORINSTANCE_H
+#endif // INSTANCEMODEL_H
