@@ -42,7 +42,6 @@ namespace Internal {
 
 class NotificationWidget;
 class InspectorPlugin;
-class InspectorFrame;
 class ModuleController;
 
 }

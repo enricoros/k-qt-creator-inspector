@@ -30,7 +30,7 @@
 #include "inspectorplugin.h"
 #include "instance.h"
 #include "notificationwidget.h"
-#include "inspectorframe.h"
+#include "window.h"
 #include "modulecontroller.h"
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/basemode.h>
@@ -102,7 +102,7 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     // UI
 
     // create the Window
-    m_window = new InspectorFrame;
+    m_window = new Window;
     m_window->setInstance(instance);
 
     // get core objects

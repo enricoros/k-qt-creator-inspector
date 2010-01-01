@@ -28,7 +28,6 @@
 **************************************************************************/
 
 #include "notificationwidget.h"
-#include "inspectorframe.h"
 #include <utils/stylehelper.h>
 #include <QPainter>
 #include <QMouseEvent>

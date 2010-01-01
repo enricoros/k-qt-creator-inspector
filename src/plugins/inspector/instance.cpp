@@ -29,7 +29,6 @@
 
 #include "instance.h"
 #include "commserver.h"
-#include "inspectorframe.h"
 #include "inspectorplugin.h"
 #include "notificationwidget.h"
 #include "modulecontroller.h"
