@@ -72,6 +72,10 @@
 #include <texteditor/fontsettings.h>
 #include <texteditor/itexteditor.h>
 
+#include <inspector/instance.h>
+#include <inspector/instancemodel.h>
+#include <inspector/inspectorplugin.h>
+
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
 #include <QtCore/QFileInfo>

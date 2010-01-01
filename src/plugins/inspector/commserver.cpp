@@ -29,6 +29,7 @@
 
 #include "commserver.h"
 #include "instance.h"
+#include "instancemodel.h"
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/modemanager.h>
@@ -46,61 +47,44 @@
 #include "../../../share/qtcreator/gdbmacros/perfunction.h"
 
 using namespace Inspector;
+using namespace Inspector::Internal;
 
-CommServer::CommServer(QObject * parent)
+/* == InstanceModel Usage ==
+Row 3: Communication Server
+  0: server enabled
+  1: server local name
+  2: server listening
+  3: probe connected
+  4: probe info
+*/
+
+CommServer::CommServer(InstanceModel *model, QObject *parent)
     : QObject(parent)
+    , m_model(model)
     , m_socket(0)
-    , m_sEnabled(false)
-    , m_sHelpers(false)
-    , m_sInjected(false)
-    , m_sConnected(false)
 {
+    // init model data
+    m_model->setValue(InstanceModel::CommServer_Row, 0, false);
+    m_model->setValue(InstanceModel::CommServer_Row, 1, QString());
+    m_model->setValue(InstanceModel::CommServer_Row, 2, false);
+    m_model->setValue(InstanceModel::CommServer_Row, 3, false);
+    m_model->setValue(InstanceModel::CommServer_Row, 4, QString());
+
+    // create local server and listen for a connection
     m_localServer = new QLocalServer;
     int uniqueCode = QDateTime::currentDateTime().toTime_t() + QTime::currentTime().msec() + (qrand() % 1000);
-    if (!m_localServer->listen(QString("creator_insp_%1").arg(uniqueCode))) {
-        // TODO: make this a state, disable the plugin, remove the messagebox
-        QMessageBox::information(0, tr("Inspector-Probe Connection"), tr("The Inspector server can't be started\nerror: %1").arg(m_localServer->errorString()));
+    bool canListen = m_localServer->listen(QString("creator_insp_%1").arg(uniqueCode));
+    m_model->setValue(InstanceModel::CommServer_Row, 1, m_localServer->serverName());
+    m_model->setValue(InstanceModel::CommServer_Row, 2, canListen);
+    if (!canListen)
         return;
-    }
     connect(m_localServer, SIGNAL(newConnection()), this, SLOT(slotIncomingConnection()));
-    m_sEnabled = true;
+    m_model->setValue(InstanceModel::CommServer_Row, 0, true);
 }
 
 CommServer::~CommServer()
 {
     delete m_localServer;
-}
-
-QString CommServer::serverName() const
-{
-    return m_localServer->serverName();
-}
-
-bool CommServer::serverListening() const
-{
-    return m_sEnabled;
-}
-
-bool CommServer::clientConnected() const
-{
-    return m_sConnected;
-}
-
-bool CommServer::callProbeFunction(const QString &name, QVariantList args)
-{
-    // this is the ONE AND ONLY link to control the debugger, for now
-    emit debuggerCallFunction(name, args);
-    return true;
-}
-
-void CommServer::setHelpersPresent(bool on)
-{
-    m_sHelpers = on;
-}
-
-void CommServer::setHelpersInjected(bool on)
-{
-    m_sInjected = on;
 }
 
 void CommServer::slotIncomingConnection()
@@ -114,7 +98,7 @@ void CommServer::slotIncomingConnection()
 
         // set the connection
         m_socket = nextConnection;
-        m_sConnected = true;
+        m_model->setValue(InstanceModel::CommServer_Row, 3, true);
         connect(m_socket, SIGNAL(readyRead()), this, SLOT(slotReadConnection()));
         connect(m_socket, SIGNAL(disconnected()), this, SLOT(slotDisconnected()));
         connect(m_socket, SIGNAL(error(QLocalSocket::LocalSocketError)), this, SLOT(slotConnError(QLocalSocket::LocalSocketError)));
@@ -158,11 +142,12 @@ void CommServer::slotDisconnected()
 {
     m_socket->deleteLater();
     m_socket = 0;
-    m_sConnected = false;
+    m_model->setValue(InstanceModel::CommServer_Row, 3, false);
 }
 
 void CommServer::slotConnError(QLocalSocket::LocalSocketError error)
 {
+    m_model->setValue(InstanceModel::CommServer_Row, 3, false);
     qWarning() << "CommServer::slotConnError: error" << error;
 }
 

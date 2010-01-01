@@ -66,8 +66,8 @@
 
 #include <coreplugin/manhattanstyle.h>
 
-#include <inspector/commserver.h>
 #include <inspector/instance.h>
+#include <inspector/instancemodel.h>
 #include <inspector/inspectorplugin.h>
 
 #include <projectexplorer/projectexplorer.h>
@@ -944,8 +944,8 @@ bool DebuggerPlugin::initialize(const QStringList &arguments, QString *errorMess
         this, SLOT(editorOpened(Core::IEditor*)));
 
     // Inspector connection (temp HACK to issue debugger commands)
-    Inspector::CommServer * commServer = Inspector::defaultInstance()->commServer();
-    connect(commServer, SIGNAL(debuggerCallFunction(QString,QVariantList)),
+    Inspector::InstanceModel *instanceModel = Inspector::defaultInstance()->model();
+    connect(instanceModel, SIGNAL(debuggerCallFunction(QString,QVariantList)),
             m_manager, SLOT(callFunction(QString,QVariantList)));
 
     // Application interaction
@@ -1250,7 +1250,7 @@ void DebuggerPlugin::handleStateChanged(int state)
     m_detachAction->setEnabled(detachable);
 
     // notify Inspector Plugin about the debuggee state
-    Inspector::defaultInstance()->setDebugging(started);
+    Inspector::defaultInstance()->model()->setDebugEnabled(started);
 }
 
 void DebuggerPlugin::writeSettings() const

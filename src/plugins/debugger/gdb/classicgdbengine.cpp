@@ -37,8 +37,8 @@
 #include "watchhandler.h"
 
 #include <extensionsystem/pluginmanager.h>
-#include <inspector/commserver.h>
 #include <inspector/instance.h>
+#include <inspector/instancemodel.h>
 #include <inspector/inspectorplugin.h>
 #include <utils/qtcassert.h>
 
@@ -564,30 +564,31 @@ void GdbEngine::tryQueryDebuggingHelpersClassic()
 void GdbEngine::tryActivateInspectorHelpersClassic()
 {
     // get the listening socket name
-    Inspector::Instance * inspInstance = Inspector::defaultInstance();
-    Inspector::CommServer * commServer = inspInstance->commServer();
-    if (!inspInstance->enabled()) {
-        qWarning("GdbEngine::tryActivateInspectorHelpers: performance helpers not enabled, skipping.");
-        commServer->setHelpersPresent(false);
-        commServer->setHelpersInjected(false);
+    Inspector::Instance *inspInstance = Inspector::defaultInstance();
+    Inspector::InstanceModel *instanceModel = inspInstance->model();
+    if (!instanceModel->instanceEnabled()) {
+        qWarning("GdbEngine::tryActivateInspectorHelpersClassic: performance helpers not enabled, skipping.");
+        instanceModel->setProbeInjected(false);
+        instanceModel->setProbeActive(false);
         return;
     }
-    QString serverName = commServer->serverName();
-    int activationFlags = inspInstance->probeActivationFlags();
+    QString serverName = instanceModel->localServerName();
+    int activationFlags = instanceModel->probeActivationFlags();
 
     // disable the inspector plugin if no server name
     if (serverName.isNull()) {
-         commServer->setHelpersPresent(false);
-         commServer->setHelpersInjected(false);
-         return;
+        qWarning("GdbEngine::tryActivateInspectorHelpersClassic: server is not listening, skipping probe injection");
+        instanceModel->setProbeInjected(false);
+        instanceModel->setProbeActive(false);
+        return;
     }
 
     // TODO: use entry point checks + GUI checks
     //postCommand(_("p qPerfActivate"), CB(handleDebuggingHelperInspector));
 
     callFunction(_("qPerfActivate"), QVariantList() << serverName << activationFlags);
-    commServer->setHelpersPresent(true); // FIXME
-    commServer->setHelpersInjected(true); // check this too
+    instanceModel->setProbeInjected(true);  // FIXME
+    instanceModel->setProbeActive(true);    // check this too
 }
 
 void GdbEngine::recheckDebuggingHelperAvailabilityClassic()
