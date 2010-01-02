@@ -35,7 +35,7 @@
 namespace Inspector {
 namespace Internal {
 
-class PaintModel;
+class PaintingModel;
 
 class PaintingModule : public AbstractModule
 {
@@ -45,7 +45,7 @@ public:
     PaintingModule(QObject *parent = 0);
     ~PaintingModule();
 
-    PaintModel *model() const;
+    PaintingModel *model() const;
 
     // ::AbstractModule
     enum { Uid = 0x02 };
@@ -59,7 +59,7 @@ public:
     void slotUnlock();
 
 private:
-    PaintModel *m_model;
+    PaintingModel *m_model;
     QList<AbstractView *> m_views;
 
 private slots:

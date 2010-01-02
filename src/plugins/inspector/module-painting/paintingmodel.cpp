@@ -35,16 +35,88 @@ using namespace Inspector::Internal;
 
 /* == PaintingModel Usage ==
 Row 'Results_Row':
-  0: test results table parent. each row:
-    0: date and time
-    1: test options
-    2: pixmap
+  0: results count          int
+  1: results                LIST
+  2: saved                  bool
 */
+
+TemperatureItem::TemperatureItem(const QDateTime &dt, qreal duration, const QString &desc, const QString &options, const QPixmap &image)
+  : QStandardItem(desc)
+  , m_dateTime(dt)
+  , m_duration(duration)
+  , m_description(desc)
+  , m_options(options)
+  , m_pixmap(image)
+{
+    m_previewPixmap = m_pixmap.scaled(QSize(previewWidth, previewHeight), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    setEditable(false);
+}
+
+QDateTime TemperatureItem::date() const
+{
+    return m_dateTime;
+}
+
+qreal TemperatureItem::duration() const
+{
+    return m_duration;
+}
+
+QString TemperatureItem::description() const
+{
+    return m_description;
+}
+
+QString TemperatureItem::options() const
+{
+    return m_options;
+}
+
+QPixmap TemperatureItem::image() const
+{
+    return m_pixmap;
+}
+
+QPixmap TemperatureItem::previewImage() const
+{
+    return m_previewPixmap;
+}
+
+
 
 PaintingModel::PaintingModel(QObject *parent)
   : AbstractEasyModel(parent)
 {
     // init model
-    setValue(Results_Row, 0, "results");
+    setItemValue(Results_Row, 0, 0);
+    setItemValue(Results_Row, 1, "results");
+    setItemValue(Results_Row, 2, false);
+
+    // TEST
+    addResult(QDateTime::currentDateTime(), 1.2000, "desc", "options", QPixmap(":/inspector/images/inspector-icon-32.png"));
+    addResult(QDateTime::currentDateTime(), 123.456, "desc2", "opt ions tre", QPixmap(":/inspector/images/inspector-icon-32.png"));
     openDebugWidget();
+}
+
+void PaintingModel::addResult(const QDateTime &date, qreal duration, const QString &description, const QString &options, const QPixmap &image)
+{
+    // add item
+    TemperatureItem *resultItem = new TemperatureItem(date, duration, description, options, image);
+    item(Results_Row, 1)->appendRow(resultItem);
+
+    // refresh counter
+    setItemValue(Results_Row, 0, item(Results_Row, 1)->rowCount());
+
+    // mark as not saved
+    setItemValue(Results_Row, 2, false);
+}
+
+QModelIndex PaintingModel::resultsTableIndex() const
+{
+    return index(Results_Row, 1);
+}
+
+const TemperatureItem *PaintingModel::result(int row) const
+{
+    return dynamic_cast<TemperatureItem *>(item(Results_Row, 1)->child(row));
 }

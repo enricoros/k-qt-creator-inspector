@@ -50,7 +50,7 @@ AbstractEasyModel::~AbstractEasyModel()
     delete m_debugView;
 }
 
-void AbstractEasyModel::setValue(int row, int column, const QVariant &value, int role)
+void AbstractEasyModel::setItemValue(int row, int column, const QVariant &value, int role)
 {
     QStandardItem *item = new QStandardItem;
     item->setEditable(true);
@@ -58,7 +58,7 @@ void AbstractEasyModel::setValue(int row, int column, const QVariant &value, int
     setItem(row, column, item);
 }
 
-QVariant AbstractEasyModel::value(int row, int column, int role) const
+QVariant AbstractEasyModel::itemValue(int row, int column, int role) const
 {
     QStandardItem *it = item(row, column);
     return it ? it->data(role) : QVariant();
@@ -67,7 +67,11 @@ QVariant AbstractEasyModel::value(int row, int column, int role) const
 void AbstractEasyModel::openDebugWidget()
 {
     if (!m_debugView) {
+#if 1
+        m_debugView = new QTreeView;
+#else
         m_debugView = new QTableView;
+#endif
         m_debugView->setModel(this);
     }
     m_debugView->show();

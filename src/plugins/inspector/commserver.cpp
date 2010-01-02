@@ -55,24 +55,24 @@ CommServer::CommServer(InstanceModel *model, QObject *parent)
     , m_socket(0)
 {
     // init model data
-    m_model->setValue(InstanceModel::CommServer_Row, 0, false);
-    m_model->setValue(InstanceModel::CommServer_Row, 1, QString());
-    m_model->setValue(InstanceModel::CommServer_Row, 2, false);
-    m_model->setValue(InstanceModel::CommServer_Row, 3, false);
-    m_model->setValue(InstanceModel::CommServer_Row, 4, QString());
-    m_model->setValue(InstanceModel::CommServer_Row, 6, "messages");
-    m_model->setValue(InstanceModel::CommServer_Row, 7, "errors");
+    m_model->setItemValue(InstanceModel::CommServer_Row, 0, false);
+    m_model->setItemValue(InstanceModel::CommServer_Row, 1, QString());
+    m_model->setItemValue(InstanceModel::CommServer_Row, 2, false);
+    m_model->setItemValue(InstanceModel::CommServer_Row, 3, false);
+    m_model->setItemValue(InstanceModel::CommServer_Row, 4, QString());
+    m_model->setItemValue(InstanceModel::CommServer_Row, 6, "messages");
+    m_model->setItemValue(InstanceModel::CommServer_Row, 7, "errors");
 
     // create local server and listen for a connection
     m_localServer = new QLocalServer;
     int uniqueCode = QDateTime::currentDateTime().toTime_t() + QTime::currentTime().msec() + (qrand() % 1000);
     bool canListen = m_localServer->listen(QString("creator_insp_%1").arg(uniqueCode));
-    m_model->setValue(InstanceModel::CommServer_Row, 1, m_localServer->serverName());
-    m_model->setValue(InstanceModel::CommServer_Row, 2, canListen);
+    m_model->setItemValue(InstanceModel::CommServer_Row, 1, m_localServer->serverName());
+    m_model->setItemValue(InstanceModel::CommServer_Row, 2, canListen);
     if (!canListen)
         return;
     connect(m_localServer, SIGNAL(newConnection()), this, SLOT(slotIncomingConnection()));
-    m_model->setValue(InstanceModel::CommServer_Row, 0, true);
+    m_model->setItemValue(InstanceModel::CommServer_Row, 0, true);
 }
 
 CommServer::~CommServer()
@@ -91,7 +91,7 @@ void CommServer::slotIncomingConnection()
 
         // set the connection
         m_socket = nextConnection;
-        m_model->setValue(InstanceModel::CommServer_Row, 3, true);
+        m_model->setItemValue(InstanceModel::CommServer_Row, 3, true);
         connect(m_socket, SIGNAL(readyRead()), this, SLOT(slotReadConnection()));
         connect(m_socket, SIGNAL(disconnected()), this, SLOT(slotDisconnected()));
         connect(m_socket, SIGNAL(error(QLocalSocket::LocalSocketError)), this, SLOT(slotConnError(QLocalSocket::LocalSocketError)));
@@ -135,12 +135,12 @@ void CommServer::slotDisconnected()
 {
     m_socket->deleteLater();
     m_socket = 0;
-    m_model->setValue(InstanceModel::CommServer_Row, 3, false);
+    m_model->setItemValue(InstanceModel::CommServer_Row, 3, false);
 }
 
 void CommServer::slotConnError(QLocalSocket::LocalSocketError error)
 {
-    m_model->setValue(InstanceModel::CommServer_Row, 3, false);
+    m_model->setItemValue(InstanceModel::CommServer_Row, 3, false);
 
     // Log Error
     addMessageToModel(7, tr("error %1: %2").arg(error).arg(m_localServer->errorString()));

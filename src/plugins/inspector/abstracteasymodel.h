@@ -46,8 +46,8 @@ public:
     ~AbstractEasyModel();
 
     // low-level value access
-    void setValue(int row, int column, const QVariant &value, int role = Qt::DisplayRole);
-    QVariant value(int row, int column = 0, int role = Qt::DisplayRole) const;
+    void setItemValue(int row, int column, const QVariant &value, int role = Qt::DisplayRole);
+    QVariant itemValue(int row, int column = 0, int role = Qt::DisplayRole) const;
 
 protected:
     void openDebugWidget();

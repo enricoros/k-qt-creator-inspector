@@ -31,9 +31,36 @@
 #define PAINTINGMODEL_H
 
 #include "abstracteasymodel.h"
+#include <QDateTime>
+#include <QPixmap>
+#include <QStandardItem>
 
 namespace Inspector {
 namespace Internal {
+
+class TemperatureItem : public QStandardItem
+{
+public:
+    TemperatureItem(const QDateTime &dt, qreal duration, const QString &desc, const QString &options, const QPixmap &image);
+
+    static const int previewWidth  = 80;
+    static const int previewHeight = 60;
+
+    QDateTime date() const;
+    qreal duration() const;
+    QString description() const;
+    QString options() const;
+    QPixmap image() const;
+    QPixmap previewImage() const;
+
+private:
+    QDateTime m_dateTime;
+    qreal m_duration;
+    QString m_description;
+    QString m_options;
+    QPixmap m_pixmap;
+    QPixmap m_previewPixmap;
+};
 
 class PaintingModel : public AbstractEasyModel
 {
@@ -42,8 +69,12 @@ class PaintingModel : public AbstractEasyModel
 public:
     PaintingModel(QObject *parent = 0);
 
-    enum { Results_Row = 1 };
+    void addResult(const QDateTime &, qreal duration, const QString &description, const QString &options, const QPixmap &image);
+    QModelIndex resultsTableIndex() const;
+    const TemperatureItem *result(int row) const;
 
+private:
+    enum { Results_Row = 0 };
 };
 
 } // namespace Internal

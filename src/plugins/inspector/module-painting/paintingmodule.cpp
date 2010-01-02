@@ -28,18 +28,26 @@
 **************************************************************************/
 
 #include "paintingmodule.h"
+#include "paintingmodel.h"
 #include "painttemperatureview.h"
 
 using namespace Inspector::Internal;
 
 PaintingModule::PaintingModule(QObject *parent)
   : AbstractModule(parent)
+  , m_model(new PaintingModel)
 {
 }
 
 PaintingModule::~PaintingModule()
 {
     qDeleteAll(m_views);
+    delete m_model;
+}
+
+PaintingModel *PaintingModule::model() const
+{
+    return m_model;
 }
 
 QString PaintingModule::name() const
