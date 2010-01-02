@@ -40,6 +40,8 @@ Row 'Results_Row':
   2: saved                  bool
 */
 
+#define Results_Row 0
+
 TemperatureItem::TemperatureItem(const QDateTime &dt, qreal duration, const QString &desc, const QString &options, const QPixmap &image)
   : QStandardItem(desc)
   , m_dateTime(dt)
@@ -92,17 +94,20 @@ PaintingModel::PaintingModel(QObject *parent)
     setItemValue(Results_Row, 1, "results");
     setItemValue(Results_Row, 2, false);
 
-    // TEST
-    addResult(QDateTime::currentDateTime(), 1.2000, "desc", "options", QPixmap(":/inspector/images/inspector-icon-32.png"));
-    addResult(QDateTime::currentDateTime(), 123.456, "desc2", "opt ions tre", QPixmap(":/inspector/images/inspector-icon-32.png"));
-    openDebugWidget();
+    // load data from settings
+    loadData();
+}
+
+PaintingModel::~PaintingModel()
+{
+    saveData();
 }
 
 void PaintingModel::addResult(const QDateTime &date, qreal duration, const QString &description, const QString &options, const QPixmap &image)
 {
     // add item
     TemperatureItem *resultItem = new TemperatureItem(date, duration, description, options, image);
-    item(Results_Row, 1)->appendRow(resultItem);
+    item(Results_Row, 1)->insertRow(0, resultItem);
 
     // refresh counter
     setItemValue(Results_Row, 0, item(Results_Row, 1)->rowCount());
@@ -119,4 +124,21 @@ QModelIndex PaintingModel::resultsTableIndex() const
 const TemperatureItem *PaintingModel::result(int row) const
 {
     return dynamic_cast<TemperatureItem *>(item(Results_Row, 1)->child(row));
+}
+
+void PaintingModel::loadData()
+{
+    // TODO...
+}
+
+void PaintingModel::saveData()
+{
+    // check if already saved
+    if (itemValue(Results_Row, 2).toBool())
+        return;
+
+    // TODO...
+
+    // mark as saved
+    setItemValue(Results_Row, 2, true);
 }

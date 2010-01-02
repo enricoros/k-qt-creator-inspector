@@ -43,15 +43,15 @@ class TemperatureItem : public QStandardItem
 public:
     TemperatureItem(const QDateTime &dt, qreal duration, const QString &desc, const QString &options, const QPixmap &image);
 
-    static const int previewWidth  = 80;
-    static const int previewHeight = 60;
-
     QDateTime date() const;
     qreal duration() const;
     QString description() const;
     QString options() const;
     QPixmap image() const;
     QPixmap previewImage() const;
+
+    static const int previewWidth  = 80;
+    static const int previewHeight = 60;
 
 private:
     QDateTime m_dateTime;
@@ -68,13 +68,15 @@ class PaintingModel : public AbstractEasyModel
 
 public:
     PaintingModel(QObject *parent = 0);
+    ~PaintingModel();
 
     void addResult(const QDateTime &, qreal duration, const QString &description, const QString &options, const QPixmap &image);
     QModelIndex resultsTableIndex() const;
     const TemperatureItem *result(int row) const;
 
 private:
-    enum { Results_Row = 0 };
+    void loadData();
+    void saveData();
 };
 
 } // namespace Internal

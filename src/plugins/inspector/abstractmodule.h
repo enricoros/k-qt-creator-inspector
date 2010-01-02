@@ -69,16 +69,16 @@ class AbstractModule : public QObject
     Q_OBJECT
 
 public:
-    AbstractModule(QObject *parent = 0);
+    AbstractModule(Inspector::Instance *, QObject *parent = 0);
     virtual ~AbstractModule();
 
     // describe the module
     virtual int uid() const = 0;
     virtual QString name() const = 0;
-    virtual ModuleMenuEntries menuEntries() const = 0;
+    virtual ModuleMenuEntries menuEntries() const;
     //virtual QList<int> cmdClasses() const = 0;
     //virtual * createCommSession(int cmdClass) = 0;
-    virtual AbstractView *createView(int viewId) = 0;
+    virtual AbstractView *createView(int viewId);
 
     // useful references
     Inspector::Instance *parentInstance() const;
@@ -103,7 +103,6 @@ private:
     void controlDeactivate();
     void controlRefuse();
     void controlWait();
-    Inspector::Instance *m_instance;
     struct AbstractModulePrivate *d;
 };
 

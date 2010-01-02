@@ -33,6 +33,7 @@
 #include "instance.h"
 #include "module-info/infomodule.h"
 #include "module-painting/paintingmodule.h"
+#include "module-warnings/warningsmodule.h"
 
 using namespace Inspector::Internal;
 
@@ -40,8 +41,9 @@ ModuleController::ModuleController(Inspector::Instance *instance)
   : QObject(instance)
   , m_instance(instance)
 {
-    addModule(new InfoModule);
-    addModule(new PaintingModule);
+    addModule(new InfoModule(m_instance));
+    addModule(new PaintingModule(m_instance));
+    addModule(new WarningsModule(m_instance));
 }
 
 ModuleController::~ModuleController()
@@ -58,8 +60,14 @@ void ModuleController::addModule(AbstractModule * module)
         qWarning("ModuleController::addModule: skipping null module");
         return;
     }
+    // check for duplicate Ids
+    foreach (AbstractModule *mod, m_modules) {
+        if (mod->uid() == module->uid()) {
+            qWarning("ModuleController::addModule: skipping module with duplicated Uid %d", module->uid());
+            return;
+        }
+    }
     // register the AbstractModule
-    module->m_instance = m_instance;
     connect(module, SIGNAL(requestActivation()), this, SLOT(slotModuleActivationRequested()));
     connect(module, SIGNAL(deactivated()), this, SLOT(slotModuleDeactivated()));
     connect(module, SIGNAL(destroyed()), this, SLOT(slotModuleDestroyed()));
@@ -74,7 +82,6 @@ void ModuleController::removeModule(AbstractModule * module)
         return;
     }
     // unregister the AbstractModule
-    module->m_instance = 0;
     disconnect(module, 0, this, 0);
     m_modules.removeAll(module);
     m_activeModules.removeAll(module);

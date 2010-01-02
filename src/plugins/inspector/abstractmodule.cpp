@@ -62,17 +62,20 @@ private:
 };
 
 struct Inspector::Internal::AbstractModulePrivate {
+    Inspector::Instance *instance;
     QStateMachine stateMachine;
 };
 
-AbstractModule::AbstractModule(QObject *parent)
+AbstractModule::AbstractModule(Inspector::Instance *instance, QObject *parent)
   : QObject(parent)
-  , m_instance(0)
   , d(new AbstractModulePrivate)
 {
-    // 1. state machine configuration
+    // 1. init d
+    d->instance = instance;
 
-    // 1.1 create states
+    // 2. state machine configuration
+
+    // 2.1 create states
     QState * sIdle = new QState;
     QState * sWait = new QState;
     connect(sWait, SIGNAL(entered()), this, SLOT(slotLock()));
@@ -82,7 +85,7 @@ AbstractModule::AbstractModule(QObject *parent)
     QState * sDeactivate = new QState;
     connect(sDeactivate, SIGNAL(entered()), this, SLOT(slotDeactivate()));
 
-    // 1.2 configure transitions
+    // 2.2 configure transitions
     sIdle->addTransition(new TestTransition(TestEvent::Wait, sWait));
     sIdle->addTransition(new TestTransition(TestEvent::Activate, sActive));
     sWait->addTransition(new TestTransition(TestEvent::Refuse, sIdle));
@@ -90,7 +93,7 @@ AbstractModule::AbstractModule(QObject *parent)
     sActive->addTransition(new TestTransition(TestEvent::Deactivate, sDeactivate));
     sDeactivate->addTransition(this, SIGNAL(deactivated()), sIdle);
 
-    // 1.3 add states to the machine
+    // 2.3 add states to the machine
     d->stateMachine.addState(sIdle);
     d->stateMachine.addState(sWait);
     d->stateMachine.addState(sActive);
@@ -103,9 +106,20 @@ AbstractModule::~AbstractModule()
     delete d;
 }
 
+ModuleMenuEntries AbstractModule::menuEntries() const
+{
+    return ModuleMenuEntries();
+}
+
+AbstractView *AbstractModule::createView(int viewId)
+{
+    qWarning("AbstractModule::createView: module '%s' doesn't create view %d", qPrintable(name()), viewId);
+    return 0;
+}
+
 Inspector::Instance *AbstractModule::parentInstance() const
 {
-    return m_instance;
+    return d->instance;
 }
 
 void AbstractModule::slotActivate()

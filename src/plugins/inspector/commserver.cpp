@@ -146,10 +146,14 @@ void CommServer::slotConnError(QLocalSocket::LocalSocketError error)
     addMessageToModel(7, tr("error %1: %2").arg(error).arg(m_localServer->errorString()));
 }
 
-bool CommServer::processIncomingData(quint32 code1, quint32 code2, QByteArray * data)
+bool CommServer::processIncomingData(quint32 code1, quint32 code2, QByteArray *data)
 {
     // Log Communication
     addMessageToModel(6, tr("%1:%2 (%3)").arg(code1).arg(code2).arg(data->size()));
+
+    // tell all the listening modules about this data
+    emit incomingData(code1, code2, data);
+return true;
 
     // 1. Service
     if (code1 == 0x01) {
@@ -173,7 +177,6 @@ bool CommServer::processIncomingData(quint32 code1, quint32 code2, QByteArray * 
         // 2.2 warning messages
         if (code2 == 0x02) {
             ///window->errorsText->appendHtml("<font color='#800'>" + *data + "</font>");
-            emit newWarnings(1);
             return true;
         }
 

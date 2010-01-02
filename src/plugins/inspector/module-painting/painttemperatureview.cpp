@@ -119,7 +119,13 @@ void PaintTemperatureView::slotResultActivated(const QModelIndex &index)
 {
     PaintingModel *model = static_cast<PaintingModule *>(parentModule())->model();
     const TemperatureItem *item = model->result(index.row());
+    if (!item)
+        return;
 
-
-    qWarning("ACT %d %x", index.row(), (int)item);
+    QLabel *label = new QLabel();
+    label->setWindowIcon(QIcon(":/inspector/images/menu-icon.png"));
+    label->setWindowTitle(tr("Image Viewer - Painting Temperature"));
+    label->setFixedSize(item->image().size());
+    label->setPixmap(item->image());
+    label->show();
 }
