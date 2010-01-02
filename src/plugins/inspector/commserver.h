@@ -61,6 +61,7 @@ private slots:
 
 private:
     bool processIncomingData(quint32 code1, quint32 code2, QByteArray * data);
+    void addMessageToModel(int column, const QString &message);
 
     InstanceModel *m_model;
 

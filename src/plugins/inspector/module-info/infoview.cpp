@@ -42,7 +42,6 @@ InfoView::InfoView(AbstractModule *parentModule)
   , m_errorPixmap(":/inspector/images/status-err.png")
 {
     setupUi(this);
-    debugToolBox->hide();
     QFont smallFont = connName->font();
     smallFont.setPointSize(smallFont.pointSize() - 1);
     connName->setFont(smallFont);
@@ -54,9 +53,11 @@ InfoView::InfoView(AbstractModule *parentModule)
     connect(parentInstance()->model(), SIGNAL(itemChanged(QStandardItem*)), this, SLOT(slotRefreshInstanceData()));
     connect(parentInstance()->model(), SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(slotRowsInserted(QModelIndex,int,int)));
     // NOTE: THIS IS PAINFULLY SLOW ###
-    if (QStandardItem *item = parentInstance()->model()->item(InstanceModel::CommServer_Row, 6))
-        for (int row = 0; row < item->rowCount(); ++row)
-            serviceText->appendPlainText(item->child(row)->text());
+    if (QStandardItem *item = parentInstance()->model()->item(InstanceModel::CommServer_Row, 6)) {
+        int rowCount = item->rowCount();
+        for (int row = 0; row < rowCount; ++row)
+            commText->appendPlainText(item-> child(row)->text());
+    }
     slotRefreshInstanceData();
 
     // link controls to the model
@@ -99,7 +100,7 @@ void InfoView::slotRowsInserted(const QModelIndex &parent, int start, int end)
     // log all incoming packets
     if (item && item->row() == InstanceModel::CommServer_Row && item->column() == 6)
         for (int row = start; row <= end; ++row)
-            serviceText->appendPlainText(item->child(row)->text());
+            commText->appendPlainText(item->child(row)->text());
 }
 
 void InfoView::setFieldState(QWidget *field, int state)
