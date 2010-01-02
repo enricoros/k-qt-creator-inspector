@@ -29,10 +29,11 @@
 
 #include "infoview.h"
 #include "abstractmodule.h"
-#include "commserver.h"
 #include "instance.h"
 #include "modulecontroller.h"
+#include <QFont>
 
+using namespace Inspector;
 using namespace Inspector::Internal;
 
 InfoView::InfoView(AbstractModule *parentModule)
@@ -42,23 +43,47 @@ InfoView::InfoView(AbstractModule *parentModule)
 {
     setupUi(this);
     debugToolBox->hide();
+    QFont smallFont = connName->font();
+    smallFont.setPointSize(smallFont.pointSize() - 1);
+    connName->setFont(smallFont);
 
-    Inspector::Instance *instance = parentInstance();
-    CommServer *server = instance->commServer();
+    // update Plugin data
+    modLabel->setText(parentInstance()->moduleController()->moduleNames().join(", "));
 
-    qWarning("restore infoview");
-    /*setFieldState(enaButton, server->m_sEnabled ? 1 : -1);
-    modLabel->setText(instance->moduleController()->moduleNames().join(", "));
+    // update Instance data
+    connect(parentInstance()->model(), SIGNAL(itemChanged(QStandardItem*)), this, SLOT(slotRefreshInstanceData()));
+    slotRefreshInstanceData();
 
-    bool debugging = instance->debugging();
-    setFieldState(debLabel, debugging ? 1 : -1);
-    setFieldState(injLabel, server->m_sHelpers ? 1 : debugging ? -1 : 0);
-    setFieldState(actLabel, server->m_sInjected ? 1 : debugging ? -1 : 0);
-    setFieldState(conLabel, server->m_sConnected ? 1 : debugging ? -1 : 0);
-    setFieldState(workLabel, (debugging && server->m_sEnabled && server->m_sInjected && server->m_sConnected) ? 1 : -1);
-    setFieldState(paintBox, instance->debugPaint());
-    connect(paintBox, SIGNAL(toggled(bool)), instance, SLOT(setDebugPaint(bool)));
-    */
+    // link controls to the model
+    connect(enaButton, SIGNAL(toggled(bool)), parentInstance()->model(), SLOT(setInstanceEnabled(bool)));
+    connect(paintBox, SIGNAL(toggled(bool)), parentInstance()->model(), SLOT(setDebugPaint(bool)));
+}
+
+void InfoView::slotRefreshInstanceData()
+{
+    InstanceModel *model = parentInstance()->model();
+
+    setFieldState(enaButton,        model->instanceEnabled());
+    setFieldState(paintBox,         model->debugPaint());
+
+    int _debugEnabled = model->value(InstanceModel::ProbeStatus_Row, 1).toInt();
+    setFieldState(debugEnabled,     _debugEnabled);
+    setFieldState(debugStopped,     model->value(InstanceModel::ProbeStatus_Row, 2).toInt());
+    setFieldState(probePresent,     model->value(InstanceModel::ProbeStatus_Row, 4).toInt());
+    probeCaps->setText(             model->value(InstanceModel::ProbeStatus_Row, 6).toString());
+    setFieldState(probeInjected,    model->value(InstanceModel::ProbeStatus_Row, 5).toInt());
+    setFieldState(probeActive,      model->value(InstanceModel::ProbeStatus_Row, 7).toInt());
+
+    bool _connEnabled = model->value(InstanceModel::CommServer_Row, 0).toBool();
+    setFieldState(connEnabled,      _connEnabled);
+    connName->setText(              model->value(InstanceModel::CommServer_Row, 1).toString());
+    setFieldState(serverListening,  model->value(InstanceModel::CommServer_Row, 2).toBool());
+    bool _probeConnected = model->value(InstanceModel::CommServer_Row, 3).toBool();
+    setFieldState(probeConnected,   _probeConnected);
+    clientInfo->setText(            model->value(InstanceModel::CommServer_Row, 4).toString());
+
+    bool works = _debugEnabled == 1 && _connEnabled && _probeConnected;
+    setFieldState(workLabel,        works);
 }
 
 void InfoView::setFieldState(QWidget *field, int state)
@@ -70,33 +95,33 @@ void InfoView::setFieldState(QWidget *field, int state)
 
     if (QAbstractButton *b = dynamic_cast<QAbstractButton *>(field)) {
         switch (state) {
-            case 0:
-                b->setText(tr("?"));
-                break;
-            case 1:
-                b->setIcon(m_okPixmap);
-                if (b->isCheckable())
-                    b->setChecked(true);
-                break;
-            case -1:
-                b->setIcon(m_errorPixmap);
-                if (b->isCheckable())
-                    b->setChecked(false);
-                break;
+        case -1:
+            b->setText(tr("?"));
+            break;
+        case 0:
+            b->setIcon(m_errorPixmap);
+            if (b->isCheckable())
+                b->setChecked(false);
+            break;
+        case 1:
+            b->setIcon(m_okPixmap);
+            if (b->isCheckable())
+                b->setChecked(true);
+            break;
         }
     }
 
     if (QLabel *l = dynamic_cast<QLabel *>(field)) {
         switch (state) {
-            case 0:
-                l->setText(tr("unknown"));
-                break;
-            case 1:
-                l->setPixmap(m_okPixmap);
-                break;
-            case -1:
-                l->setPixmap(m_errorPixmap);
-                break;
+        case -1:
+            l->setText(tr("unknown"));
+            break;
+        case 0:
+            l->setPixmap(m_errorPixmap);
+            break;
+        case 1:
+            l->setPixmap(m_okPixmap);
+            break;
         }
     }
 }

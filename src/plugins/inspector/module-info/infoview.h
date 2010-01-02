@@ -43,6 +43,9 @@ class InfoView : public AbstractView, public Ui::InfoView
 public:
     InfoView(AbstractModule *parentModule);
 
+private slots:
+    void slotRefreshInstanceData();
+
 private:
     void setFieldState(QWidget *field, int state);
     QPixmap m_okPixmap;
