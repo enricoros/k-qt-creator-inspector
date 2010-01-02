@@ -54,24 +54,25 @@ public:
     QVariant value(int row, int column = 0, int role = Qt::DisplayRole) const;
 
     // instance status
-    void setInstanceEnabled(bool);
+    bool debugPaint() const;
     bool instanceEnabled() const;
 
-    // probe status
+    // probe status (used by the Debugger plugin)
     void setDebugEnabled(bool);
     void setDebugStopped(bool);
     void setProbePresent(bool);
     void setProbeInjected(bool);
     void setProbeActive(bool);
-
+    // startup params (used by the Debugger plugin)
     QString localServerName() const;
-    int probeActivationFlags() const; //TEMP relocate
+    int probeActivationFlags() const;
 
     // temp model-function? maybe better in CommServer? ###
     bool callProbeFunction(const QString & name, QVariantList args = QVariantList());
 
 public slots:
-    void setDebugPaint(bool enabled);
+    void setDebugPaint(bool);
+    void setInstanceEnabled(bool);
 
 signals:
     void debuggerCallFunction(const QString & name, QVariantList args);

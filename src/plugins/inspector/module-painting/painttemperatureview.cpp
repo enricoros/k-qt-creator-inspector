@@ -29,8 +29,6 @@
 
 #include "painttemperatureview.h"
 #include "abstractmodule.h"
-#include "commserver.h"
-#include "inspectorplugin.h"
 #include "instance.h"
 #include <QApplication>
 #include <QIcon>

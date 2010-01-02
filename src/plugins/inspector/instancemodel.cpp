@@ -38,6 +38,7 @@ using namespace Inspector;
 /* == InstanceModel Usage ==
 Row 1: Instance Status
   0: enabled
+  1: af: debug paint
 
 Row 2: Probe Status
   0: target name            undefined
@@ -56,6 +57,7 @@ InstanceModel::InstanceModel(QObject *parent)
 {
     // init model
     setValue(InstanceStatus_Row, 0, true);
+    setValue(InstanceStatus_Row, 1, false);
     setValue(ProbeStatus_Row, 0, QString());
     setValue(ProbeStatus_Row, 1, -1);
     setValue(ProbeStatus_Row, 2, -1);
@@ -86,9 +88,9 @@ QVariant InstanceModel::value(int row, int column, int role) const
     return it ? it->data(role) : QVariant();
 }
 
-void InstanceModel::setInstanceEnabled(bool value)
+bool InstanceModel::debugPaint() const
 {
-    setValue(InstanceStatus_Row, 0, value);
+    return value(InstanceStatus_Row, 1).toBool();
 }
 
 bool InstanceModel::instanceEnabled() const
@@ -130,8 +132,7 @@ int InstanceModel::probeActivationFlags() const
 {
     // flags are in perfunction.h
     int flags = Inspector::Internal::AF_None;
-    qWarning("InstanceModel::probeActivationFlags: TODO");
-    //if (m_debugPaintFlag)
+    if (debugPaint())
         flags |= Inspector::Internal::AF_PaintDebug;
     return flags;
 }
@@ -144,10 +145,14 @@ bool InstanceModel::callProbeFunction(const QString &name, QVariantList args)
     return true;
 }
 
-void InstanceModel::setDebugPaint(bool enabled)
+void InstanceModel::setDebugPaint(bool value)
 {
-    //setValue(Pro...);
-    qWarning("InstanceModel::setDebugPaint: TODO");
+    setValue(InstanceStatus_Row, 1, value);
+}
+
+void InstanceModel::setInstanceEnabled(bool value)
+{
+    setValue(InstanceStatus_Row, 0, value);
 }
 
 void InstanceModel::openDebugWidget()
@@ -155,9 +160,6 @@ void InstanceModel::openDebugWidget()
     if (!m_debugView) {
         m_debugView = new QTableView;
         m_debugView->setModel(this);
-QTreeView *tv = new QTreeView;
-tv->setModel(this);
-tv->show();
     }
     m_debugView->show();
 }
