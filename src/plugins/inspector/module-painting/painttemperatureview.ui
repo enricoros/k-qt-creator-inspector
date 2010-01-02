@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>397</height>
+    <width>598</width>
+    <height>395</height>
    </rect>
   </property>
   <layout class="QGridLayout" name="gridLayout">
@@ -248,7 +248,7 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <widget class="Inspector::Internal::ResultsView" name="testView">
+        <widget class="Inspector::Internal::ResultsView" name="resultsView">
          <property name="selectionRectVisible">
           <bool>true</bool>
          </property>

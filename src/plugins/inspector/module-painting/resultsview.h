@@ -31,9 +31,19 @@
 #define RESULTSVIEW_H
 
 #include <QListView>
+#include <QStyledItemDelegate>
 
 namespace Inspector {
 namespace Internal {
+
+class TemperatureResultsDelegate : public QStyledItemDelegate
+{
+    Q_OBJECT
+
+public:
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
+};
 
 class ResultsView : public QListView
 {
@@ -41,11 +51,10 @@ class ResultsView : public QListView
 
 public:
     ResultsView(QWidget *parent = 0);
-
-    // completely TODO
+    ~ResultsView();
 
 private:
-
+    TemperatureResultsDelegate *m_delegate;
 };
 
 } // namespace Internal

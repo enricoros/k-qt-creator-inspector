@@ -65,61 +65,61 @@ InstanceModel::InstanceModel(QObject *parent)
   : Internal::AbstractEasyModel(3, 0, parent)
 {
     // init model
-    setValue(InstanceStatus_Row, 0, true);
-    setValue(InstanceStatus_Row, 1, false);
-    setValue(ProbeStatus_Row, 0, QString());
-    setValue(ProbeStatus_Row, 1, -1);
-    setValue(ProbeStatus_Row, 2, -1);
-    setValue(ProbeStatus_Row, 3, QString());
-    setValue(ProbeStatus_Row, 4, -1);
-    setValue(ProbeStatus_Row, 5, -1);
-    setValue(ProbeStatus_Row, 6, QString());
-    setValue(ProbeStatus_Row, 7, -1);
+    setItemValue(InstanceStatus_Row, 0, true);
+    setItemValue(InstanceStatus_Row, 1, false);
+    setItemValue(ProbeStatus_Row, 0, QString());
+    setItemValue(ProbeStatus_Row, 1, -1);
+    setItemValue(ProbeStatus_Row, 2, -1);
+    setItemValue(ProbeStatus_Row, 3, QString());
+    setItemValue(ProbeStatus_Row, 4, -1);
+    setItemValue(ProbeStatus_Row, 5, -1);
+    setItemValue(ProbeStatus_Row, 6, QString());
+    setItemValue(ProbeStatus_Row, 7, -1);
 }
 
 bool InstanceModel::debugPaint() const
 {
-    return value(InstanceStatus_Row, 1).toBool();
+    return itemValue(InstanceStatus_Row, 1).toBool();
 }
 
 bool InstanceModel::instanceEnabled() const
 {
-    return value(InstanceStatus_Row, 0).toBool();
+    return itemValue(InstanceStatus_Row, 0).toBool();
 }
 
 void InstanceModel::setDebugEnabled(bool value)
 {
-    setValue(ProbeStatus_Row, 1, value);
+    setItemValue(ProbeStatus_Row, 1, value);
     if (!value) {
-        setValue(ProbeStatus_Row, 4, false);
-        setValue(ProbeStatus_Row, 5, false);
-        setValue(ProbeStatus_Row, 7, false);
+        setItemValue(ProbeStatus_Row, 4, false);
+        setItemValue(ProbeStatus_Row, 5, false);
+        setItemValue(ProbeStatus_Row, 7, false);
     }
 }
 
 void InstanceModel::setDebugStopped(bool value)
 {
-    setValue(ProbeStatus_Row, 2, value);
+    setItemValue(ProbeStatus_Row, 2, value);
 }
 
 void InstanceModel::setProbePresent(bool value)
 {
-    setValue(ProbeStatus_Row, 4, value);
+    setItemValue(ProbeStatus_Row, 4, value);
 }
 
 void InstanceModel::setProbeInjected(bool value)
 {
-    setValue(ProbeStatus_Row, 5, value);
+    setItemValue(ProbeStatus_Row, 5, value);
 }
 
 void InstanceModel::setProbeActive(bool value)
 {
-    setValue(ProbeStatus_Row, 7, value);
+    setItemValue(ProbeStatus_Row, 7, value);
 }
 
 QString InstanceModel::localServerName() const
 {
-    return value(InstanceModel::CommServer_Row, 1).toString();
+    return itemValue(InstanceModel::CommServer_Row, 1).toString();
 }
 
 int InstanceModel::probeActivationFlags() const
@@ -141,10 +141,10 @@ bool InstanceModel::callProbeFunction(const QString &name, QVariantList args)
 
 void InstanceModel::setDebugPaint(bool value)
 {
-    setValue(InstanceStatus_Row, 1, value);
+    setItemValue(InstanceStatus_Row, 1, value);
 }
 
 void InstanceModel::setInstanceEnabled(bool value)
 {
-    setValue(InstanceStatus_Row, 0, value);
+    setItemValue(InstanceStatus_Row, 0, value);
 }

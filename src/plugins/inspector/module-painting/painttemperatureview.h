@@ -35,22 +35,27 @@
 
 namespace Inspector {
 namespace Internal {
+class PaintingModule;
 
 class PaintTemperatureView : public AbstractView, public Ui::PaintTemperatureView
 {
     Q_OBJECT
 
 public:
-    PaintTemperatureView(AbstractModule *parentModule);
+    PaintTemperatureView(PaintingModule *parentModule);
 
 private:
     QPixmap m_pixmap;
 
 private slots:
+    // 'new test' slots
     void on_defaultsButton_clicked();
     void on_runButton_clicked();
     void slotCheckPasses();
     void slotUpdateWeight();
+
+    // results slots
+    void slotResultActivated(const QModelIndex &index);
 };
 
 } // namespace Internal

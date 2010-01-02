@@ -28,11 +28,83 @@
 **************************************************************************/
 
 #include "resultsview.h"
+#include "paintingmodel.h"
+#include <QPainter>
 
 using namespace Inspector::Internal;
 
-ResultsView::ResultsView(QWidget *parent)
-  : QListView(parent)
+void TemperatureResultsDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    // get the TemperatureItem
+    const PaintingModel *model = static_cast<const PaintingModel *>(index.model());
+    const TemperatureItem *item = model->result(index.row());
+    if (!item) {
+        QStyledItemDelegate::paint(painter, option, index);
+        return;
+    }
+
+    // draw the TemperatureItem
+    const QRect rect = option.rect;
+    const int rt = rect.top();
+    const int rl = rect.left();
+    const int textRectHeight = (rect.height() - 10) / 3;
+
+    // selection
+    QColor textColor = option.palette.color(QPalette::Text);
+    if (option.state & QStyle::QStyle::State_Selected) {
+        painter->fillRect(rect, option.palette.color(QPalette::Highlight));
+        if (!(option.state & QStyle::State_MouseOver))
+            textColor = option.palette.color(QPalette::HighlightedText);
+    } else if (option.state & QStyle::State_MouseOver) {
+        QColor color = option.palette.color(QPalette::Highlight);
+        color.setAlpha(color.alpha() / 4);
+        painter->fillRect(rect, color);
+    }
+    QColor subtleTextColor = textColor;
+    subtleTextColor.setAlpha(subtleTextColor.alpha() / 2);
+
+    // preview pixmap
+    const QPixmap preview = item->previewImage();
+    painter->drawPixmap(rl + (rect.height() - preview.height()) / 2, rt + (80 - preview.width()) / 2, preview);
+
+    // text: date + duration
+    QFont normalFont = option.font;
+    QFont smallFont = normalFont;
+    smallFont.setPointSize(smallFont.pointSize() - 1);
+    painter->setFont(normalFont);
+    painter->setPen(textColor);
+    painter->drawText(QRect(rl + 84, rt + 5, rect.width() - 84, textRectHeight), Qt::AlignVCenter, item->date().toString());
+    int minutes = (int)(item->duration() / 60.0);
+    int seconds = (int)(item->duration() - (minutes * 60));
+    QString timeString = tr("%1' %2'' ").arg(minutes).arg(seconds);
+    painter->setFont(smallFont);
+    painter->drawText(QRect(rl + 84, rt + 5, rect.width() - 84, textRectHeight), Qt::AlignVCenter | Qt::AlignRight, timeString);
+
+    // text: description
+    painter->setFont(normalFont);
+    painter->drawText(QRect(rl + 84, rt + 5 + textRectHeight, rect.width() - 84, textRectHeight), Qt::AlignVCenter, item->description());
+
+    // text: options
+    painter->setFont(smallFont);
+    painter->setPen(subtleTextColor);
+    painter->drawText(QRect(rl + 84, rt + 5 + 2 * textRectHeight, rect.width() - 84, textRectHeight), Qt::AlignVCenter, item->options());
 }
 
+QSize TemperatureResultsDelegate::sizeHint(const QStyleOptionViewItem &/*option*/, const QModelIndex &/*index*/) const
+{
+    return QSize(TemperatureItem::previewWidth * 4, TemperatureItem::previewHeight + 8);
+}
+
+
+ResultsView::ResultsView(QWidget *parent)
+  : QListView(parent)
+  , m_delegate(new TemperatureResultsDelegate)
+{
+    // custom delegate for drawing TemperatureItems
+    setItemDelegate(m_delegate);
+}
+
+ResultsView::~ResultsView()
+{
+    delete m_delegate;
+}

@@ -28,7 +28,8 @@
 **************************************************************************/
 
 #include "painttemperatureview.h"
-#include "abstractmodule.h"
+#include "paintingmodel.h"
+#include "paintingmodule.h"
 #include "instance.h"
 #include <QApplication>
 #include <QIcon>
@@ -39,7 +40,7 @@
 
 using namespace Inspector::Internal;
 
-PaintTemperatureView::PaintTemperatureView(AbstractModule *parentModule)
+PaintTemperatureView::PaintTemperatureView(PaintingModule *parentModule)
   : AbstractView(parentModule)
 {
     setupUi(this);
@@ -50,8 +51,9 @@ PaintTemperatureView::PaintTemperatureView(AbstractModule *parentModule)
     connect(innerBox, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateWeight()));
     connect(widthBox, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateWeight()));
     connect(heightBox, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateWeight()));
+    connect(resultsView, SIGNAL(activated(QModelIndex)), this, SLOT(slotResultActivated(QModelIndex)));
 
-    // apply the smaller font to a label
+    // change looks
     QFont smallerFont = samplesLabel->font();
     smallerFont.setPointSize(smallerFont.pointSize() - 1);
     QPalette lighterPal;
@@ -69,7 +71,8 @@ PaintTemperatureView::PaintTemperatureView(AbstractModule *parentModule)
     on_defaultsButton_clicked();
 
     // ###TEMP
-    testView->setModel(parentInstance()->model());
+    resultsView->setModel(parentModule->model());
+    resultsView->setRootIndex(parentModule->model()->resultsTableIndex());
 }
 
 void PaintTemperatureView::on_defaultsButton_clicked()
@@ -110,4 +113,13 @@ void PaintTemperatureView::slotUpdateWeight()
 {
     qreal pops = 100 * (qreal)passesBox->value() * (qreal)innerBox->value() / (qreal)(widthBox->value() * heightBox->value());
     popsBox->setText(tr("%1%").arg(QString::number(pops)));
+}
+
+void PaintTemperatureView::slotResultActivated(const QModelIndex &index)
+{
+    PaintingModel *model = static_cast<PaintingModule *>(parentModule())->model();
+    const TemperatureItem *item = model->result(index.row());
+
+
+    qWarning("ACT %d %x", index.row(), (int)item);
 }
