@@ -30,10 +30,7 @@
 #include "instance.h"
 #include "commserver.h"
 #include "inspectorplugin.h"
-#include "notificationwidget.h"
 #include "modulecontroller.h"
-#include <coreplugin/icore.h>
-#include <coreplugin/modemanager.h>
 
 using namespace Inspector;
 
@@ -42,20 +39,9 @@ using namespace Inspector;
 Instance::Instance(QObject *parent)
   : QObject(parent)
   , m_model(new InstanceModel)
-  , m_enabled(false)
-  , m_debugPaintFlag(false)
-  , m_sDebugging(false)
 {
     // create the CommServer
     m_commServer = new Internal::CommServer(m_model);
-    connect(m_commServer, SIGNAL(newWarnings(int)), this, SLOT(slotNewWarnings(int)));
-
-    // create the NotificationWidget
-    m_notification = new Internal::NotificationWidget;
-    connect(m_notification, SIGNAL(clicked()), this, SLOT(slotNotificationTriggered()));
-    m_notification->hide();
-    // add it to CORE (add it now, even if not visible, to stay on top later)
-    Core::ICore::instance()->modeManager()->addWidget(m_notification);
 
     // create the Test Control & Tests
     m_moduleController = new Internal::ModuleController(this);
@@ -64,7 +50,6 @@ Instance::Instance(QObject *parent)
 Instance::~Instance()
 {
     delete m_moduleController;
-    delete m_notification;
     delete m_commServer;
     delete m_model;
 }
@@ -84,19 +69,7 @@ Internal::ModuleController *Instance::moduleController() const
     return m_moduleController;
 }
 
-void Instance::slotNotificationTriggered()
+void Instance::makeVisible()
 {
-    // hide the Notification first
-    m_notification->clearWarnings();
-    m_notification->hide();
-
-    // switch view to this instance
     emit requestDisplay();
-}
-
-void Instance::slotNewWarnings(int count)
-{
-    for (int i = 0; i < count; i++)
-        m_notification->addWarning();
-    m_notification->show();
 }

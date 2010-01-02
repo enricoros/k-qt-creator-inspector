@@ -28,15 +28,20 @@
 **************************************************************************/
 
 #include "paintingmodule.h"
+#include "instance.h"
+#include "commserver.h"
 #include "paintingmodel.h"
 #include "painttemperatureview.h"
 
 using namespace Inspector::Internal;
 
-PaintingModule::PaintingModule(QObject *parent)
-  : AbstractModule(parent)
+PaintingModule::PaintingModule(Inspector::Instance *instance, QObject *parent)
+  : AbstractModule(instance, parent)
   , m_model(new PaintingModel)
 {
+    // read the data coming from the commserver
+    connect(parentInstance()->commServer(), SIGNAL(incomingData(quint32,quint32,QByteArray*)),
+            this, SLOT(slotProcessIncomingData(quint32,quint32,QByteArray*)));
 }
 
 PaintingModule::~PaintingModule()
@@ -98,6 +103,38 @@ void PaintingModule::slotUnlock()
 {
     foreach (AbstractView *view, m_views)
         view->setEnabled(true);
+}
+
+void PaintingModule::slotProcessIncomingData(quint32 code1, quint32 code2, QByteArray *data)
+{
+    // only filter comm by this Uid (NOTE: sync the probe impl)
+    if (code1 != 0x02)
+        return;
+
+    // 2.3 percent
+    /*if (code2 == 0x03) {
+        int percent = qBound(0, QString(*data).toInt(), 100);
+        qWarning("progress percent: %d", percent);
+        // ### TODO
+        ///window->progressBar->setValue(percent);
+        ///window->progressLabel->setVisible(percent < 100);
+        ///window->progressBar->setVisible(percent < 100);
+        return true;
+    }*/
+
+    // 2.4 qimages
+    if (code2 == 0x04) {
+        qWarning("qimage received");
+        QDataStream dataReader(data, QIODevice::ReadOnly);
+        QSize size;
+        quint32 format;
+        QByteArray contents;
+        dataReader >> size;
+        dataReader >> format;
+        dataReader >> contents;
+        QImage image((uchar *)contents.data(), size.width(), size.height(), (QImage::Format)format);
+        m_model->addResult(QDateTime::currentDateTime(), 1.0, "test", "test", QPixmap::fromImage(image));
+    }
 }
 
 void PaintingModule::slotViewDestroyed()

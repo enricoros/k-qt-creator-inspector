@@ -27,41 +27,38 @@
 **
 **************************************************************************/
 
-#ifndef INFOMODULE_H
-#define INFOMODULE_H
+#ifndef WARNINGSMODULE_H
+#define WARNINGSMODULE_H
 
 #include "abstractmodule.h"
 
 namespace Inspector {
 namespace Internal {
 
-class InfoModule : public AbstractModule
+class NotificationWidget;
+
+class WarningsModule : public AbstractModule
 {
     Q_OBJECT
 
 public:
-    InfoModule(Inspector::Instance *, QObject *parent = 0);
-    ~InfoModule();
+    WarningsModule(Inspector::Instance *, QObject *parent = 0);
+    ~WarningsModule();
 
     // ::AbstractModule
-    enum { Uid = 0x01 };
+    enum { Uid = 0x03 };
     int uid() const { return Uid; }
     QString name() const;
-    ModuleMenuEntries menuEntries() const;
-    AbstractView *createView(int viewId);
-    void slotActivate();
-    void slotDeactivate();
-    void slotLock();
-    void slotUnlock();
-
-private:
-    QList<AbstractView *> m_views;
 
 private slots:
-    void slotViewDestroyed();
+    void slotProcessIncomingData(quint32 code1, quint32 code2, QByteArray *data);
+    void slotNotificationClicked();
+
+private:
+    Internal::NotificationWidget *m_notification;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // INFOMODULE_H
+#endif // WARNINGSMODULE_H

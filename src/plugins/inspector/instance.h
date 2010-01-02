@@ -41,9 +41,7 @@ namespace Inspector {
 namespace Internal {
 
 class CommServer;
-class InspectorPlugin;
 class ModuleController;
-class NotificationWidget;
 
 }
 
@@ -56,25 +54,18 @@ public:
     ~Instance();
 
     InstanceModel *model() const;
-
     Internal::CommServer *commServer() const;
     Internal::ModuleController *moduleController() const;
+
+    void makeVisible();
 
 signals:
     void requestDisplay();
 
-private slots:
-    void slotNotificationTriggered();
-    void slotNewWarnings(int count);
-
 private:
     InstanceModel *m_model;
     Internal::CommServer *m_commServer;
-    Internal::NotificationWidget *m_notification;
     Internal::ModuleController *m_moduleController;
-    bool m_enabled;
-    bool m_debugPaintFlag;
-    bool m_sDebugging;
 };
 
 } // namespace Inspector

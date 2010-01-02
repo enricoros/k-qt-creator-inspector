@@ -42,7 +42,7 @@ class PaintingModule : public AbstractModule
     Q_OBJECT
 
 public:
-    PaintingModule(QObject *parent = 0);
+    PaintingModule(Inspector::Instance *, QObject *parent = 0);
     ~PaintingModule();
 
     PaintingModel *model() const;
@@ -53,6 +53,7 @@ public:
     QString name() const;
     ModuleMenuEntries menuEntries() const;
     AbstractView *createView(int viewId);
+
     void slotActivate();
     void slotDeactivate();
     void slotLock();
@@ -63,6 +64,7 @@ private:
     QList<AbstractView *> m_views;
 
 private slots:
+    void slotProcessIncomingData(quint32 code1, quint32 code2, QByteArray *data);
     void slotViewDestroyed();
 };
 

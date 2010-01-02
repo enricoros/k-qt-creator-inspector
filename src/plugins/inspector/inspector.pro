@@ -27,7 +27,8 @@ HEADERS += \
     module-painting/paintingmodel.h \
     module-painting/paintingmodule.h \
     module-painting/painttemperatureview.h \
-    module-painting/resultsview.h
+    module-painting/resultsview.h \
+    module-warnings/warningsmodule.h
 
 SOURCES += \
     abstracteasymodel.cpp \
@@ -51,7 +52,8 @@ SOURCES += \
     module-painting/paintingmodel.cpp \
     module-painting/paintingmodule.cpp \
     module-painting/painttemperatureview.cpp \
-    module-painting/resultsview.cpp
+    module-painting/resultsview.cpp \
+    module-warnings/warningsmodule.cpp
 
 FORMS += \
     module-info/infoview.ui \

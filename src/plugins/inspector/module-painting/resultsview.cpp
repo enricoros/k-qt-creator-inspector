@@ -65,7 +65,7 @@ void TemperatureResultsDelegate::paint(QPainter *painter, const QStyleOptionView
 
     // preview pixmap
     const QPixmap preview = item->previewImage();
-    painter->drawPixmap(rl + (rect.height() - preview.height()) / 2, rt + (80 - preview.width()) / 2, preview);
+    painter->drawPixmap(rl + (80 - preview.width()) / 2, rt + (rect.height() - preview.height()) / 2, preview);
 
     // text: date + duration
     QFont normalFont = option.font;
@@ -92,7 +92,7 @@ void TemperatureResultsDelegate::paint(QPainter *painter, const QStyleOptionView
 
 QSize TemperatureResultsDelegate::sizeHint(const QStyleOptionViewItem &/*option*/, const QModelIndex &/*index*/) const
 {
-    return QSize(TemperatureItem::previewWidth * 4, TemperatureItem::previewHeight + 8);
+    return QSize(TemperatureItem::previewWidth + 150, TemperatureItem::previewHeight + 8);
 }
 
 
