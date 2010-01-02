@@ -27,52 +27,48 @@
 **
 **************************************************************************/
 
-#ifndef INSTANCEMODEL_H
-#define INSTANCEMODEL_H
-
 #include "abstracteasymodel.h"
-#include <QVariantList>
+#include <QTableView>
+#include <QTreeView>
 
-namespace Inspector {
+using namespace Inspector::Internal;
 
-namespace Internal {
+AbstractEasyModel::AbstractEasyModel(QObject *parent)
+  : QStandardItemModel(parent)
+  , m_debugView(0)
+{
 }
 
-class Q_DECL_EXPORT InstanceModel : public Internal::AbstractEasyModel
+AbstractEasyModel::AbstractEasyModel(int rows, int columns, QObject *parent)
+  : QStandardItemModel(rows, columns, parent)
+  , m_debugView(0)
 {
-    Q_OBJECT
+}
 
-public:
-    InstanceModel(QObject *parent = 0);
+AbstractEasyModel::~AbstractEasyModel()
+{
+    delete m_debugView;
+}
 
-    enum { InstanceStatus_Row = 0, ProbeStatus_Row = 1, CommServer_Row = 2 };
+void AbstractEasyModel::setValue(int row, int column, const QVariant &value, int role)
+{
+    QStandardItem *item = new QStandardItem;
+    item->setEditable(true);
+    item->setData(value, role);
+    setItem(row, column, item);
+}
 
-    // instance status
-    bool debugPaint() const;
-    bool instanceEnabled() const;
+QVariant AbstractEasyModel::value(int row, int column, int role) const
+{
+    QStandardItem *it = item(row, column);
+    return it ? it->data(role) : QVariant();
+}
 
-    // probe status (set by the Debugger plugin)
-    void setDebugEnabled(bool);
-    void setDebugStopped(bool);
-    void setProbePresent(bool);
-    void setProbeInjected(bool);
-    void setProbeActive(bool);
-    // startup params (read by the Debugger plugin)
-    QString localServerName() const;
-    int probeActivationFlags() const;
-
-    // temp model-function? maybe better in CommServer? ###
-    // this is here only for not exposing commserver to the Debugger plugin
-    bool callProbeFunction(const QString & name, QVariantList args = QVariantList());
-
-public slots:
-    void setDebugPaint(bool);
-    void setInstanceEnabled(bool);
-
-signals:
-    void debuggerCallFunction(const QString & name, QVariantList args);
-};
-
-} // namespace Inspector
-
-#endif // INSTANCEMODEL_H
+void AbstractEasyModel::openDebugWidget()
+{
+    if (!m_debugView) {
+        m_debugView = new QTableView;
+        m_debugView->setModel(this);
+    }
+    m_debugView->show();
+}

@@ -32,7 +32,7 @@
 #include "abstractview.h"
 #include "instance.h"
 #include "module-info/infomodule.h"
-#include "module-painting/paintmodule.h"
+#include "module-painting/paintingmodule.h"
 
 using namespace Inspector::Internal;
 
@@ -41,7 +41,7 @@ ModuleController::ModuleController(Inspector::Instance *instance)
   , m_instance(instance)
 {
     addModule(new InfoModule);
-    addModule(new PaintModule);
+    addModule(new PaintingModule);
 }
 
 ModuleController::~ModuleController()

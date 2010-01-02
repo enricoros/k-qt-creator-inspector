@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>602</width>
-    <height>399</height>
+    <width>600</width>
+    <height>397</height>
    </rect>
   </property>
   <layout class="QGridLayout" name="gridLayout">
@@ -246,12 +246,27 @@
       <attribute name="title">
        <string>Test Results and Comparison</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_3"/>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="Inspector::Internal::ResultsView" name="testView">
+         <property name="selectionRectVisible">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Inspector::Internal::ResultsView</class>
+   <extends>QListView</extends>
+   <header>module-painting/resultsview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../inspector.qrc"/>
  </resources>

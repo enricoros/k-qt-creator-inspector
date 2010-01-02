@@ -27,41 +27,12 @@
 **
 **************************************************************************/
 
-#ifndef PAINTMODULE_H
-#define PAINTMODULE_H
+#include "resultsview.h"
 
-#include "abstractmodule.h"
+using namespace Inspector::Internal;
 
-namespace Inspector {
-namespace Internal {
-
-class PaintModule : public AbstractModule
+ResultsView::ResultsView(QWidget *parent)
+  : QListView(parent)
 {
-    Q_OBJECT
+}
 
-public:
-    PaintModule(QObject *parent = 0);
-    ~PaintModule();
-
-    // ::AbstractModule
-    enum { Uid = 0x02 };
-    int uid() const { return Uid; }
-    QString name() const;
-    ModuleMenuEntries menuEntries() const;
-    AbstractView *createView(int viewId);
-    void slotActivate();
-    void slotDeactivate();
-    void slotLock();
-    void slotUnlock();
-
-private:
-    QList<AbstractView *> m_views;
-
-private slots:
-    void slotViewDestroyed();
-};
-
-} // namespace Internal
-} // namespace Inspector
-
-#endif // PAINTMODULE_H

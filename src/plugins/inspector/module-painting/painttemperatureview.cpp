@@ -67,6 +67,9 @@ PaintTemperatureView::PaintTemperatureView(AbstractModule *parentModule)
 
     // init fields
     on_defaultsButton_clicked();
+
+    // ###TEMP
+    testView->setModel(parentInstance()->model());
 }
 
 void PaintTemperatureView::on_defaultsButton_clicked()
