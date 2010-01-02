@@ -45,6 +45,7 @@ public:
 
 private slots:
     void slotRefreshInstanceData();
+    void slotRowsInserted(const QModelIndex &parent, int start, int end);
 
 private:
     void setFieldState(QWidget *field, int state);

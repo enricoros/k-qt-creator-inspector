@@ -32,7 +32,7 @@
 
 #include <QStandardItemModel>
 #include <QVariantList>
-class QTableView;
+class QAbstractItemView;
 
 namespace Inspector {
 
@@ -57,17 +57,18 @@ public:
     bool debugPaint() const;
     bool instanceEnabled() const;
 
-    // probe status (used by the Debugger plugin)
+    // probe status (set by the Debugger plugin)
     void setDebugEnabled(bool);
     void setDebugStopped(bool);
     void setProbePresent(bool);
     void setProbeInjected(bool);
     void setProbeActive(bool);
-    // startup params (used by the Debugger plugin)
+    // startup params (read by the Debugger plugin)
     QString localServerName() const;
     int probeActivationFlags() const;
 
     // temp model-function? maybe better in CommServer? ###
+    // this is here only for not exposing commserver to the Debugger plugin
     bool callProbeFunction(const QString & name, QVariantList args = QVariantList());
 
 public slots:
@@ -79,7 +80,7 @@ signals:
 
 private:
     void openDebugWidget();
-    QTableView *m_debugView;
+    QAbstractItemView *m_debugView;
 };
 
 } // namespace Inspector
