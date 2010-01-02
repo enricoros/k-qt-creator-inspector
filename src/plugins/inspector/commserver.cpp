@@ -50,7 +50,7 @@ using namespace Inspector;
 using namespace Inspector::Internal;
 
 /* == InstanceModel Usage ==
-Row 3: Communication Server
+Row 'CommServer_Row': Communication Server
   0: server enabled
   1: server local name
   2: server listening
