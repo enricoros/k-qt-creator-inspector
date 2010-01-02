@@ -248,12 +248,15 @@ class PerfCommClient {
 // static plugin data
 static PerfCommClient * ppCommClient = 0;
 static bool ppDebugPainting = false;
+static bool ppWindowTemperature = false;
 
 
 static bool eventInterceptorCallback(void **data)
 {
     QEvent *event = reinterpret_cast<QEvent*>(data[1]);
-    if (ppCommClient && (!ppCommClient->fencing() && event->type() >= QEvent::Timer && event->type() <= QEvent::User)) {
+    if (ppCommClient && !ppCommClient->fencing()
+        && event->type() >= QEvent::Timer && event->type() <= QEvent::User
+        && !ppWindowTemperature) {
         static int stackDepth = 0;
         ++stackDepth;
         static int numE = 0;
@@ -394,6 +397,9 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
         return;
     }
 
+    // signal the presence of this operation
+    ppWindowTemperature = true;
+
     // tell that the operation has started
     ppCommClient->sendRaw(0x100, 1, QByteArray());
 
@@ -521,6 +527,9 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
         if (consoleDebug)
             CONSOLE_PRINT("done sending colorized image");
     }
+
+    // signal the presence of this operation
+    ppWindowTemperature = false;
 
     // tell that the operation has finished
     ppCommClient->sendRaw(0x100, 2, QByteArray());
