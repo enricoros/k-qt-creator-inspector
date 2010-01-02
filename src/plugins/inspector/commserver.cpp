@@ -49,17 +49,6 @@
 using namespace Inspector;
 using namespace Inspector::Internal;
 
-/* == InstanceModel Usage ==
-Row 'CommServer_Row': Communication Server
-  0: server enabled
-  1: server local name
-  2: server listening
-  3: probe connected
-  4: probe info
-  5: ---
-  6: comm parent
-*/
-
 CommServer::CommServer(InstanceModel *model, QObject *parent)
     : QObject(parent)
     , m_model(model)
@@ -71,7 +60,8 @@ CommServer::CommServer(InstanceModel *model, QObject *parent)
     m_model->setValue(InstanceModel::CommServer_Row, 2, false);
     m_model->setValue(InstanceModel::CommServer_Row, 3, false);
     m_model->setValue(InstanceModel::CommServer_Row, 4, QString());
-    m_model->setValue(InstanceModel::CommServer_Row, 6, "comm");
+    m_model->setValue(InstanceModel::CommServer_Row, 6, "messages");
+    m_model->setValue(InstanceModel::CommServer_Row, 7, "errors");
 
     // create local server and listen for a connection
     m_localServer = new QLocalServer;
@@ -151,14 +141,15 @@ void CommServer::slotDisconnected()
 void CommServer::slotConnError(QLocalSocket::LocalSocketError error)
 {
     m_model->setValue(InstanceModel::CommServer_Row, 3, false);
-    qWarning() << "CommServer::slotConnError: error" << error;
+
+    // Log Error
+    addMessageToModel(7, tr("error %1: %2").arg(error).arg(m_localServer->errorString()));
 }
 
 bool CommServer::processIncomingData(quint32 code1, quint32 code2, QByteArray * data)
 {
-    // 0. Log
-    QStandardItem *logRoot = m_model->item(InstanceModel::CommServer_Row, 6);
-    logRoot->appendRow(new QStandardItem(QString::number(code1) + " " + QString::number(code2) + " - " + QString::number(data->size())));
+    // Log Communication
+    addMessageToModel(6, tr("%1:%2 (%3)").arg(code1).arg(code2).arg(data->size()));
 
     // 1. Service
     if (code1 == 0x01) {
@@ -231,4 +222,11 @@ bool CommServer::processIncomingData(quint32 code1, quint32 code2, QByteArray * 
     // warn
     qWarning() << "unhandled message" << code1 << code2 << *data;
     return false;
+}
+
+void CommServer::addMessageToModel(int column, const QString &message)
+{
+    QStandardItem *parentItem = m_model->item(InstanceModel::CommServer_Row, column);
+    if (parentItem)
+        parentItem->appendRow(new QStandardItem(message));
 }

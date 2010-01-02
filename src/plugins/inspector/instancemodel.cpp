@@ -50,7 +50,15 @@ Row 'ProbeStatus_Row': Probe Status
   6: probe capabilities     undefined
   7: probe active           int (-1 (unknown), 0 no, 1 yes)
 
-Row 'CommServer_Row': defined in CommServer
+Row 'CommServer_Row': Communication Server
+  0: server enabled
+  1: server local name
+  2: server listening
+  3: probe connected
+  4: probe info
+  5: ---
+  6: communication log parent (1 row per string)
+  7: communication errors parent (1 row per string)
 */
 
 InstanceModel::InstanceModel(QObject *parent)
@@ -102,6 +110,11 @@ bool InstanceModel::instanceEnabled() const
 void InstanceModel::setDebugEnabled(bool value)
 {
     setValue(ProbeStatus_Row, 1, value);
+    if (!value) {
+        setValue(ProbeStatus_Row, 4, false);
+        setValue(ProbeStatus_Row, 5, false);
+        setValue(ProbeStatus_Row, 7, false);
+    }
 }
 
 void InstanceModel::setDebugStopped(bool value)
