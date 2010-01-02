@@ -6,6 +6,7 @@ include(../../qtcreatorplugin.pri)
 include(inspector_dependencies.pri)
 
 HEADERS += \
+    abstracteasymodel.h \
     abstractmodule.h \
     abstractview.h \
     combotreewidget.h \
@@ -23,10 +24,13 @@ HEADERS += \
     window.h \
     module-info/infomodule.h \
     module-info/infoview.h \
-    module-painting/paintmodule.h \
-    module-painting/painttemperatureview.h
+    module-painting/paintingmodel.h \
+    module-painting/paintingmodule.h \
+    module-painting/painttemperatureview.h \
+    module-painting/resultsview.h
 
 SOURCES += \
+    abstracteasymodel.cpp \
     abstractmodule.cpp \
     abstractview.cpp \
     combotreewidget.cpp \
@@ -44,8 +48,10 @@ SOURCES += \
     window.cpp \
     module-info/infomodule.cpp \
     module-info/infoview.cpp \
-    module-painting/paintmodule.cpp \
-    module-painting/painttemperatureview.cpp
+    module-painting/paintingmodel.cpp \
+    module-painting/paintingmodule.cpp \
+    module-painting/painttemperatureview.cpp \
+    module-painting/resultsview.cpp
 
 FORMS += \
     module-info/infoview.ui \

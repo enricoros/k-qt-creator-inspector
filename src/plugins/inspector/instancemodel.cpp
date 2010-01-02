@@ -62,8 +62,7 @@ Row 'CommServer_Row': Communication Server
 */
 
 InstanceModel::InstanceModel(QObject *parent)
-  : QStandardItemModel(3, 0, parent)
-  , m_debugView(0)
+  : Internal::AbstractEasyModel(3, 0, parent)
 {
     // init model
     setValue(InstanceStatus_Row, 0, true);
@@ -76,25 +75,6 @@ InstanceModel::InstanceModel(QObject *parent)
     setValue(ProbeStatus_Row, 5, -1);
     setValue(ProbeStatus_Row, 6, QString());
     setValue(ProbeStatus_Row, 7, -1);
-}
-
-InstanceModel::~InstanceModel()
-{
-    delete m_debugView;
-}
-
-void InstanceModel::setValue(int row, int column, const QVariant &value, int role)
-{
-    QStandardItem *item = new QStandardItem;
-    item->setEditable(true);
-    item->setData(value, role);
-    setItem(row, column, item);
-}
-
-QVariant InstanceModel::value(int row, int column, int role) const
-{
-    QStandardItem *it = item(row, column);
-    return it ? it->data(role) : QVariant();
 }
 
 bool InstanceModel::debugPaint() const
@@ -167,13 +147,4 @@ void InstanceModel::setDebugPaint(bool value)
 void InstanceModel::setInstanceEnabled(bool value)
 {
     setValue(InstanceStatus_Row, 0, value);
-}
-
-void InstanceModel::openDebugWidget()
-{
-    if (!m_debugView) {
-        m_debugView = new QTableView;
-        m_debugView->setModel(this);
-    }
-    m_debugView->show();
 }

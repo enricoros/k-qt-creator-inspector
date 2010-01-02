@@ -27,52 +27,36 @@
 **
 **************************************************************************/
 
-#ifndef INSTANCEMODEL_H
-#define INSTANCEMODEL_H
+#ifndef ABSTRACTEASYMODEL_H
+#define ABSTRACTEASYMODEL_H
 
-#include "abstracteasymodel.h"
-#include <QVariantList>
+#include <QStandardItemModel>
+class QAbstractItemView;
 
 namespace Inspector {
-
 namespace Internal {
-}
 
-class Q_DECL_EXPORT InstanceModel : public Internal::AbstractEasyModel
+class AbstractEasyModel : public QStandardItemModel
 {
     Q_OBJECT
 
 public:
-    InstanceModel(QObject *parent = 0);
+    explicit AbstractEasyModel(QObject *parent = 0);
+    AbstractEasyModel(int rows, int colums, QObject *parent = 0);
+    ~AbstractEasyModel();
 
-    enum { InstanceStatus_Row = 0, ProbeStatus_Row = 1, CommServer_Row = 2 };
+    // low-level value access
+    void setValue(int row, int column, const QVariant &value, int role = Qt::DisplayRole);
+    QVariant value(int row, int column = 0, int role = Qt::DisplayRole) const;
 
-    // instance status
-    bool debugPaint() const;
-    bool instanceEnabled() const;
+protected:
+    void openDebugWidget();
 
-    // probe status (set by the Debugger plugin)
-    void setDebugEnabled(bool);
-    void setDebugStopped(bool);
-    void setProbePresent(bool);
-    void setProbeInjected(bool);
-    void setProbeActive(bool);
-    // startup params (read by the Debugger plugin)
-    QString localServerName() const;
-    int probeActivationFlags() const;
-
-    // temp model-function? maybe better in CommServer? ###
-    // this is here only for not exposing commserver to the Debugger plugin
-    bool callProbeFunction(const QString & name, QVariantList args = QVariantList());
-
-public slots:
-    void setDebugPaint(bool);
-    void setInstanceEnabled(bool);
-
-signals:
-    void debuggerCallFunction(const QString & name, QVariantList args);
+private:
+    QAbstractItemView *m_debugView;
 };
 
+} // namespace Internal
 } // namespace Inspector
 
-#endif // INSTANCEMODEL_H
+#endif // ABSTRACTEASYMODEL_H

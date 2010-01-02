@@ -27,52 +27,46 @@
 **
 **************************************************************************/
 
-#ifndef INSTANCEMODEL_H
-#define INSTANCEMODEL_H
+#ifndef PAINTINGMODULE_H
+#define PAINTINGMODULE_H
 
-#include "abstracteasymodel.h"
-#include <QVariantList>
+#include "abstractmodule.h"
 
 namespace Inspector {
-
 namespace Internal {
-}
 
-class Q_DECL_EXPORT InstanceModel : public Internal::AbstractEasyModel
+class PaintModel;
+
+class PaintingModule : public AbstractModule
 {
     Q_OBJECT
 
 public:
-    InstanceModel(QObject *parent = 0);
+    PaintingModule(QObject *parent = 0);
+    ~PaintingModule();
 
-    enum { InstanceStatus_Row = 0, ProbeStatus_Row = 1, CommServer_Row = 2 };
+    PaintModel *model() const;
 
-    // instance status
-    bool debugPaint() const;
-    bool instanceEnabled() const;
+    // ::AbstractModule
+    enum { Uid = 0x02 };
+    int uid() const { return Uid; }
+    QString name() const;
+    ModuleMenuEntries menuEntries() const;
+    AbstractView *createView(int viewId);
+    void slotActivate();
+    void slotDeactivate();
+    void slotLock();
+    void slotUnlock();
 
-    // probe status (set by the Debugger plugin)
-    void setDebugEnabled(bool);
-    void setDebugStopped(bool);
-    void setProbePresent(bool);
-    void setProbeInjected(bool);
-    void setProbeActive(bool);
-    // startup params (read by the Debugger plugin)
-    QString localServerName() const;
-    int probeActivationFlags() const;
+private:
+    PaintModel *m_model;
+    QList<AbstractView *> m_views;
 
-    // temp model-function? maybe better in CommServer? ###
-    // this is here only for not exposing commserver to the Debugger plugin
-    bool callProbeFunction(const QString & name, QVariantList args = QVariantList());
-
-public slots:
-    void setDebugPaint(bool);
-    void setInstanceEnabled(bool);
-
-signals:
-    void debuggerCallFunction(const QString & name, QVariantList args);
+private slots:
+    void slotViewDestroyed();
 };
 
+} // namespace Internal
 } // namespace Inspector
 
-#endif // INSTANCEMODEL_H
+#endif // PAINTINGMODULE_H

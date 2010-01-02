@@ -27,52 +27,28 @@
 **
 **************************************************************************/
 
-#ifndef INSTANCEMODEL_H
-#define INSTANCEMODEL_H
+#ifndef RESULTSVIEW_H
+#define RESULTSVIEW_H
 
-#include "abstracteasymodel.h"
-#include <QVariantList>
+#include <QListView>
 
 namespace Inspector {
-
 namespace Internal {
-}
 
-class Q_DECL_EXPORT InstanceModel : public Internal::AbstractEasyModel
+class ResultsView : public QListView
 {
     Q_OBJECT
 
 public:
-    InstanceModel(QObject *parent = 0);
+    ResultsView(QWidget *parent = 0);
 
-    enum { InstanceStatus_Row = 0, ProbeStatus_Row = 1, CommServer_Row = 2 };
+    // completely TODO
 
-    // instance status
-    bool debugPaint() const;
-    bool instanceEnabled() const;
+private:
 
-    // probe status (set by the Debugger plugin)
-    void setDebugEnabled(bool);
-    void setDebugStopped(bool);
-    void setProbePresent(bool);
-    void setProbeInjected(bool);
-    void setProbeActive(bool);
-    // startup params (read by the Debugger plugin)
-    QString localServerName() const;
-    int probeActivationFlags() const;
-
-    // temp model-function? maybe better in CommServer? ###
-    // this is here only for not exposing commserver to the Debugger plugin
-    bool callProbeFunction(const QString & name, QVariantList args = QVariantList());
-
-public slots:
-    void setDebugPaint(bool);
-    void setInstanceEnabled(bool);
-
-signals:
-    void debuggerCallFunction(const QString & name, QVariantList args);
 };
 
+} // namespace Internal
 } // namespace Inspector
 
-#endif // INSTANCEMODEL_H
+#endif // RESULTSVIEW_H
