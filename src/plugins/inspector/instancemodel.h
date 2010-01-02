@@ -47,7 +47,7 @@ public:
     InstanceModel(QObject *parent = 0);
     ~InstanceModel();
 
-    enum { InstanceStatus_Row = 1, ProbeStatus_Row = 2, CommServer_Row = 3 };
+    enum { InstanceStatus_Row = 0, ProbeStatus_Row = 1, CommServer_Row = 2 };
 
     // low-level value access
     void setValue(int row, int column, const QVariant &value, int role = Qt::DisplayRole);

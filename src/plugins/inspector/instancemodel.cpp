@@ -36,11 +36,11 @@
 using namespace Inspector;
 
 /* == InstanceModel Usage ==
-Row 1: Instance Status
-  0: enabled
-  1: af: debug paint
+Row 'InstanceStatus_Row': Instance Status
+  0: enabled                ###remove?
+  1: af: debug paint        ###move?
 
-Row 2: Probe Status
+Row 'ProbeStatus_Row': Probe Status
   0: target name            undefined
   1: debug enabled          int (-1 (unknown), 0 no, 1 yes)
   2: debug stopped          int (-1 (unknown), 0 no, 1 yes)
@@ -49,10 +49,12 @@ Row 2: Probe Status
   5: probe injected         int (-1 (unknown), 0 no, 1 yes)
   6: probe capabilities     undefined
   7: probe active           int (-1 (unknown), 0 no, 1 yes)
+
+Row 'CommServer_Row': defined in CommServer
 */
 
 InstanceModel::InstanceModel(QObject *parent)
-  : QStandardItemModel(8, 1, parent)
+  : QStandardItemModel(3, 0, parent)
   , m_debugView(0)
 {
     // init model
@@ -66,7 +68,6 @@ InstanceModel::InstanceModel(QObject *parent)
     setValue(ProbeStatus_Row, 5, -1);
     setValue(ProbeStatus_Row, 6, QString());
     setValue(ProbeStatus_Row, 7, -1);
-    openDebugWidget();
 }
 
 InstanceModel::~InstanceModel()
