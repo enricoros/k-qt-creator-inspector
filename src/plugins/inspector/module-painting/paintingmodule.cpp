@@ -122,9 +122,9 @@ void PaintingModule::slotProcessIncomingData(quint32 code1, quint32 code2, QByte
         return true;
     }*/
 
+
     // 2.4 qimages
     if (code2 == 0x04) {
-        qWarning("qimage received");
         QDataStream dataReader(data, QIODevice::ReadOnly);
         QSize size;
         quint32 format;

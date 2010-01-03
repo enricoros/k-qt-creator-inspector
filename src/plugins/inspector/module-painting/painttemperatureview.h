@@ -51,6 +51,9 @@ private slots:
     void slotLoadDefaults();
     void slotTestClicked();
 
+    // model slots
+    void slotModelItemChanged();
+
     // results slots
     void slotResultActivated(const QModelIndex &index);
 };

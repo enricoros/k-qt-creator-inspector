@@ -31,9 +31,84 @@
 #include "paintingmodel.h"
 #include "paintingmodule.h"
 #include "instance.h"
+#include <QPainter>
 #include <QPalette>
+#include <QStyledItemDelegate>
 
-using namespace Inspector::Internal;
+namespace Inspector {
+namespace Internal {
+
+class TemperatureResultsDelegate : public QStyledItemDelegate
+{
+public:
+    TemperatureResultsDelegate(QObject *parent = 0)
+      : QStyledItemDelegate(parent)
+    {
+    }
+
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+    {
+        // get the TemperatureItem
+        const PaintingModel *model = static_cast<const PaintingModel *>(index.model());
+        const TemperatureItem *item = model->result(index.row());
+        if (!item) {
+            QStyledItemDelegate::paint(painter, option, index);
+            return;
+        }
+
+        // draw the TemperatureItem
+        const QRect rect = option.rect;
+        const int rt = rect.top();
+        const int rl = rect.left();
+        const int textRectHeight = (rect.height() - 10) / 3;
+
+        // selection
+        QColor textColor = option.palette.color(QPalette::Text);
+        if (option.state & QStyle::QStyle::State_Selected) {
+            painter->fillRect(rect, option.palette.color(QPalette::Highlight));
+            if (!(option.state & QStyle::State_MouseOver))
+                textColor = option.palette.color(QPalette::HighlightedText);
+        } else if (option.state & QStyle::State_MouseOver) {
+            QColor color = option.palette.color(QPalette::Highlight);
+            color.setAlpha(color.alpha() / 4);
+            painter->fillRect(rect, color);
+        }
+        QColor subtleTextColor = textColor;
+        subtleTextColor.setAlpha(subtleTextColor.alpha() / 2);
+
+        // preview pixmap
+        const QPixmap preview = item->previewImage();
+        painter->drawPixmap(rl + (88 - preview.width()) / 2, rt + (rect.height() - preview.height()) / 2, preview);
+
+        // text: date + duration
+        QFont normalFont = option.font;
+        QFont smallFont = normalFont;
+        smallFont.setPointSize(smallFont.pointSize() - 1);
+        painter->setFont(normalFont);
+        painter->setPen(textColor);
+        painter->drawText(QRect(rl + 88, rt + 5, rect.width() - 88, textRectHeight), Qt::AlignVCenter, item->date().toString());
+        int minutes = (int)(item->duration() / 60.0);
+        int seconds = (int)(item->duration() - (minutes * 60));
+        QString timeString = tr("%1' %2'' ").arg(minutes).arg(seconds);
+        painter->setFont(smallFont);
+        painter->drawText(QRect(rl + 88, rt + 5, rect.width() - 88, textRectHeight), Qt::AlignVCenter | Qt::AlignRight, timeString);
+
+        // text: description
+        painter->setFont(normalFont);
+        painter->drawText(QRect(rl + 88, rt + 5 + textRectHeight, rect.width() - 88, textRectHeight), Qt::AlignVCenter, item->description());
+
+        // text: options
+        painter->setFont(smallFont);
+        painter->setPen(subtleTextColor);
+        painter->drawText(QRect(rl + 88, rt + 5 + 2 * textRectHeight, rect.width() - 88, textRectHeight), Qt::AlignVCenter, item->options());
+    }
+
+    QSize sizeHint(const QStyleOptionViewItem &/*option*/, const QModelIndex &/*index*/) const
+    {
+        return QSize(TemperatureItem::previewWidth + 150, TemperatureItem::previewHeight + 8);
+    }
+};
+
 
 PaintTemperatureView::PaintTemperatureView(PaintingModule *parentModule)
   : AbstractView(parentModule)
@@ -54,6 +129,7 @@ PaintTemperatureView::PaintTemperatureView(PaintingModule *parentModule)
 
     // wire-up the results listview
     connect(resultsView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(slotResultActivated(QModelIndex)));
+    resultsView->setItemDelegate(new TemperatureResultsDelegate(resultsView));
     resultsView->setModel(parentModule->model());
     resultsView->setRootIndex(parentModule->model()->resultsTableIndex());
 
@@ -76,6 +152,10 @@ PaintTemperatureView::PaintTemperatureView(PaintingModule *parentModule)
 
     // init fields
     slotLoadDefaults();
+
+    // listen for model changes
+    connect(parentModule->model(), SIGNAL(itemChanged(QStandardItem*)),
+            this, SLOT(slotModelItemChanged()));
 }
 
 void PaintTemperatureView::slotCheckIterations()
@@ -118,6 +198,12 @@ void PaintTemperatureView::slotTestClicked()
     parentModule()->parentInstance()->model()->callProbeFunction("qWindowTemperature", args);
 }
 
+void PaintTemperatureView::slotModelItemChanged()
+{
+    PaintingModel *model = static_cast<PaintingModule *>(parentModule())->model();
+
+}
+
 void PaintTemperatureView::slotResultActivated(const QModelIndex &index)
 {
     PaintingModel *model = static_cast<PaintingModule *>(parentModule())->model();
@@ -129,3 +215,6 @@ void PaintTemperatureView::slotResultActivated(const QModelIndex &index)
     resultsTabWidget->setCurrentIndex(1);
     imageScrollArea->setFocus();
 }
+
+} // namespace Internal
+} // namespace Inspector
