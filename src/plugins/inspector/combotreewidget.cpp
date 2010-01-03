@@ -41,12 +41,29 @@ namespace Internal {
 class NodesDelegate : public QStyledItemDelegate
 {
 public:
+    NodesDelegate()
+      : m_menuIndicator(":/inspector/images/menu-submenu.png")
+    {
+    }
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
     {
-        if (index.data(Qt::UserRole).isNull())
-            painter->fillRect(option.rect, Qt::lightGray);
         QStyledItemDelegate::paint(painter, option, index);
+        // draw indicator if menu holder
+        if (index.data(Qt::UserRole).isNull()) {
+            painter->drawPixmap(option.rect.right() - m_menuIndicator.width(),
+                option.rect.top() + (option.rect.height() - m_menuIndicator.height()) / 2,
+                m_menuIndicator);
+        }
     }
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+    {
+        QSize size = QStyledItemDelegate::sizeHint(option, index);
+        size.rheight() += 4;
+        return size;
+    }
+
+private:
+    QPixmap m_menuIndicator;
 };
 
 class NodesComboBox : public QComboBox
@@ -120,6 +137,10 @@ ComboTreeWidget::ComboTreeWidget(QWidget *parent)
     layout->setSpacing(0);
     layout->addStretch(5);
     setLayout(layout);
+
+    QPixmap blankPixmap(16, 16);
+    blankPixmap.fill(Qt::transparent);
+    m_blankIcon = QIcon(blankPixmap);
 }
 
 ComboTreeWidget::~ComboTreeWidget()
@@ -138,6 +159,8 @@ void ComboTreeWidget::addItem(const QStringList &path, const QVariant &userData,
             node->data = userData;
             node->icon = icon;
         }
+        if (node->icon.isNull())
+            node->icon = m_blankIcon;
     }
 
     // update the visual path

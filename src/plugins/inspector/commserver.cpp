@@ -178,18 +178,6 @@ return true;
     // 2. Generic Comm
     if (code1 == 0x02) {
 
-        // 2.1 text messages
-        if (code2 == 0x01) {
-            ///window->messagesText->appendHtml("<font color='#800'>" + *data + "</font>");
-            return true;
-        }
-
-        // 2.2 warning messages
-        if (code2 == 0x02) {
-            ///window->errorsText->appendHtml("<font color='#800'>" + *data + "</font>");
-            return true;
-        }
-
         // 2.3 percent
         if (code2 == 0x03) {
             int percent = qBound(0, QString(*data).toInt(), 100);
@@ -198,27 +186,6 @@ return true;
             ///window->progressBar->setValue(percent);
             ///window->progressLabel->setVisible(percent < 100);
             ///window->progressBar->setVisible(percent < 100);
-            return true;
-        }
-
-        // 2.4 qimages
-        if (code2 == 0x04) {
-            qWarning("qimage received");
-            QDataStream dataReader(data, QIODevice::ReadOnly);
-            QSize size;
-            quint32 format;
-            QByteArray contents;
-            dataReader >> size;
-            dataReader >> format;
-            dataReader >> contents;
-            QImage image((uchar *)contents.data(), size.width(), size.height(), (QImage::Format)format);
-
-            QLabel * label = new QLabel();
-            label->setWindowIcon(QIcon(":/inspector/images/menu-icon.png"));
-            label->setWindowTitle(tr("Image from The Probe"));
-            label->setFixedSize(size);
-            label->setPixmap(QPixmap::fromImage(image));
-            label->show();
             return true;
         }
     }

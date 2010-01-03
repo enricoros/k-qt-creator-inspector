@@ -2,7 +2,12 @@
     <qresource prefix="/inspector">
         <file>images/inspector-icon-32.png</file>
         <file>images/inspector-watermark.svg</file>
-        <file>images/menu-icon.png</file>
+        <file>images/menu-display.png</file>
+        <file>images/menu-paintingenergy.png</file>
+        <file>images/menu-paintingtemperature.png</file>
+        <file>images/menu-status.png</file>
+        <file>images/menu-submenu.png</file>
+        <file>images/menu-warning.png</file>
         <file>images/mark-32.png</file>
         <file>images/plot-background.svg</file>
         <file>images/status-ok.png</file>

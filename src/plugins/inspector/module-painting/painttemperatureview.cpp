@@ -123,7 +123,7 @@ void PaintTemperatureView::slotResultActivated(const QModelIndex &index)
         return;
 
     QLabel *label = new QLabel();
-    label->setWindowIcon(QIcon(":/inspector/images/menu-icon.png"));
+    label->setWindowIcon(QIcon(":/inspector/images/menu-paintingtemperature.png"));
     label->setWindowTitle(tr("Image Viewer - Painting Temperature"));
     label->setFixedSize(item->image().size());
     label->setPixmap(item->image());

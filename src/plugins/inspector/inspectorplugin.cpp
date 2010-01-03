@@ -118,7 +118,7 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     Core::ActionContainer *inspContainer = actionManager->createMenu("Inspector.Container");
     QMenu *inspMenu = inspContainer->menu();
     inspMenu->setTitle(tr("&Inspector"));
-    inspMenu->setIcon(QIcon(":/inspector/images/menu-icon.png"));
+    inspMenu->setIcon(QIcon(":/inspector/images/menu-display.png"));
     Core::ActionContainer *debugContainer = actionManager->actionContainer(ProjectExplorer::Constants::M_DEBUG);
     debugContainer->addMenu(inspContainer);
 
