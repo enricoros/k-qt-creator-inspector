@@ -58,6 +58,8 @@ ViewContainerWidget::ViewContainerWidget(QWidget * parent)
 
     // set a vertical layout
     QVBoxLayout * lay = new QVBoxLayout(this);
+    lay->setMargin(0);
+    lay->setSpacing(0);
     //lay->addWidget(m_disabledLabel);
     setLayout(lay);
 }

@@ -57,7 +57,7 @@ PaintingModel *PaintingModule::model() const
 
 QString PaintingModule::name() const
 {
-    return tr("Painting Measures");
+    return tr("Painting Measures (0.6)");
 }
 
 ModuleMenuEntries PaintingModule::menuEntries() const

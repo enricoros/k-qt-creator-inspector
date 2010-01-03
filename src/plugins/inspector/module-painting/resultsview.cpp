@@ -65,7 +65,7 @@ void TemperatureResultsDelegate::paint(QPainter *painter, const QStyleOptionView
 
     // preview pixmap
     const QPixmap preview = item->previewImage();
-    painter->drawPixmap(rl + (80 - preview.width()) / 2, rt + (rect.height() - preview.height()) / 2, preview);
+    painter->drawPixmap(rl + (88 - preview.width()) / 2, rt + (rect.height() - preview.height()) / 2, preview);
 
     // text: date + duration
     QFont normalFont = option.font;
@@ -73,21 +73,21 @@ void TemperatureResultsDelegate::paint(QPainter *painter, const QStyleOptionView
     smallFont.setPointSize(smallFont.pointSize() - 1);
     painter->setFont(normalFont);
     painter->setPen(textColor);
-    painter->drawText(QRect(rl + 84, rt + 5, rect.width() - 84, textRectHeight), Qt::AlignVCenter, item->date().toString());
+    painter->drawText(QRect(rl + 88, rt + 5, rect.width() - 88, textRectHeight), Qt::AlignVCenter, item->date().toString());
     int minutes = (int)(item->duration() / 60.0);
     int seconds = (int)(item->duration() - (minutes * 60));
     QString timeString = tr("%1' %2'' ").arg(minutes).arg(seconds);
     painter->setFont(smallFont);
-    painter->drawText(QRect(rl + 84, rt + 5, rect.width() - 84, textRectHeight), Qt::AlignVCenter | Qt::AlignRight, timeString);
+    painter->drawText(QRect(rl + 88, rt + 5, rect.width() - 88, textRectHeight), Qt::AlignVCenter | Qt::AlignRight, timeString);
 
     // text: description
     painter->setFont(normalFont);
-    painter->drawText(QRect(rl + 84, rt + 5 + textRectHeight, rect.width() - 84, textRectHeight), Qt::AlignVCenter, item->description());
+    painter->drawText(QRect(rl + 88, rt + 5 + textRectHeight, rect.width() - 88, textRectHeight), Qt::AlignVCenter, item->description());
 
     // text: options
     painter->setFont(smallFont);
     painter->setPen(subtleTextColor);
-    painter->drawText(QRect(rl + 84, rt + 5 + 2 * textRectHeight, rect.width() - 84, textRectHeight), Qt::AlignVCenter, item->options());
+    painter->drawText(QRect(rl + 88, rt + 5 + 2 * textRectHeight, rect.width() - 88, textRectHeight), Qt::AlignVCenter, item->options());
 }
 
 QSize TemperatureResultsDelegate::sizeHint(const QStyleOptionViewItem &/*option*/, const QModelIndex &/*index*/) const

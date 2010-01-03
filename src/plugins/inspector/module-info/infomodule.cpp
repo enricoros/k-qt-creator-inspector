@@ -44,7 +44,7 @@ InfoModule::~InfoModule()
 
 QString InfoModule::name() const
 {
-    return tr("Information");
+    return tr("Information (0.8)");
 }
 
 ModuleMenuEntries InfoModule::menuEntries() const
