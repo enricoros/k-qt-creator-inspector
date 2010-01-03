@@ -156,6 +156,7 @@ PaintTemperatureView::PaintTemperatureView(PaintingModule *parentModule)
     // listen for model changes
     connect(parentModule->model(), SIGNAL(itemChanged(QStandardItem*)),
             this, SLOT(slotModelItemChanged()));
+    slotModelItemChanged();
 }
 
 void PaintTemperatureView::slotCheckIterations()
@@ -201,7 +202,9 @@ void PaintTemperatureView::slotTestClicked()
 void PaintTemperatureView::slotModelItemChanged()
 {
     PaintingModel *model = static_cast<PaintingModule *>(parentModule())->model();
-
+    int value = model->ptProgress();
+    ptProgress->setValue(value);
+    ptProgress->setVisible(value > 0 && value < 100);
 }
 
 void PaintTemperatureView::slotResultActivated(const QModelIndex &index)
