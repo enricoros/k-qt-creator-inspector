@@ -234,6 +234,7 @@ class PerfCommClient {
             }
             m_fencing = true;
             m_sock->write(data);
+            m_sock->flush();
             if (!m_sock->waitForBytesWritten(5000))
                 printError("error in waitForBytesWritten!");
             m_fencing = false;
@@ -450,6 +451,10 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
             CONSOLE_PRINT("snapshot sent, inited target image");
 
         // test the rects
+        const int percTotal = passes * wRects;
+        const int percStep = percTotal > 100 ? percTotal / 100 : 1;
+        int percCycle = 0;
+        int percProgress = 0;
         for (int pass = 0; pass < passes; pass++) {
             CONSOLE_PRINT("pass %d", pass);
             for (int i = 0; i < wRects; i++) {
@@ -469,13 +474,24 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
                 // accumulate time
                 const double elapsedMs = (double)(tv2.tv_sec - tv1.tv_sec) * 1000.0 + (double)(tv2.tv_usec - tv1.tv_usec) / 1000.0;
                 wTimedRects[i].times.append(elapsedMs);
+
+                // send percentages at each step
+                percProgress++;
+                percCycle++;
+                if (percCycle >= percStep) {
+                    int percent = (percProgress * 100) / percTotal;
+                    percCycle = 0;
+                    ppCommClient->sendPercent(percent);
+                    if (consoleDebug)
+                        CONSOLE_PRINT("%d done", percent);
+                }
             }
-            // send out the progress
-            ///app->processEvents();
-            if (consoleDebug)
-                CONSOLE_PRINT("%d done", ((pass + 1) * 100) / passes);
-            ppCommClient->sendPercent(((pass + 1) * 100) / passes);
         }
+
+        // tell that we reached 100%
+        ppCommClient->sendPercent(100);
+        if (consoleDebug)
+            CONSOLE_PRINT("100 done");
 
         // single rect: drop min/max measured time value(s)
         QList<__TimedRect>::iterator rIt = wTimedRects.begin(), rEnd = wTimedRects.end();

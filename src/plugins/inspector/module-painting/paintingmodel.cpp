@@ -38,9 +38,16 @@ Row 'Results_Row':
   0: results count          int
   1: results                LIST
   2: saved                  bool
+
+Row 'CurrentPt_Row'
+  0: started                bool
+  1: label                  string
+  2: options                string
+  3: progress               int (0..100)
 */
 
 #define Results_Row 0
+#define CurrentPt_Row 1
 
 TemperatureItem::TemperatureItem(const QDateTime &dt, qreal duration, const QString &desc, const QString &options, const QPixmap &image)
   : QStandardItem(desc)
@@ -93,6 +100,10 @@ PaintingModel::PaintingModel(QObject *parent)
     setItemValue(Results_Row, 0, 0);
     setItemValue(Results_Row, 1, "results");
     setItemValue(Results_Row, 2, false);
+    setItemValue(CurrentPt_Row, 0, false);
+    setItemValue(CurrentPt_Row, 1, QString());
+    setItemValue(CurrentPt_Row, 2, QString());
+    setItemValue(CurrentPt_Row, 3, 0);
 
     // load data from settings
     loadData();
@@ -124,6 +135,16 @@ QModelIndex PaintingModel::resultsTableIndex() const
 const TemperatureItem *PaintingModel::result(int row) const
 {
     return dynamic_cast<TemperatureItem *>(item(Results_Row, 1)->child(row));
+}
+
+void PaintingModel::setPtProgress(int progress)
+{
+    setItemValue(CurrentPt_Row, 3, progress);
+}
+
+int PaintingModel::ptProgress() const
+{
+    return itemValue(CurrentPt_Row, 3).toInt();
 }
 
 void PaintingModel::loadData()

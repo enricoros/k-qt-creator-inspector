@@ -74,6 +74,9 @@ public:
     QModelIndex resultsTableIndex() const;
     const TemperatureItem *result(int row) const;
 
+    void setPtProgress(int progress);
+    int ptProgress() const;
+
 private:
     void loadData();
     void saveData();

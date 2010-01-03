@@ -112,16 +112,11 @@ void PaintingModule::slotProcessIncomingData(quint32 code1, quint32 code2, QByte
         return;
 
     // 2.3 percent
-    /*if (code2 == 0x03) {
+    if (code2 == 0x03) {
         int percent = qBound(0, QString(*data).toInt(), 100);
-        qWarning("progress percent: %d", percent);
-        // ### TODO
-        ///window->progressBar->setValue(percent);
-        ///window->progressLabel->setVisible(percent < 100);
-        ///window->progressBar->setVisible(percent < 100);
-        return true;
-    }*/
-
+        m_model->setPtProgress(percent);
+        return;
+    }
 
     // 2.4 qimages
     if (code2 == 0x04) {
