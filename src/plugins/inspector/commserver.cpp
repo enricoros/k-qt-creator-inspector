@@ -60,8 +60,10 @@ CommServer::CommServer(InstanceModel *model, QObject *parent)
     m_model->setItemValue(InstanceModel::CommServer_Row, 2, false);
     m_model->setItemValue(InstanceModel::CommServer_Row, 3, false);
     m_model->setItemValue(InstanceModel::CommServer_Row, 4, QString());
+  //m_model->setItemValue(InstanceModel::CommServer_Row, 5, --spare--);
     m_model->setItemValue(InstanceModel::CommServer_Row, 6, "messages");
     m_model->setItemValue(InstanceModel::CommServer_Row, 7, "errors");
+    m_model->setItemValue(InstanceModel::CommServer_Row, 8, "comm");
 
     // create local server and listen for a connection
     m_localServer = new QLocalServer;
@@ -149,7 +151,15 @@ void CommServer::slotConnError(QLocalSocket::LocalSocketError error)
 bool CommServer::processIncomingData(quint32 code1, quint32 code2, QByteArray *data)
 {
     // Log Communication
-    addMessageToModel(6, tr("%1:%2 (%3)").arg(code1).arg(code2).arg(data->size()));
+    addMessageToModel(8, tr("%1:%2 (%3)").arg(code1).arg(code2).arg(data->size()));
+
+    // Log Messages / Errors
+    if (code1 == 0x02) {
+        if (code2 == 0x01)
+            addMessageToModel(6, QString(*data));
+        else if (code2 == 0x02)
+            addMessageToModel(7, QString(*data));
+    }
 
     // tell all the listening modules about this data
     emit incomingData(code1, code2, data);

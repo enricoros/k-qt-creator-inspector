@@ -205,6 +205,14 @@ void ComboTreeWidget::setCurrentPath(const QStringList &path)
         m_nodePath.append(node);
     }
     syncLeafPath();
+    emit pathSelected(currentPath(), currentData());
+}
+
+void ComboTreeWidget::setCurrentPath(const QVariant &userData)
+{
+    QStringList path = searchPathRecursive(m_rootNode, userData);
+    if (!path.isEmpty())
+        setCurrentPath(path);
 }
 
 QStringList ComboTreeWidget::currentPath() const
@@ -292,6 +300,21 @@ void ComboTreeWidget::syncLeafPath()
 
     // relayout combos (width may have changed)
     layout()->activate();
+}
+
+QStringList ComboTreeWidget::searchPathRecursive(MenuNode *node, const QVariant &userData)
+{
+    if (node->data == userData)
+        return QStringList() << node->name;
+    foreach (MenuNode *child, node->children) {
+        QStringList path = searchPathRecursive(child, userData);
+        if (path.isEmpty())
+            continue;
+        if (node != m_rootNode)
+            path.prepend(node->name);
+        return path;
+    }
+    return QStringList();
 }
 
 } // namespace Internal

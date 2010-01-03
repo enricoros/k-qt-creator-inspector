@@ -97,13 +97,14 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     Inspector::Instance *instance = new Inspector::Instance;
     m_instances.append(instance);
     instance->model()->setInstanceEnabled(m_pluginEnabled);
-    connect(instance, SIGNAL(requestDisplay()), this, SLOT(slotDisplayInstance()));
+    connect(instance, SIGNAL(requestDisplay(int,int)), this, SLOT(slotDisplayInstance()));
 
     // UI
 
     // create the Window
     m_window = new Window;
     m_window->setInstance(instance);
+    connect(instance, SIGNAL(requestDisplay(int,int)), m_window, SLOT(slotActivateMenu(int,int)));
 
     // get core objects
     Core::ICore *core = Core::ICore::instance();

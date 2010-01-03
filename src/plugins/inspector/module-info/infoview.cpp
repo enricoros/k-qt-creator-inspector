@@ -53,11 +53,13 @@ InfoView::InfoView(AbstractModule *parentModule)
     connect(parentInstance()->model(), SIGNAL(itemChanged(QStandardItem*)), this, SLOT(slotRefreshInstanceData()));
     connect(parentInstance()->model(), SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(slotRowsInserted(QModelIndex,int,int)));
     // NOTE: THIS IS PAINFULLY SLOW ###
-    if (QStandardItem *item = parentInstance()->model()->item(InstanceModel::CommServer_Row, 6)) {
+#if 0
+    if (QStandardItem *item = parentInstance()->model()->item(InstanceModel::CommServer_Row, 8)) {
         int rowCount = item->rowCount();
         for (int row = 0; row < rowCount; ++row)
             commText->appendPlainText(item-> child(row)->text());
     }
+#endif
     slotRefreshInstanceData();
 
     // link controls to the model
@@ -95,12 +97,17 @@ void InfoView::slotRefreshInstanceData()
 void InfoView::slotRowsInserted(const QModelIndex &parent, int start, int end)
 {
     InstanceModel *model = parentInstance()->model();
-    QStandardItem *item = model->itemFromIndex(parent);
+    QStandardItem *parentItem = model->itemFromIndex(parent);
 
     // log all incoming packets
-    if (item && item->row() == InstanceModel::CommServer_Row && item->column() == 6)
-        for (int row = start; row <= end; ++row)
-            commText->appendPlainText(item->child(row)->text());
+    if (parentItem && parentItem->row() == InstanceModel::CommServer_Row) {
+        for (int row = start; row <= end; ++row) {
+            if (parentItem->column() == 6 || parentItem->column() == 7)
+                messagesText->appendPlainText(parentItem->child(row)->text());
+            else if (parentItem->column() == 8)
+                commText->appendPlainText(parentItem->child(row)->text());
+        }
+    }
 }
 
 void InfoView::setFieldState(QWidget *field, int state)

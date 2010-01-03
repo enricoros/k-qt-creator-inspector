@@ -69,7 +69,7 @@ Internal::ModuleController *Instance::moduleController() const
     return m_moduleController;
 }
 
-void Instance::makeVisible()
+void Instance::makeVisible(int moduleUid, int viewId)
 {
-    emit requestDisplay();
+    emit requestDisplay(moduleUid, viewId);
 }

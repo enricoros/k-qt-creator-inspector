@@ -55,6 +55,9 @@ public:
     /// sets the Instance handled by this widget
     void setInstance(Inspector::Instance *instance);
 
+public slots:
+    void slotActivateMenu(int moduleUid, int viewId);
+
 private slots:
     void slotMenuChanged(const QStringList &path, const QVariant &data);
 

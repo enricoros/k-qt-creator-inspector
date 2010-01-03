@@ -60,10 +60,24 @@ QString WarningsModule::name() const
     return tr("Auto-Warnings");
 }
 
+ModuleMenuEntries WarningsModule::menuEntries() const
+{
+    ModuleMenuEntries entries;
+    entries.append(ModuleMenuEntry(QStringList() << "Warnings", Uid, 0, QIcon(":/inspector/images/mark-32.png")));
+    return entries;
+}
+
+AbstractView *WarningsModule::createView(int viewId)
+{
+    if (viewId == 0)
+        return 0;
+    return AbstractModule::createView(viewId);
+}
+
 void WarningsModule::slotProcessIncomingData(quint32 code1, quint32 code2, QByteArray *data)
 {
     Q_UNUSED(data);
-    if (code1 == 0x02 && code2 == 0x02) {
+    if (code1 == 0x02 && (code2 == 0x01 || code2 == 0x02)) {
         m_notification->addWarning();
         m_notification->show();
     }
@@ -76,5 +90,5 @@ void WarningsModule::slotNotificationClicked()
     m_notification->hide();
 
     // switch view to this instance
-    emit parentInstance()->makeVisible();
+    emit parentInstance()->makeVisible(Uid, 0);
 }
