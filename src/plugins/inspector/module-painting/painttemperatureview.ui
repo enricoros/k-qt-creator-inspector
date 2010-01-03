@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>656</width>
-    <height>364</height>
+    <width>654</width>
+    <height>360</height>
    </rect>
   </property>
   <layout class="QGridLayout" name="gridLayout">
@@ -62,7 +62,7 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <widget class="Inspector::Internal::ResultsView" name="resultsView">
+        <widget class="QListView" name="resultsView">
          <property name="editTriggers">
           <set>QAbstractItemView::NoEditTriggers</set>
          </property>
@@ -168,7 +168,7 @@
             <x>0</x>
             <y>0</y>
             <width>364</width>
-            <height>240</height>
+            <height>259</height>
            </rect>
           </property>
          </widget>
@@ -386,13 +386,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>Inspector::Internal::ResultsView</class>
-   <extends>QListView</extends>
-   <header>module-painting/resultsview.h</header>
-  </customwidget>
- </customwidgets>
  <resources>
   <include location="../inspector.qrc"/>
  </resources>
