@@ -63,8 +63,8 @@ QString PaintingModule::name() const
 ModuleMenuEntries PaintingModule::menuEntries() const
 {
     ModuleMenuEntries entries;
-    entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Temperature"), Uid, 1));
-    entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Pixel Energy"), Uid, 2));
+    entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Temperature"), Uid, 1, QIcon(":/inspector/images/menu-paintingtemperature.png")));
+    entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Pixel Energy"), Uid, 2, QIcon(":/inspector/images/menu-paintingenergy.png")));
     return entries;
 }
 

@@ -102,6 +102,7 @@ private:
     MenuNode * m_rootNode;
     QList<MenuNode *> m_nodePath;
     QList<NodesComboBox *> m_comboPath;
+    QIcon m_blankIcon;
 };
 
 } // namespace Internal

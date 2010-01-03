@@ -57,7 +57,7 @@ InfoView::InfoView(AbstractModule *parentModule)
     if (QStandardItem *item = parentInstance()->model()->item(InstanceModel::CommServer_Row, 8)) {
         int rowCount = item->rowCount();
         for (int row = 0; row < rowCount; ++row)
-            commText->appendPlainText(item-> child(row)->text());
+            commText->appendPlainText(item->child(row)->text());
     }
 #endif
     slotRefreshInstanceData();
@@ -103,7 +103,7 @@ void InfoView::slotRowsInserted(const QModelIndex &parent, int start, int end)
     if (parentItem && parentItem->row() == InstanceModel::CommServer_Row) {
         for (int row = start; row <= end; ++row) {
             if (parentItem->column() == 6 || parentItem->column() == 7)
-                messagesText->appendPlainText(parentItem->child(row)->text());
+                messagesText->appendHtml("<font color='#800'>" + parentItem->child(row)->text() + "</font>");
             else if (parentItem->column() == 8)
                 commText->appendPlainText(parentItem->child(row)->text());
         }

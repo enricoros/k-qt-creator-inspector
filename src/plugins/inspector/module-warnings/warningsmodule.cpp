@@ -63,7 +63,7 @@ QString WarningsModule::name() const
 ModuleMenuEntries WarningsModule::menuEntries() const
 {
     ModuleMenuEntries entries;
-    entries.append(ModuleMenuEntry(QStringList() << "Warnings", Uid, 0, QIcon(":/inspector/images/mark-32.png")));
+    entries.append(ModuleMenuEntry(QStringList() << "Warnings", Uid, 0, QIcon(":/inspector/images/menu-warning.png")));
     return entries;
 }
 
@@ -90,5 +90,5 @@ void WarningsModule::slotNotificationClicked()
     m_notification->hide();
 
     // switch view to this instance
-    emit parentInstance()->makeVisible(Uid, 0);
+    parentInstance()->makeVisible(Uid, 0);
 }
