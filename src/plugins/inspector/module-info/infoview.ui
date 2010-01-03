@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>560</width>
-    <height>473</height>
+    <width>554</width>
+    <height>471</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -62,6 +62,19 @@
        <string>Plugin</string>
       </attribute>
       <layout class="QFormLayout" name="formLayout_2">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_16">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Inspector Status</string>
+         </property>
+        </widget>
+       </item>
        <item row="1" column="0">
         <widget class="QLabel" name="label_6">
          <property name="text">
@@ -80,18 +93,50 @@
         </widget>
        </item>
        <item row="2" column="0">
-        <widget class="QLabel" name="label">
+        <widget class="QLabel" name="label_9">
          <property name="text">
-          <string>Instance Enable:</string>
+          <string>Available Modules:</string>
          </property>
         </widget>
        </item>
        <item row="2" column="1">
+        <widget class="QLabel" name="modLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="textFormat">
+          <enum>Qt::PlainText</enum>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+         <property name="textInteractionFlags">
+          <set>Qt::NoTextInteraction</set>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Instance Enabled:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
         <widget class="QToolButton" name="enaButton">
+         <property name="maximumSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
          <property name="iconSize">
           <size>
-           <width>10</width>
-           <height>10</height>
+           <width>16</width>
+           <height>16</height>
           </size>
          </property>
          <property name="shortcut">
@@ -101,16 +146,6 @@
           <bool>true</bool>
          </property>
         </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_9">
-         <property name="text">
-          <string>Modules:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLabel" name="modLabel"/>
        </item>
        <item row="4" column="0" colspan="2">
         <widget class="Line" name="line">
@@ -160,19 +195,6 @@
          </property>
          <property name="text">
           <string>enable</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0" colspan="2">
-        <widget class="QLabel" name="label_16">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Inspector Status</string>
          </property>
         </widget>
        </item>
@@ -355,10 +377,6 @@
       <property name="autoFillBackground">
        <bool>true</bool>
       </property>
-      <attribute name="icon">
-       <iconset resource="../../coreplugin/fancyactionbar.qrc">
-        <normaloff>:/fancyactionbar/images/mode_Debug.png</normaloff>:/fancyactionbar/images/mode_Debug.png</iconset>
-      </attribute>
       <attribute name="title">
        <string>Debug CommServer</string>
       </attribute>
@@ -366,7 +384,7 @@
        <item>
         <widget class="QGroupBox" name="groupBox">
          <property name="title">
-          <string>Debugging</string>
+          <string>Messages, Errors and Logs</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
           <item row="0" column="0" colspan="2">
@@ -466,7 +484,6 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../coreplugin/fancyactionbar.qrc"/>
   <include location="../../debugger/debugger.qrc"/>
   <include location="../inspector.qrc"/>
  </resources>

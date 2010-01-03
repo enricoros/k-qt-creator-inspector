@@ -57,7 +57,7 @@ WarningsModule::~WarningsModule()
 
 QString WarningsModule::name() const
 {
-    return tr("Auto-Warnings");
+    return tr("Auto-Warnings (0.2)");
 }
 
 ModuleMenuEntries WarningsModule::menuEntries() const

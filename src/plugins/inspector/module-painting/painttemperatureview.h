@@ -44,15 +44,12 @@ class PaintTemperatureView : public AbstractView, public Ui::PaintTemperatureVie
 public:
     PaintTemperatureView(PaintingModule *parentModule);
 
-private:
-    QPixmap m_pixmap;
-
 private slots:
     // 'new test' slots
-    void on_defaultsButton_clicked();
-    void on_runButton_clicked();
-    void slotCheckPasses();
-    void slotUpdateWeight();
+    void slotCheckIterations();
+    void slotCheckWeight();
+    void slotLoadDefaults();
+    void slotTestClicked();
 
     // results slots
     void slotResultActivated(const QModelIndex &index);

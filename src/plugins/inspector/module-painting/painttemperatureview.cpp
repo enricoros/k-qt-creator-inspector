@@ -31,12 +31,7 @@
 #include "paintingmodel.h"
 #include "paintingmodule.h"
 #include "instance.h"
-#include <QApplication>
-#include <QIcon>
-#include <QLabel>
 #include <QPalette>
-#include <QPixmap>
-#include <QPushButton>
 
 using namespace Inspector::Internal;
 
@@ -44,14 +39,23 @@ PaintTemperatureView::PaintTemperatureView(PaintingModule *parentModule)
   : AbstractView(parentModule)
 {
     setupUi(this);
-    connect(passesBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckPasses()));
-    connect(lowBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckPasses()));
-    connect(highBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckPasses()));
-    connect(passesBox, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateWeight()));
-    connect(innerBox, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateWeight()));
-    connect(widthBox, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateWeight()));
-    connect(heightBox, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateWeight()));
-    connect(resultsView, SIGNAL(activated(QModelIndex)), this, SLOT(slotResultActivated(QModelIndex)));
+
+    // wire-up controls
+    connect(passesBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckIterations()));
+    connect(lowBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckIterations()));
+    connect(highBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckIterations()));
+    connect(passesBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckWeight()));
+    connect(innerBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckWeight()));
+    connect(widthBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckWeight()));
+    connect(heightBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckWeight()));
+    connect(defaultsButton, SIGNAL(clicked()), this, SLOT(slotLoadDefaults()));
+    connect(runButton, SIGNAL(clicked()), this, SLOT(slotTestClicked()));
+    imageScrollArea->setWidget(imageLabel);
+
+    // wire-up the results listview
+    connect(resultsView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(slotResultActivated(QModelIndex)));
+    resultsView->setModel(parentModule->model());
+    resultsView->setRootIndex(parentModule->model()->resultsTableIndex());
 
     // change looks
     QFont smallerFont = samplesLabel->font();
@@ -66,34 +70,15 @@ PaintTemperatureView::PaintTemperatureView(PaintingModule *parentModule)
     popsLabel->setPalette(lighterPal);
     popsBox->setFont(smallerFont);
     popsBox->setPalette(lighterPal);
+    QPalette transPal;
+    transPal.setColor(QPalette::Base, Qt::transparent);
+    resultsView->setPalette(transPal);
 
     // init fields
-    on_defaultsButton_clicked();
-
-    // ###TEMP
-    resultsView->setModel(parentModule->model());
-    resultsView->setRootIndex(parentModule->model()->resultsTableIndex());
+    slotLoadDefaults();
 }
 
-void PaintTemperatureView::on_defaultsButton_clicked()
-{
-    passesBox->setValue(5);
-    lowBox->setValue(1);
-    highBox->setValue(2);
-    innerBox->setValue(4);
-    widthBox->setValue(10);
-    heightBox->setValue(10);
-}
-
-void PaintTemperatureView::on_runButton_clicked()
-{
-    // Build the args list: passes << headDrops << tailDrops << innerPasses << chunkWidth << chunkHeight << consoleDebug
-    QVariantList args;
-    args << passesBox->value() << lowBox->value() << highBox->value() << innerBox->value() << widthBox->value() << heightBox->value() << debugBox->isChecked();
-    parentModule()->parentInstance()->model()->callProbeFunction("qWindowTemperature", args);
-}
-
-void PaintTemperatureView::slotCheckPasses()
+void PaintTemperatureView::slotCheckIterations()
 {
     int count = passesBox->value() - lowBox->value() - highBox->value();
     QPalette pal = palette();
@@ -109,23 +94,38 @@ void PaintTemperatureView::slotCheckPasses()
     samplesBox->setPalette(pal);
 }
 
-void PaintTemperatureView::slotUpdateWeight()
+void PaintTemperatureView::slotCheckWeight()
 {
     qreal pops = 100 * (qreal)passesBox->value() * (qreal)innerBox->value() / (qreal)(widthBox->value() * heightBox->value());
     popsBox->setText(tr("%1%").arg(QString::number(pops)));
+}
+
+void PaintTemperatureView::slotLoadDefaults()
+{
+    passesBox->setValue(5);
+    lowBox->setValue(1);
+    highBox->setValue(2);
+    innerBox->setValue(4);
+    widthBox->setValue(10);
+    heightBox->setValue(10);
+}
+
+void PaintTemperatureView::slotTestClicked()
+{
+    // Build the args list: passes << headDrops << tailDrops << innerPasses << chunkWidth << chunkHeight << consoleDebug
+    QVariantList args;
+    args << passesBox->value() << lowBox->value() << highBox->value() << innerBox->value() << widthBox->value() << heightBox->value() << debugBox->isChecked();
+    parentModule()->parentInstance()->model()->callProbeFunction("qWindowTemperature", args);
 }
 
 void PaintTemperatureView::slotResultActivated(const QModelIndex &index)
 {
     PaintingModel *model = static_cast<PaintingModule *>(parentModule())->model();
     const TemperatureItem *item = model->result(index.row());
-    if (!item)
+    if (!item || item->image().isNull())
         return;
-
-    QLabel *label = new QLabel();
-    label->setWindowIcon(QIcon(":/inspector/images/menu-paintingtemperature.png"));
-    label->setWindowTitle(tr("Image Viewer - Painting Temperature"));
-    label->setFixedSize(item->image().size());
-    label->setPixmap(item->image());
-    label->show();
+    imageLabel->setFixedSize(item->image().size());
+    imageLabel->setPixmap(item->image());
+    resultsTabWidget->setCurrentIndex(1);
+    imageScrollArea->setFocus();
 }
