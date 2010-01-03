@@ -57,8 +57,9 @@ Row 'CommServer_Row': Communication Server
   3: probe connected
   4: probe info
   5: ---
-  6: communication log parent (1 row per string)
+  6: communication messages parent (1 row per string)
   7: communication errors parent (1 row per string)
+  8: communication log parent (1 row per string)
 */
 
 InstanceModel::InstanceModel(QObject *parent)
@@ -131,7 +132,7 @@ int InstanceModel::probeActivationFlags() const
     return flags;
 }
 
-bool InstanceModel::callProbeFunction(const QString &name, QVariantList args)
+bool InstanceModel::callProbeFunction(const QString &name, const QVariantList &args)
 {
     // REFACTOR THIS!! ###
     // this is the ONE AND ONLY link to control the debugger, for now

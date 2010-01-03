@@ -7,7 +7,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>562</width>
+    <width>560</width>
     <height>473</height>
    </rect>
   </property>
@@ -385,7 +385,7 @@
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="QPlainTextEdit" name="errorsText">
+           <widget class="QPlainTextEdit" name="messagesText">
             <property name="font">
              <font>
               <family>Courier New</family>
@@ -428,7 +428,7 @@
            </layout>
           </item>
           <item row="1" column="2">
-           <widget class="QToolButton" name="clearErrors">
+           <widget class="QToolButton" name="clearMessages">
             <property name="text">
              <string>clear</string>
             </property>
@@ -488,9 +488,9 @@
    </hints>
   </connection>
   <connection>
-   <sender>clearErrors</sender>
+   <sender>clearMessages</sender>
    <signal>clicked()</signal>
-   <receiver>errorsText</receiver>
+   <receiver>messagesText</receiver>
    <slot>clear()</slot>
    <hints>
     <hint type="sourcelabel">

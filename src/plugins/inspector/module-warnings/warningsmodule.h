@@ -49,6 +49,8 @@ public:
     enum { Uid = 0x03 };
     int uid() const { return Uid; }
     QString name() const;
+    ModuleMenuEntries menuEntries() const;
+    AbstractView *createView(int viewId);
 
 private slots:
     void slotProcessIncomingData(quint32 code1, quint32 code2, QByteArray *data);

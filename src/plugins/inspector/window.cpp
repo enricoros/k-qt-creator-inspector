@@ -95,6 +95,16 @@ void Window::setInstance(Inspector::Instance *instance)
     }
 }
 
+void Window::slotActivateMenu(int moduleUid, int viewId)
+{
+    if ((moduleUid & 0xFF000000) || (viewId & 0xFFFFFF00)) {
+        qWarning("Window::slotActivateMenu: moduleUid (%d) or viewId (%d) not valid", moduleUid, viewId);
+        return;
+    }
+    quint32 compoId = (moduleUid << 8) + viewId;
+    m_menuWidget->setCurrentPath(compoId);
+}
+
 void Window::slotMenuChanged(const QStringList &/*path*/, const QVariant &data)
 {
     // sanity check on the menu code

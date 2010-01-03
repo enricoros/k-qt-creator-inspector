@@ -57,10 +57,10 @@ public:
     Internal::CommServer *commServer() const;
     Internal::ModuleController *moduleController() const;
 
-    void makeVisible();
+    void makeVisible(int moduleUid, int viewId);
 
 signals:
-    void requestDisplay();
+    void requestDisplay(int moduleUid, int viewId);
 
 private:
     InstanceModel *m_model;

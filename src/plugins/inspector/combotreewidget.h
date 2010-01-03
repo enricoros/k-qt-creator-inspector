@@ -81,6 +81,7 @@ public:
 
     // current path
     void setCurrentPath(const QStringList &path);
+    void setCurrentPath(const QVariant &userData);
     QStringList currentPath() const;
     QVariant currentData() const;
 
@@ -96,6 +97,7 @@ private slots:
 
 private:
     void syncLeafPath();
+    QStringList searchPathRecursive(MenuNode *node, const QVariant &userData);
 
     MenuNode * m_rootNode;
     QList<MenuNode *> m_nodePath;
