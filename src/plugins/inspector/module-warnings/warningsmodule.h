@@ -53,7 +53,7 @@ public:
     AbstractView *createView(int viewId);
 
 private slots:
-    void slotProcessIncomingData(quint32 code1, quint32 code2, QByteArray *data);
+    void slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data);
     void slotNotificationClicked();
 
 private:

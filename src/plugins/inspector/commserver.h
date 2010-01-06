@@ -51,7 +51,7 @@ public:
     ~CommServer();
 
 signals:
-    void incomingData(quint32 code1, quint32 code2, QByteArray *data);
+    void incomingData(quint32 channel, quint32 code1, QByteArray *data);
 
 private slots:
     void slotIncomingConnection();
@@ -60,7 +60,7 @@ private slots:
     void slotConnError(QLocalSocket::LocalSocketError error);
 
 private:
-    bool processIncomingData(quint32 code1, quint32 code2, QByteArray *data);
+    bool processIncomingData(quint32 channel, quint32 code1, QByteArray *data);
     void addMessageToModel(int column, const QString &message);
 
     InstanceModel *m_model;

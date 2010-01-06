@@ -120,13 +120,13 @@ void CommServer::slotReadConnection()
             break;
 
         // decode chunk
-        quint32 code1, code2;
+        quint32 channel, code1;
         QByteArray payload;
-        bool decoded = Inspector::Internal::demarshallMessage(m_incomingData, &code1, &code2, &payload);
+        bool decoded = Inspector::Internal::demarshallMessage(m_incomingData, &channel, &code1, &payload);
         if (!decoded)
             qWarning() << "CommServer::slotReadConnection: error decoding a message";
         else
-            processIncomingData(code1, code2, &payload);
+            processIncomingData(channel, code1, &payload);
 
         // remove chunk from incoming data
         m_incomingData.remove(0, chunkSize);
@@ -148,60 +148,29 @@ void CommServer::slotConnError(QLocalSocket::LocalSocketError error)
     addMessageToModel(7, tr("error %1: %2").arg(error).arg(m_localServer->errorString()));
 }
 
-bool CommServer::processIncomingData(quint32 code1, quint32 code2, QByteArray *data)
+bool CommServer::processIncomingData(quint32 channel, quint32 code1, QByteArray *data)
 {
     // Log Communication
-    addMessageToModel(8, tr("%1:%2 (%3)").arg(code1).arg(code2).arg(data->size()));
+    addMessageToModel(8, tr("%1:%2 (%3)").arg(channel).arg(code1).arg(data->size()));
 
     // Log Messages / Errors
-    if (code1 == 0x02) {
-        if (code2 == 0x01)
+    if (channel == Inspector::Internal::Channel_General) {
+        if (code1 == 0x00) {
+            // TODO: handle the just received 'probe startup'
+        } else if (code1 == 0x01) {
             addMessageToModel(6, QString(*data));
-        else if (code2 == 0x02)
+        } else if (code1 == 0x02) {
             addMessageToModel(7, QString(*data));
+        }
     }
 
     // tell all the listening modules about this data
-    emit incomingData(code1, code2, data);
-return true;
+    emit incomingData(channel, code1, data);
 
-    // 1. Service
-    if (code1 == 0x01) {
-        ///window->serviceText->appendPlainText(QString::number(code2) + " " + QString(*data));
+    return true;
 
-        // 1.1 begin
-        if (code2 == 0x01) {
-            return true;
-        }
-    }
-
-    // 2. Generic Comm
-    if (code1 == 0x02) {
-
-        // 2.3 percent
-        if (code2 == 0x03) {
-            int percent = qBound(0, QString(*data).toInt(), 100);
-            qWarning("progress percent: %d", percent);
-            // ### TODO
-            ///window->progressBar->setValue(percent);
-            ///window->progressLabel->setVisible(percent < 100);
-            ///window->progressBar->setVisible(percent < 100);
-            return true;
-        }
-    }
-
-    // 3. Event Loop Information
-    if (code1 == 0x03) {
-        // 3.1. Timing
-        if (code2 == 0x01) {
-            //qWarning("timing");
-            return false;
-        }
-    }
-
-    // warn
-    qWarning() << "unhandled message" << code1 << code2 << *data;
-    return false;
+    //qWarning() << "unhandled message" << channel << code1 << *data;
+    //return false;
 }
 
 void CommServer::addMessageToModel(int column, const QString &message)

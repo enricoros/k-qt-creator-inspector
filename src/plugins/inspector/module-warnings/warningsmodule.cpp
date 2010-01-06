@@ -74,10 +74,10 @@ AbstractView *WarningsModule::createView(int viewId)
     return AbstractModule::createView(viewId);
 }
 
-void WarningsModule::slotProcessIncomingData(quint32 code1, quint32 code2, QByteArray *data)
+void WarningsModule::slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data)
 {
     Q_UNUSED(data);
-    if (code1 == 0x02 && (code2 == 0x01 || code2 == 0x02)) {
+    if (channel == 0x03 && code1 == 0x01) {
         m_notification->addWarning();
         m_notification->show();
     }
