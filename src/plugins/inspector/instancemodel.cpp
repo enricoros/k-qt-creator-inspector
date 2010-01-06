@@ -28,8 +28,6 @@
 **************************************************************************/
 
 #include "instancemodel.h"
-#include <QTableView>
-#include <QTreeView>
 
 #include "../../../share/qtcreator/gdbmacros/perfunction.h"
 

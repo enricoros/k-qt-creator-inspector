@@ -35,6 +35,7 @@
 namespace Inspector {
 namespace Internal {
 
+class TasksModel;
 class TasksScene;
 
 class TasksWidget : public QGraphicsView
@@ -43,6 +44,8 @@ class TasksWidget : public QGraphicsView
 
 public:
     TasksWidget(QWidget *parent = 0);
+
+    void setTasksModel(TasksModel *model);
 
     // ::QWidget
     QSize sizeHint() const;

@@ -125,10 +125,10 @@ void TasksScene::regenScene()
 
 }
 
-class TaskItem : public QGraphicsWidget
+class TaskRectangle : public QGraphicsWidget
 {
     public:
-        TaskItem(int start, QGraphicsItem * parent = 0)
+        TaskRectangle(int start, QGraphicsItem * parent = 0)
           : QGraphicsWidget(parent)
         {
             setPos(start - 1, 2);
@@ -206,21 +206,21 @@ void TasksScene::updateCurrentScene()
 
     // RANDOM TASK DELETION
     if ((qrand() % 50) == 42 && !m_currentTasks.isEmpty()) {
-        TaskItem * i = m_currentTasks.takeAt(qrand() % m_currentTasks.size());
+        TaskRectangle * i = m_currentTasks.takeAt(qrand() % m_currentTasks.size());
         (void)i;
         //removeItem(i);
         //delete i;
     }
 
     // TASK UPDATE
-    foreach (TaskItem * item, m_currentTasks)
+    foreach (TaskRectangle * item, m_currentTasks)
         item->setEnd(contentsWidth);
 
     // RANDOM TASK ACTIVATION
     static bool first = true;
     if (first || (qrand() % 70) == 42) {
         first = false;
-        TaskItem * i = new TaskItem(contentsWidth);
+        TaskRectangle * i = new TaskRectangle(contentsWidth);
         addItem(i);
         m_currentTasks.append(i);
     }

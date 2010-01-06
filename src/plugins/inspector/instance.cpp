@@ -38,10 +38,11 @@ using namespace Inspector;
 
 Instance::Instance(QObject *parent)
   : QObject(parent)
-  , m_model(new InstanceModel)
+  , m_instanceModel(new InstanceModel)
+  , m_tasksModel(new Internal::TasksModel)
 {
     // create the CommServer
-    m_commServer = new Internal::CommServer(m_model);
+    m_commServer = new Internal::CommServer(m_instanceModel);
 
     // create the Test Control & Tests
     m_moduleController = new Internal::ModuleController(this);
@@ -51,12 +52,18 @@ Instance::~Instance()
 {
     delete m_moduleController;
     delete m_commServer;
-    delete m_model;
+    delete m_tasksModel;
+    delete m_instanceModel;
 }
 
-InstanceModel *Instance::model() const
+InstanceModel *Instance::instanceModel() const
 {
-    return m_model;
+    return m_instanceModel;
+}
+
+Internal::TasksModel *Instance::tasksModel() const
+{
+    return m_tasksModel;
 }
 
 Internal::CommServer *Instance::commServer() const

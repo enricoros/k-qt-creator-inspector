@@ -50,7 +50,7 @@ public:
     QVariant itemValue(int row, int column = 0, int role = Qt::DisplayRole) const;
 
 protected:
-    void openDebugWidget();
+    void openDebugWidget(const QModelIndex &root = QModelIndex());
 
 private:
     QAbstractItemView *m_debugView;

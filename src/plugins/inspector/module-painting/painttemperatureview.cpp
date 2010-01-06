@@ -196,7 +196,7 @@ void PaintTemperatureView::slotTestClicked()
     // Build the args list: passes << headDrops << tailDrops << innerPasses << chunkWidth << chunkHeight << consoleDebug
     QVariantList args;
     args << passesBox->value() << lowBox->value() << highBox->value() << innerBox->value() << widthBox->value() << heightBox->value() << debugBox->isChecked();
-    parentModule()->parentInstance()->model()->callProbeFunction("qWindowTemperature", args);
+    parentModule()->parentInstance()->instanceModel()->callProbeFunction("qWindowTemperature", args);
 }
 
 void PaintTemperatureView::slotModelItemChanged()

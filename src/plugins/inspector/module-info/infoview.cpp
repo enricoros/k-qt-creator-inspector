@@ -50,8 +50,8 @@ InfoView::InfoView(AbstractModule *parentModule)
     modLabel->setText(parentInstance()->moduleController()->moduleNames().join(", "));
 
     // update Instance data
-    connect(parentInstance()->model(), SIGNAL(itemChanged(QStandardItem*)), this, SLOT(slotRefreshInstanceData()));
-    connect(parentInstance()->model(), SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(slotRowsInserted(QModelIndex,int,int)));
+    connect(parentInstance()->instanceModel(), SIGNAL(itemChanged(QStandardItem*)), this, SLOT(slotRefreshInstanceData()));
+    connect(parentInstance()->instanceModel(), SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(slotRowsInserted(QModelIndex,int,int)));
     // NOTE: THIS IS PAINFULLY SLOW ###
 #if 0
     if (QStandardItem *item = parentInstance()->model()->item(InstanceModel::CommServer_Row, 8)) {
@@ -63,13 +63,13 @@ InfoView::InfoView(AbstractModule *parentModule)
     slotRefreshInstanceData();
 
     // link controls to the model
-    connect(enaButton, SIGNAL(toggled(bool)), parentInstance()->model(), SLOT(setInstanceEnabled(bool)));
-    connect(paintBox, SIGNAL(toggled(bool)), parentInstance()->model(), SLOT(setDebugPaint(bool)));
+    connect(enaButton, SIGNAL(toggled(bool)), parentInstance()->instanceModel(), SLOT(setInstanceEnabled(bool)));
+    connect(paintBox, SIGNAL(toggled(bool)), parentInstance()->instanceModel(), SLOT(setDebugPaint(bool)));
 }
 
 void InfoView::slotRefreshInstanceData()
 {
-    InstanceModel *model = parentInstance()->model();
+    InstanceModel *model = parentInstance()->instanceModel();
 
     setFieldState(enaButton,        model->instanceEnabled());
     setFieldState(paintBox,         model->debugPaint());
@@ -96,7 +96,7 @@ void InfoView::slotRefreshInstanceData()
 
 void InfoView::slotRowsInserted(const QModelIndex &parent, int start, int end)
 {
-    InstanceModel *model = parentInstance()->model();
+    InstanceModel *model = parentInstance()->instanceModel();
     QStandardItem *parentItem = model->itemFromIndex(parent);
 
     // log all incoming packets
