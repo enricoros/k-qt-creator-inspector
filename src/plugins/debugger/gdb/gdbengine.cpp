@@ -1020,7 +1020,7 @@ void GdbEngine::callFunction(const QString &function, const QVariantList &args)
         firstArg = false;
     }
     callString += _(")");
-    postCommand(callString.toLocal8Bit(), GdbEngine::NeedsStop);
+    postCommand(callString.toLocal8Bit(), GdbEngine::NeedsStop | GdbEngine::NonCriticalResponse);
 }
 
 // Called from CoreAdapter and AttachAdapter

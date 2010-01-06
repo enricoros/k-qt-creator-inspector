@@ -144,7 +144,7 @@ class PerfCommClient {
             : m_fencing(false)
         {
             m_sock = new QLocalSocket();
-            m_sock->connectToServer(serverName);
+            m_sock->connectToServer(serverName, QIODevice::WriteOnly | QIODevice::Unbuffered);
             m_connected = m_sock->waitForConnected(10000);
             if (!m_connected)
                 printError("can't establish connection to the Inspector server");
@@ -160,60 +160,41 @@ class PerfCommClient {
             return m_connected;
         }
 
-        /** message classes
-            1 service codes
-            2 generic communication
-              1 text messages
-              2 error messages
-              3 percent
-              4 qimages
-            3 event loop information
-              1 timing
-            100 painting temperature
-              1 started
-              2 ended
-        */
-
-        bool sendRaw(quint32 code1, quint32 code2, const QByteArray &data)
+        bool sendCustom(quint32 channel, quint32 code1, const QByteArray &data = QByteArray())
         {
-            return sendData(Inspector::Internal::marshallMessage(code1, code2, data));
+            return sendMarshalled(channel, code1, data);
         }
 
-        bool sendService(quint32 code2, const QByteArray &data)
+        bool sendInteger(quint32 channel, quint32 code1, int value)
         {
-            return sendData(Inspector::Internal::marshallMessage(0x01, code2, data));
+            return sendMarshalled(channel, code1, QString::number(value).toLatin1());
         }
 
-        bool sendMessage(const QString & string)
+        bool sendDouble(quint32 channel, quint32 code1, double value)
         {
-            return sendData(Inspector::Internal::marshallMessage(0x02, 0x01, string.toLatin1()));
+            return sendMarshalled(channel, code1, QString::number(value).toLatin1());
         }
 
-        bool sendError(const QString & string)
-        {
-            return sendData(Inspector::Internal::marshallMessage(0x02, 0x02, string.toLatin1()));
-        }
-
-        bool sendPercent(int value)
-        {
-            return sendData(Inspector::Internal::marshallMessage(0x02, 0x03, QString::number(value).toLatin1()));
-        }
-
-        bool sendImage(const QImage & image)
+        bool sendImage(quint32 channel, quint32 code1, const QImage & image)
         {
             QByteArray imageData;
             QDataStream dataWriter(&imageData, QIODevice::WriteOnly);
             dataWriter << image.size();
             dataWriter << (quint32)image.format();
             dataWriter << QByteArray((const char *)image.bits(), image.numBytes());
-            return sendData(Inspector::Internal::marshallMessage(0x02, 0x04, imageData));
+            return sendMarshalled(channel, code1, imageData);
         }
-
-        bool sendTiming(double time)
+/*
+        bool sendMessage(const QString & string)
         {
-            return sendData(Inspector::Internal::marshallMessage(0x03, 0x01, QString::number(time).toLatin1()));
+            return sendMarshalled(Inspector::Internal::Channel_General, 0x01, string.toLatin1());
         }
 
+        bool sendError(const QString & string)
+        {
+            return sendMarshalled(Inspector::Internal::Channel_General, 0x02, string.toLatin1());
+        }
+*/
         void printError(const QString & string) const
         {
             CONSOLE_PRINT("%s", qPrintable(string));
@@ -225,7 +206,7 @@ class PerfCommClient {
         }
 
     private:
-        bool sendData(const QByteArray & data)
+        inline bool sendMarshalled(quint32 channel, quint32 code1, const QByteArray &data)
         {
             // send the message
             if (m_fencing) {
@@ -233,7 +214,8 @@ class PerfCommClient {
                 return false;
             }
             m_fencing = true;
-            m_sock->write(data);
+            const QByteArray marshalled = Inspector::Internal::marshallMessage(channel, code1, data);
+            m_sock->write(marshalled);
             m_sock->flush();
             if (!m_sock->waitForBytesWritten(5000))
                 printError("error in waitForBytesWritten!");
@@ -261,7 +243,7 @@ static bool eventInterceptorCallback(void **data)
         static int stackDepth = 0;
         ++stackDepth;
         static int numE = 0;
-        int localE = ++numE;
+        quint32 localE = ++numE;
         QObject *receiver = reinterpret_cast<QObject*>(data[0]);
         bool *resultValue = reinterpret_cast<bool*>(data[2]);
 
@@ -283,11 +265,18 @@ static bool eventInterceptorCallback(void **data)
 
         // send out data
         // TODO: use a per-thread STACK for SIGNALS AND SLOTS SENDING HERE ?
-        ppCommClient->sendTiming(elapsedMs);
+        ppCommClient->sendDouble(Inspector::Internal::Channel_Events, 0, elapsedMs);
 
         // check for too long events
-        if (elapsedMs > 200)
-            ppCommClient->sendMessage(QString("Troppo lungo l'evento %1, tipo %2, durata %3, su %4").arg(localE).arg(event->type()).arg(elapsedMs).arg(receiver->metaObject()->className() ? receiver->metaObject()->className() : "null"));
+        if (elapsedMs > 200) {
+            QByteArray eventData;
+            QDataStream dataWriter(&eventData, QIODevice::WriteOnly);
+            dataWriter << localE;
+            dataWriter << (quint32)event->type();
+            dataWriter << elapsedMs;
+            dataWriter << (receiver->metaObject()->className() ? receiver->metaObject()->className() : "null");
+            ppCommClient->sendCustom(Inspector::Internal::Channel_Events, 1, eventData);
+        }
 
         // show painting, if
         if (ppDebugPainting && event->type() == QEvent::Paint) {
@@ -353,7 +342,7 @@ Q_DECL_EXPORT bool qPerfActivate(const char * serverName, int activationFlags)
     QInternal::registerCallback(QInternal::EventNotifyCallback, eventInterceptorCallback);
 
     CONSOLE_PRINT(PP_NAME": Activated");
-    ppCommClient->sendService(0x01, QByteArray());
+    ppCommClient->sendCustom(Inspector::Internal::Channel_General, 0x00);
     return true;
 }
 
@@ -386,7 +375,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
 {
     // sanity check
     if (!ppCommClient) {
-        CONSOLE_PRINT("not connected");
+        CONSOLE_PRINT("not connected to the Inspector");
         return;
     }
 
@@ -394,7 +383,8 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
     QApplication * app = dynamic_cast<QApplication *>(QCoreApplication::instance());
     if (!app) {
         CONSOLE_PRINT("no QApplication");
-        ppCommClient->sendError("No QApplication in this window");
+        // TODO: add a code for the PaintProbe comm!
+        //ppCommClient->sendError("No QApplication in this window");
         return;
     }
 
@@ -402,7 +392,8 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
     ppWindowTemperature = true;
 
     // tell that the operation has started
-    ppCommClient->sendRaw(0x100, 1, QByteArray());
+    ppCommClient->sendCustom(Inspector::Internal::Channel_Painting, 1);
+    ppCommClient->sendInteger(Inspector::Internal::Channel_Painting, 3, 1);
 
     // vars
     struct timeval tv1, tv2;
@@ -443,7 +434,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
         if (consoleDebug)
             CONSOLE_PRINT("send snapshot");
 
-        ppCommClient->sendImage(baseImage);
+        ppCommClient->sendImage(Inspector::Internal::Channel_Painting, 4, baseImage);
 
         QImage testImage(wW, wH, QImage::Format_ARGB32);
         testImage.fill(0);
@@ -481,7 +472,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
                 if (percCycle >= percStep) {
                     int percent = (percProgress * 100) / percTotal;
                     percCycle = 0;
-                    ppCommClient->sendPercent(percent);
+                    ppCommClient->sendInteger(Inspector::Internal::Channel_Painting, 3, percent);
                     if (consoleDebug)
                         CONSOLE_PRINT("%d done", percent);
                 }
@@ -489,7 +480,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
         }
 
         // tell that we reached 100%
-        ppCommClient->sendPercent(100);
+        ppCommClient->sendInteger(Inspector::Internal::Channel_Painting, 3, 100);
         if (consoleDebug)
             CONSOLE_PRINT("100 done");
 
@@ -539,7 +530,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
             CONSOLE_PRINT("done painting");
 
         // send out the result
-        ppCommClient->sendImage(baseImage);
+        ppCommClient->sendImage(Inspector::Internal::Channel_Painting, 5, baseImage);
         if (consoleDebug)
             CONSOLE_PRINT("done sending colorized image");
     }
@@ -548,5 +539,8 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
     ppWindowTemperature = false;
 
     // tell that the operation has finished
-    ppCommClient->sendRaw(0x100, 2, QByteArray());
+    ppCommClient->sendCustom(Inspector::Internal::Channel_Painting, 2);
+
+    // run event loop, to flush out the localsocket - FIXME - avoid this - DOESN'T WORK ANYWAY
+    //app->processEvents();
 }

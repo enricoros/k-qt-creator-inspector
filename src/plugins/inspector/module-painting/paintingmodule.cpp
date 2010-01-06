@@ -105,21 +105,22 @@ void PaintingModule::slotUnlock()
         view->setEnabled(true);
 }
 
-void PaintingModule::slotProcessIncomingData(quint32 code1, quint32 code2, QByteArray *data)
+void PaintingModule::slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data)
 {
     // only filter comm by this Uid (NOTE: sync the probe impl)
-    if (code1 != 0x02)
+    if (channel != 0x0002 /*Inspector::Internal::Channel_Painting*/)
         return;
 
-    // 2.3 percent
-    if (code2 == 0x03) {
-        int percent = qBound(0, QString(*data).toInt(), 100);
-        m_model->setPtProgress(percent);
-        return;
-    }
-
-    // 2.4 qimages
-    if (code2 == 0x04) {
+    switch (code1) {
+    case 1:     // begin
+        break;
+    case 2:     // end
+        break;
+    case 3:     // percent
+        m_model->setPtProgress(qBound(0, QString(*data).toInt(), 100));
+        break;
+    case 4:     // start image
+    case 5: {   // colored image
         QDataStream dataReader(data, QIODevice::ReadOnly);
         QSize size;
         quint32 format;
@@ -129,6 +130,10 @@ void PaintingModule::slotProcessIncomingData(quint32 code1, quint32 code2, QByte
         dataReader >> contents;
         QImage image((uchar *)contents.data(), size.width(), size.height(), (QImage::Format)format);
         m_model->addResult(QDateTime::currentDateTime(), 1.0, "test", "test", QPixmap::fromImage(image));
+        } break;
+    default:
+        qWarning("PaintingModule::slotProcessIncomingData: unhandled code1 %d", code1);
+        break;
     }
 }
 

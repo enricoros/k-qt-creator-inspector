@@ -36,8 +36,27 @@
 namespace Inspector {
     namespace Internal {
         enum ActivationFlags {
-            AF_None        = 0x0000,
-            AF_PaintDebug  = 0x0001,
+            AF_None             = 0x0000,
+            AF_PaintDebug       = 0x0001,
+        };
+
+        enum CommChannel {
+            Channel_General     = 0x0001, /*
+              0: startup
+              1: message,           qbytearray
+              2: error,             qbytearray
+            */
+            Channel_Painting    = 0x0002, /*
+              1: start
+              2: stop
+              3: progress,          int
+              4: original image,    image
+              5: colored image,     image
+            */
+            Channel_Events      = 0x0003  /*
+              0: elapsed millisec,  double
+              1: overload,          data(quint32, quint32, double, const char *)
+            */
         };
 
         // encode
