@@ -1020,7 +1020,7 @@ void GdbEngine::callFunction(const QString &function, const QVariantList &args)
         firstArg = false;
     }
     callString += _(")");
-    postCommand(callString);
+    postCommand(callString.toLocal8Bit(), GdbEngine::NeedsStop);
 }
 
 // Called from CoreAdapter and AttachAdapter
@@ -3371,15 +3371,15 @@ void GdbEngine::handleDebuggingHelperInspector(const GdbResponse &response)
 
     /// Add check for: Present and with 4 symbols with {0, 0, 0, 0} values (otherwise another handler is installed)
     // "$5 = {signal_begin_callback = 0, slot_begin_callback = 0, signal_end_callback = 0, slot_end_callback = 0}"
-    postCommand(_("p qt_signal_spy_callback_set"));
+    postCommand("p qt_signal_spy_callback_set");
 
     /// Add check for: Present and with the "void (const QSignalSpyCallbackSet &)" signature
     // "$6 = {void (const QSignalSpyCallbackSet &)} 0xb7083440 <qt_register_signal_spy_callbacks(QSignalSpyCallbackSet const&)>"
-    postCommand(_("p qt_register_signal_spy_callbacks"));
+    postCommand("p qt_register_signal_spy_callbacks");
 
-    postCommand(_("p global_callback_table"));
+    postCommand("p global_callback_table");
 
-    postCommand(_("p QInternal::registerCallback"));
+    postCommand("p QInternal::registerCallback");
 }
 
 void GdbEngine::handleChildren(const WatchData &data0, const GdbMi &item,
