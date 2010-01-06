@@ -64,7 +64,7 @@ QVariant AbstractEasyModel::itemValue(int row, int column, int role) const
     return it ? it->data(role) : QVariant();
 }
 
-void AbstractEasyModel::openDebugWidget()
+void AbstractEasyModel::openDebugWidget(const QModelIndex &root)
 {
     if (!m_debugView) {
 #if 1
@@ -73,6 +73,9 @@ void AbstractEasyModel::openDebugWidget()
         m_debugView = new QTableView;
 #endif
         m_debugView->setModel(this);
+        connect(m_debugView, SIGNAL(doubleClicked(QModelIndex)), m_debugView, SLOT(setRootIndex(QModelIndex)));
     }
     m_debugView->show();
+    if (root.isValid())
+        m_debugView->setRootIndex(root);
 }

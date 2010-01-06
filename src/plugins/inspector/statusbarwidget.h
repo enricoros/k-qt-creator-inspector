@@ -27,32 +27,60 @@
 **
 **************************************************************************/
 
-#ifndef TASKBARWIDGET_H
-#define TASKBARWIDGET_H
+#ifndef STATUSBARWIDGET_H
+#define STATUSBARWIDGET_H
 
 #include <QWidget>
-#include <QPixmap>
+#include <QList>
+#include <QModelIndex>
+#include <QToolButton>
+class QAbstractButton;
+class QHBoxLayout;
+class QPixmap;
 
 namespace Inspector {
 namespace Internal {
 
-class TaskbarWidget : public QWidget
+class TasksModel;
+
+class KillTaskButton : public QToolButton
 {
     Q_OBJECT
 
 public:
-    TaskbarWidget(QWidget *parent = 0);
+    KillTaskButton(quint32 tid, QWidget *parent = 0);
 
-    void clear();
+    quint32 tid() const;
 
+private:
+    quint32 m_tid;
+};
+
+class StatusBarWidget : public QWidget
+{
+    Q_OBJECT
+
+public:
+    StatusBarWidget(QWidget *parent = 0);
+
+    void setTasksModel(TasksModel *model);
+
+protected:
     // ::QWidget
     void paintEvent(QPaintEvent *);
 
+private slots:
+    void slotTasksChanged();
+    void slotKillTask();
+
 private:
-    QPixmap * m_shadowTile;
+    QPixmap *m_shadowTile;
+    QList<KillTaskButton *> m_buttons;
+    QHBoxLayout *m_layout;
+    TasksModel *m_model;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // TASKBARWIDGET_H
+#endif // STATUSBARWIDGET_H

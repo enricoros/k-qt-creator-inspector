@@ -28,15 +28,13 @@
 **************************************************************************/
 
 #include "paintingmodel.h"
-#include <QTableView>
-#include <QTreeView>
 
 using namespace Inspector::Internal;
 
 /* == PaintingModel Usage ==
 Row 'Results_Row':
   0: results count          int
-  1: results                LIST
+  1: results                LIST(TemperatureItem)
   2: saved                  bool
 
 Row 'CurrentPt_Row'

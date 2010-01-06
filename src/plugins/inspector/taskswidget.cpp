@@ -47,6 +47,12 @@ TasksWidget::TasksWidget(QWidget *parent)
     setScene(m_scene);
 }
 
+void TasksWidget::setTasksModel(TasksModel *model)
+{
+    Q_UNUSED(model);
+    qWarning("TasksWidget::setTasksModel: TODO this");
+}
+
 QSize TasksWidget::sizeHint() const
 {
     return minimumSizeHint();

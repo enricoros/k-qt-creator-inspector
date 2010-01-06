@@ -42,7 +42,7 @@ class Instance;
 namespace Internal {
 
 class ComboTreeWidget;
-class TaskbarWidget;
+class StatusBarWidget;
 class ViewContainerWidget;
 
 class Window : public QWidget
@@ -66,7 +66,7 @@ private:
     Instance *              m_extInstance;
     ComboTreeWidget *       m_menuWidget;
     ViewContainerWidget *   m_viewWidget;
-    TaskbarWidget *         m_taskbarWidget;
+    StatusBarWidget *       m_statusWidget;
 };
 
 } // namespace Internal

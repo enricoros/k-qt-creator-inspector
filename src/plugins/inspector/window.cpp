@@ -32,7 +32,7 @@
 #include "combotreewidget.h"
 #include "instance.h"
 #include "modulecontroller.h"
-#include "taskbarwidget.h"
+#include "statusbarwidget.h"
 #include "viewcontainerwidget.h"
 #include "module-info/infomodule.h"
 #include <QVBoxLayout>
@@ -45,7 +45,7 @@ Window::Window(QWidget *parent)
   , m_extInstance(0)
   , m_menuWidget(0)
   , m_viewWidget(0)
-  , m_taskbarWidget(0)
+  , m_statusWidget(0)
 {
     QVBoxLayout * layout = new QVBoxLayout(this);
     layout->setMargin(0);
@@ -58,8 +58,8 @@ Window::Window(QWidget *parent)
     m_viewWidget = new ViewContainerWidget(this);
     layout->addWidget(m_viewWidget);
 
-    m_taskbarWidget = new TaskbarWidget(this);
-    layout->addWidget(m_taskbarWidget);
+    m_statusWidget = new Inspector::Internal::StatusBarWidget(this);
+    layout->addWidget(m_statusWidget);
 }
 
 void Window::setInstance(Inspector::Instance *instance)
@@ -68,7 +68,7 @@ void Window::setInstance(Inspector::Instance *instance)
     if (m_extInstance) {
         m_menuWidget->clear();
         m_viewWidget->setWidget(new QWidget);
-        m_taskbarWidget->clear();
+        m_statusWidget->setTasksModel(0);
     }
 
     // set the new instance
@@ -87,11 +87,11 @@ void Window::setInstance(Inspector::Instance *instance)
             m_menuWidget->addItem(entry.path, compoId, entry.icon);
         }
 
+        // link the taskbar
+        m_statusWidget->setTasksModel(m_extInstance->tasksModel());
+
         // show information about the current instance
         showView(InfoModule::Uid, 0);
-
-        // TODO link the taskbar
-        m_taskbarWidget->clear();
     }
 }
 

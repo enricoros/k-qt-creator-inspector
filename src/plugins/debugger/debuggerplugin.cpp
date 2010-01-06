@@ -944,7 +944,7 @@ bool DebuggerPlugin::initialize(const QStringList &arguments, QString *errorMess
         this, SLOT(editorOpened(Core::IEditor*)));
 
     // Inspector connection (temp HACK to issue debugger commands)
-    Inspector::InstanceModel *instanceModel = Inspector::defaultInstance()->model();
+    Inspector::InstanceModel *instanceModel = Inspector::defaultInstance()->instanceModel();
     connect(instanceModel, SIGNAL(debuggerCallFunction(QString,QVariantList)),
             m_manager, SLOT(callFunction(QString,QVariantList)));
 
@@ -1250,7 +1250,7 @@ void DebuggerPlugin::handleStateChanged(int state)
     m_detachAction->setEnabled(detachable);
 
     // notify Inspector Plugin about the debuggee state
-    Inspector::defaultInstance()->model()->setDebugEnabled(started);
+    Inspector::defaultInstance()->instanceModel()->setDebugEnabled(started);
 }
 
 void DebuggerPlugin::writeSettings() const

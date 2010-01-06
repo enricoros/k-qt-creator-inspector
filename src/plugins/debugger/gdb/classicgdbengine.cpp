@@ -565,7 +565,7 @@ void GdbEngine::tryActivateInspectorHelpersClassic()
 {
     // get the listening socket name
     Inspector::Instance *inspInstance = Inspector::defaultInstance();
-    Inspector::InstanceModel *instanceModel = inspInstance->model();
+    Inspector::InstanceModel *instanceModel = inspInstance->instanceModel();
     if (!instanceModel->instanceEnabled()) {
         qWarning("GdbEngine::tryActivateInspectorHelpersClassic: performance helpers not enabled, skipping.");
         instanceModel->setProbeInjected(false);

@@ -27,20 +27,34 @@
 **
 **************************************************************************/
 
-#include "taskbarwidget.h"
+#include "statusbarwidget.h"
+#include "tasksmodel.h"
 #include "taskswidget.h"
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPaintEvent>
 #include <QPainter>
 #include <QPalette>
+#include <QPixmap>
 #include <QToolButton>
 
 using namespace Inspector::Internal;
 
-TaskbarWidget::TaskbarWidget(QWidget *parent)
+KillTaskButton::KillTaskButton(quint32 tid, QWidget *parent)
+  : QToolButton(parent)
+  , m_tid(tid)
+{
+}
+
+quint32 KillTaskButton::tid() const
+{
+    return m_tid;
+}
+
+StatusBarWidget::StatusBarWidget(QWidget *parent)
   : QWidget(parent)
   , m_shadowTile(0)
+  , m_model(0)
 {
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     QPalette pal;
@@ -52,27 +66,30 @@ TaskbarWidget::TaskbarWidget(QWidget *parent)
 
     QLabel * l1 = new QLabel(tr("Task Graph (test)"), this);
     TasksWidget * w1 = new TasksWidget(this);
-    QToolButton * b1 = new QToolButton(this);
-    b1->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    b1->setText(tr("Sample Task 1"));
-    b1->setIcon(QIcon(":/inspector/images/status-err.png"));
-    QToolButton * b2 = new QToolButton(this);
-    b2->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    b2->setText(tr("Sample Task 2"));
-    b2->setIcon(QIcon(":/inspector/images/status-err.png"));
 
-    QHBoxLayout * layout = new QHBoxLayout(this);
-    layout->setContentsMargins(9, 2, 9, 1);
-    layout->addWidget(l1, 0);
-    layout->addWidget(w1, 1);
-    layout->addWidget(b1, 0);
-    layout->addWidget(b2, 0);
-    layout->addStretch(1);
+    m_layout = new QHBoxLayout(this);
+    m_layout->setContentsMargins(9, 2, 9, 1);
+    m_layout->addWidget(l1, 0);
+    m_layout->addWidget(w1, 1);
+    m_layout->addStretch(1);
 }
 
-void TaskbarWidget::clear()
+void StatusBarWidget::setTasksModel(TasksModel *model)
 {
-    qWarning("TaskbarWidget::clear: TODO");
+    if (m_model) {
+        // forget previous model
+        disconnect(m_model, 0, this, 0);
+    }
+    m_model = model;
+    if (m_model) {
+        // use current model
+        connect(m_model, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(slotTasksChanged()));
+        connect(m_model, SIGNAL(rowsRemoved(QModelIndex,int,int)), this, SLOT(slotTasksChanged()));
+        connect(m_model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(slotTasksChanged()));
+       m_model->addTask(1, "uno", "un");
+       m_model->addTask(2, "tre", "t");
+       m_model->addTask(4, "qua", "q");
+    }
 }
 
 static void drawVerticalShadow(QPainter * painter, int width, int height)
@@ -85,7 +102,7 @@ static void drawVerticalShadow(QPainter * painter, int width, int height)
     painter->fillRect( 0, 0, width, height, lg );
 }
 
-void TaskbarWidget::paintEvent(QPaintEvent * event)
+void StatusBarWidget::paintEvent(QPaintEvent * event)
 {
     // the first time create the Shadow Tile
     if (!m_shadowTile) {
@@ -103,4 +120,47 @@ void TaskbarWidget::paintEvent(QPaintEvent * event)
         QPainter p(this);
         p.drawTiledPixmap(shadowRect, *m_shadowTile);
     }
+}
+
+void StatusBarWidget::slotTasksChanged()
+{
+    // look for rows added under the tasks table parent
+    //if (parent != m_model->tasksTableIndex())
+    //    return;
+
+    QList<quint32> tasks = m_model->activeTasksId();
+
+    // delete exceeding buttons
+    QList<KillTaskButton *>::iterator it = m_buttons.begin();
+    while (it != m_buttons.end()) {
+        KillTaskButton *button = *it;
+        quint32 tid = button->tid();
+        if (!tasks.contains(tid)) {
+            it = m_buttons.erase(it);
+            delete button;
+            continue;
+        }
+        tasks.removeAll(tid);
+        ++it;
+    }
+
+    // create new buttons
+    foreach (quint32 tid, tasks) {
+        QString taskName = m_model->taskName(tid);
+        KillTaskButton *button = new KillTaskButton(tid, this);
+        connect(button, SIGNAL(clicked()), this, SLOT(slotKillTask()), Qt::QueuedConnection);
+        button->setText(tr("Kill %1").arg(taskName));
+        button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        button->setIcon(QIcon(":/inspector/images/status-ok.png"));
+        m_buttons.append(button);
+        m_layout->insertWidget(m_layout->count() - 1, button);
+    }
+}
+
+void StatusBarWidget::slotKillTask()
+{
+    KillTaskButton *button = static_cast<KillTaskButton *>(sender());
+    quint32 taskId = button->tid();
+    // don't use 'button' after this line, because it should be deleted!
+    m_model->killTask(taskId);
 }

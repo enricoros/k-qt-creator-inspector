@@ -17,7 +17,8 @@ HEADERS += \
     notificationwidget.h \
     plotgrid.h \
     modulecontroller.h \
-    taskbarwidget.h \
+    statusbarwidget.h \
+    tasksmodel.h \
     tasksscene.h \
     taskswidget.h \
     viewcontainerwidget.h \
@@ -41,7 +42,8 @@ SOURCES += \
     notificationwidget.cpp \
     plotgrid.cpp \
     modulecontroller.cpp \
-    taskbarwidget.cpp \
+    statusbarwidget.cpp \
+    tasksmodel.cpp \
     tasksscene.cpp \
     taskswidget.cpp \
     viewcontainerwidget.cpp \

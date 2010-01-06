@@ -37,7 +37,7 @@
 namespace Inspector {
 namespace Internal {
 
-class TaskItem;
+class TaskRectangle;
 
 class TasksScene : public QGraphicsScene
 {
@@ -69,7 +69,7 @@ private:
     QTime m_startTime;
     bool m_scrollLocked;
     int m_pixelPerSecond;
-    QList<TaskItem *> m_currentTasks;
+    QList<TaskRectangle *> m_currentTasks;
 };
 
 } // namespace Internal

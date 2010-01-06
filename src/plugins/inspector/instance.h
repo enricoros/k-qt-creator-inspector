@@ -34,6 +34,7 @@
 #include <QList>
 #include <QVariantList>
 #include "instancemodel.h"
+#include "tasksmodel.h"
 
 namespace Inspector {
 
@@ -53,7 +54,8 @@ public:
     Instance(QObject *parent = 0);
     ~Instance();
 
-    InstanceModel *model() const;
+    InstanceModel *instanceModel() const;
+    Internal::TasksModel *tasksModel() const;
     Internal::CommServer *commServer() const;
     Internal::ModuleController *moduleController() const;
 
@@ -63,7 +65,8 @@ signals:
     void requestDisplay(int moduleUid, int viewId);
 
 private:
-    InstanceModel *m_model;
+    InstanceModel *m_instanceModel;
+    Internal::TasksModel *m_tasksModel;
     Internal::CommServer *m_commServer;
     Internal::ModuleController *m_moduleController;
 };
