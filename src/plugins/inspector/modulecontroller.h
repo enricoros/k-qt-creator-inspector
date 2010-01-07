@@ -33,12 +33,12 @@
 #include <QObject>
 #include <QList>
 #include "abstractmodule.h"
+class QStandardItem;
 
 namespace Inspector {
-
-class Instance;
-
 namespace Internal {
+
+class TasksModel;
 
 /**
   Features to add:
@@ -49,7 +49,7 @@ class ModuleController : public QObject
     Q_OBJECT
 
 public:
-    ModuleController(Inspector::Instance *instance);
+    ModuleController(TasksModel *, QObject *parent = 0);
     ~ModuleController();
 
     void addModule(AbstractModule *);
@@ -65,14 +65,15 @@ signals:
 
 private:
     AbstractModule * moduleForUid(int moduleUid) const;
-    Inspector::Instance *m_instance;
+    TasksModel *m_tasksModel;
     QList<AbstractModule *> m_modules;
     QList<AbstractModule *> m_activeModules;
 
 private slots:
-    void slotModuleActivationRequested();
+    void slotModuleActivationRequested(const QString &text);
     void slotModuleDeactivated();
     void slotModuleDestroyed();
+    void slotModelItemChanged(QStandardItem*);
 };
 
 } // namespace Internal

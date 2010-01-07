@@ -36,39 +36,8 @@
 namespace Inspector {
 namespace Internal {
 
-class TaskItem : public QStandardItem
-{
-public:
-    TaskItem(quint32 tid, const QString &name, const QString &description);
-
-    // operations
-    bool start();
-    bool stop();
-    void setProgress(int progress);
-
-    // query status
-    quint32 tid() const;
-    QString name() const;
-    QString description() const;
-    bool isActive() const;
-    bool isStarted() const;
-    QDateTime startDate() const;
-    bool isEnded() const;
-    QDateTime endDate() const;
-    qreal duration() const;
-    int progress() const;
-
-private:
-    quint32 m_tid;
-    QString m_name;
-    QString m_description;
-    bool m_started;
-    QDateTime m_start;
-    bool m_stopped;
-    QDateTime m_stop;
-    qreal m_duration;
-    int m_progress;
-};
+class ModuleController;
+class TaskItem;
 
 class Q_DECL_EXPORT TasksModel : public AbstractEasyModel
 {
@@ -83,15 +52,53 @@ public:
     QList<quint32> activeTasksId() const;
     QString taskName(quint32 taskId) const;
 
-    // public operations for tasks
-    void addTask(quint32 tid, const QString &name, const QString &description);
-    void startTask(quint32 tid);
-    void stopTask(quint32 tid);
-    void killTask(quint32 tid) {stopTask(tid);}
+    // called by the normal views
+    bool requestStopTask(quint32 tid);
 
 private:
+    friend class ModuleController;
+    bool addTask(quint32 tid, const QString &name, const QString &description);
+    bool startTask(quint32 tid);
+    bool stopTask(quint32 tid);
     TaskItem *task(quint32 tid) const;
     QStandardItem *tasksRoot() const;
+};
+
+class TaskItem : public QStandardItem
+{
+public:
+    TaskItem(quint32 tid, const QString &name, const QString &description);
+
+    // operations
+    bool start();
+    bool stop();
+    bool setRequestStop();
+    void setProgress(int progress);
+
+    // query status
+    quint32 tid() const;
+    QString name() const;
+    QString description() const;
+    bool isActive() const;
+    bool isStarted() const;
+    QDateTime startDate() const;
+    bool isEnded() const;
+    QDateTime endDate() const;
+    qreal duration() const;
+    bool requestStop() const;
+    int progress() const;
+
+private:
+    quint32 m_tid;
+    QString m_name;
+    QString m_description;
+    bool m_started;
+    QDateTime m_start;
+    bool m_stopped;
+    QDateTime m_stop;
+    qreal m_duration;
+    bool m_requestStop;
+    int m_progress;
 };
 
 } // namespace Internal

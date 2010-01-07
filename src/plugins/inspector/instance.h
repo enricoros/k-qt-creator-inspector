@@ -54,9 +54,14 @@ public:
     Instance(QObject *parent = 0);
     ~Instance();
 
+    // data models
     InstanceModel *instanceModel() const;
     Internal::TasksModel *tasksModel() const;
+
+    // probe communication server
     Internal::CommServer *commServer() const;
+
+    // controls loaded modules
     Internal::ModuleController *moduleController() const;
 
     void makeVisible(int moduleUid, int viewId);

@@ -68,7 +68,7 @@ void Window::setInstance(Inspector::Instance *instance)
     if (m_extInstance) {
         m_menuWidget->clear();
         m_viewWidget->setWidget(new QWidget);
-        m_statusWidget->setTasksModel(0);
+        m_statusWidget->setInstance(0);
     }
 
     // set the new instance
@@ -88,7 +88,7 @@ void Window::setInstance(Inspector::Instance *instance)
         }
 
         // link the taskbar
-        m_statusWidget->setTasksModel(m_extInstance->tasksModel());
+        m_statusWidget->setInstance(m_extInstance);
 
         // show information about the current instance
         showView(InfoModule::Uid, 0);

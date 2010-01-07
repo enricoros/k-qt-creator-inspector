@@ -31,6 +31,9 @@
 #include "commserver.h"
 #include "inspectorplugin.h"
 #include "modulecontroller.h"
+#include "module-info/infomodule.h"
+#include "module-painting/paintingmodule.h"
+#include "module-warnings/warningsmodule.h"
 
 using namespace Inspector;
 
@@ -44,8 +47,12 @@ Instance::Instance(QObject *parent)
     // create the CommServer
     m_commServer = new Internal::CommServer(m_instanceModel);
 
-    // create the Test Control & Tests
-    m_moduleController = new Internal::ModuleController(this);
+    // create the ModuleController and the Modules
+    m_moduleController = new Internal::ModuleController(m_tasksModel);
+
+    m_moduleController->addModule(new Internal::InfoModule(this));
+    m_moduleController->addModule(new Internal::PaintingModule(this));
+    m_moduleController->addModule(new Internal::WarningsModule(this));
 }
 
 Instance::~Instance()

@@ -53,8 +53,13 @@ public:
     AbstractView *createView(int viewId);
 
 private slots:
+    void slotDelayedActivation();
     void slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data);
     void slotNotificationClicked();
+
+    // ::AbstractModule
+    void slotActivate();
+    void slotDeactivate();
 
 private:
     Internal::NotificationWidget *m_notification;

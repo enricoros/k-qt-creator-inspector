@@ -28,6 +28,7 @@
 **************************************************************************/
 
 #include "statusbarwidget.h"
+#include "instance.h"
 #include "tasksviewwidget.h"
 #include <QHBoxLayout>
 #include <QLabel>
@@ -41,6 +42,8 @@
 #include <utils/stylehelper.h>
 
 //#define DRAW_STYLED
+
+using namespace Inspector::Internal;
 
 class Inspector::Internal::KillTaskButton : public QToolButton
 {
@@ -63,8 +66,6 @@ public:
 private:
     quint32 m_tid;
 };
-
-using namespace Inspector::Internal;
 
 StatusBarWidget::StatusBarWidget(QWidget *parent)
   : QWidget(parent)
@@ -89,15 +90,15 @@ StatusBarWidget::StatusBarWidget(QWidget *parent)
     setFixedHeight(Utils::StyleHelper::navigationWidgetHeight());
 
     m_tasksLabel = new QLabel(this);
-    updateLabel();
+    updateLabels();
 
     m_tasksView = new TasksViewWidget(this);
     connect(m_tasksView, SIGNAL(newActiveTask(quint32,QString)),
             this, SLOT(slotNewActiveTask(quint32,QString)));
     connect(m_tasksView, SIGNAL(removeActiveTask(quint32)),
             this, SLOT(slotRemoveActiveTask(quint32)));
-    connect(this, SIGNAL(abortTask(quint32)),
-            m_tasksView, SLOT(slotAbortTask(quint32)));
+    connect(this, SIGNAL(stopTask(quint32)),
+            m_tasksView, SLOT(slotStopTask(quint32)));
 
     m_layout = new QHBoxLayout(this);
     m_layout->setContentsMargins(9, 0, 9, 0);
@@ -106,18 +107,14 @@ StatusBarWidget::StatusBarWidget(QWidget *parent)
     m_layout->addStretch(1);
 }
 
-void StatusBarWidget::mousePressEvent(QMouseEvent *)
-{
-    m_tasksView->tempAddTest();
-}
-
-void StatusBarWidget::setTasksModel(TasksModel *model)
+void StatusBarWidget::setInstance(Inspector::Instance *instance)
 {
     // clear previous data
     qDeleteAll(m_buttons);
     m_buttons.clear();
 
     // apply the model to the tasks widget
+    TasksModel *model = instance ? instance->tasksModel() : 0;
     m_tasksView->setTasksModel(model);
 }
 
@@ -169,10 +166,10 @@ void StatusBarWidget::slotNewActiveTask(quint32 tid, const QString &taskName)
         }
     }
     KillTaskButton *button = new KillTaskButton(tid, taskName, this);
-    connect(button, SIGNAL(clicked()), this, SLOT(slotKillTaskClicked()));
+    connect(button, SIGNAL(clicked()), this, SLOT(slotStopTaskClicked()));
     m_buttons.append(button);
     m_layout->insertWidget(m_layout->count() - 1, button);
-    updateLabel();
+    updateLabels();
 }
 
 void StatusBarWidget::slotRemoveActiveTask(quint32 tid)
@@ -181,25 +178,25 @@ void StatusBarWidget::slotRemoveActiveTask(quint32 tid)
         if (button->tid() == tid) {
             m_buttons.removeAll(button);
             button->deleteLater();
-            updateLabel();
+            updateLabels();
             return;
         }
     }
     qWarning("StatusBarWidget::slotRemoveActiveTask: task %d not present", tid);
 }
 
-void StatusBarWidget::slotKillTaskClicked()
+void StatusBarWidget::slotStopTaskClicked()
 {
     quint32 taskId = static_cast<KillTaskButton *>(sender())->tid();
     // don't use the button after this line, because it should be deleted
-    emit abortTask(taskId);
+    emit stopTask(taskId);
 }
 
-void StatusBarWidget::updateLabel()
+void StatusBarWidget::updateLabels()
 {
     int count = m_buttons.count();
     if (!count)
-        m_tasksLabel->setText(tr("No Active Tasks"));
+        m_tasksLabel->setText(tr("No Operations"));
     else
-        m_tasksLabel->setText(tr("%1 Active Tasks", "%1 may be 1..N", count).arg(count));
+        m_tasksLabel->setText(tr("%1 Active Operations", "%1 may be 1..N", count).arg(count));
 }

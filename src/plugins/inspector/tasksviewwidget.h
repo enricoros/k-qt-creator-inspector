@@ -46,7 +46,6 @@ public:
     TasksViewWidget(QWidget *parent = 0);
 
     void setTasksModel(TasksModel *model);
-    void tempAddTest();
 
     // ::QWidget
     QSize sizeHint() const;
@@ -57,12 +56,13 @@ signals:
     void removeActiveTask(quint32 tid);
 
 public slots:
-    void slotAbortTask(quint32 tid);
+    void slotStopTask(quint32 tid);
 
 private slots:
     void slotTasksChanged();
 
 private:
+    QList<quint32> m_activeTasks;
     TasksModel *m_tasksModel;
     TasksScene *m_scene;
 };
