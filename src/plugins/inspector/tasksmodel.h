@@ -42,14 +42,15 @@ public:
     TaskItem(quint32 tid, const QString &name, const QString &description);
 
     // operations
-    void start();
-    void stop();
+    bool start();
+    bool stop();
     void setProgress(int progress);
 
     // query status
     quint32 tid() const;
     QString name() const;
     QString description() const;
+    bool isActive() const;
     bool isStarted() const;
     QDateTime startDate() const;
     bool isEnded() const;
@@ -87,9 +88,6 @@ public:
     void startTask(quint32 tid);
     void stopTask(quint32 tid);
     void killTask(quint32 tid) {stopTask(tid);}
-
-    // ...
-    QModelIndex tasksTableIndex() const;
 
 private:
     TaskItem *task(quint32 tid) const;

@@ -28,139 +28,178 @@
 **************************************************************************/
 
 #include "statusbarwidget.h"
-#include "tasksmodel.h"
-#include "taskswidget.h"
+#include "tasksviewwidget.h"
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPaintEvent>
 #include <QPainter>
 #include <QPalette>
 #include <QPixmap>
+#include <QStyleOption>
 #include <QToolButton>
 
+#include <utils/stylehelper.h>
+
+//#define DRAW_STYLED
+
+class Inspector::Internal::KillTaskButton : public QToolButton
+{
+public:
+    KillTaskButton(quint32 tid, const QString &text, QWidget *parent = 0)
+      : QToolButton(parent)
+      , m_tid(tid)
+    {
+        setAutoRaise(true);
+        setIcon(QIcon(":/trolltech/assistant/images/win/closetab.png"));
+        setText(text);
+        setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    }
+
+    quint32 tid() const
+    {
+        return m_tid;
+    }
+
+private:
+    quint32 m_tid;
+};
+
 using namespace Inspector::Internal;
-
-KillTaskButton::KillTaskButton(quint32 tid, QWidget *parent)
-  : QToolButton(parent)
-  , m_tid(tid)
-{
-}
-
-quint32 KillTaskButton::tid() const
-{
-    return m_tid;
-}
 
 StatusBarWidget::StatusBarWidget(QWidget *parent)
   : QWidget(parent)
   , m_shadowTile(0)
-  , m_model(0)
+  , m_tasksLabel(0)
+  , m_tasksView(0)
+  , m_layout(0)
 {
-    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     QPalette pal;
-    pal.setBrush(QPalette::Window, QColor(100, 100, 100));
-    pal.setBrush(QPalette::WindowText, Qt::white);
-    pal.setBrush(QPalette::Base, Qt::transparent);
+     pal.setBrush(QPalette::Window, QColor(100, 100, 100));
+     pal.setBrush(QPalette::WindowText, Qt::white);
+     pal.setBrush(QPalette::Button, Qt::darkGray);
+     pal.setBrush(QPalette::ButtonText, Qt::white);
+     pal.setBrush(QPalette::Base, Qt::transparent);
     setPalette(pal);
+#if defined(DRAW_STYLED)
+    setProperty("panelwidget", true);
+    setProperty("panelwidget_singlerow", true);
+#else
     setAutoFillBackground(true);
+#endif
+    setFixedHeight(Utils::StyleHelper::navigationWidgetHeight());
 
-    QLabel * l1 = new QLabel(tr("Task Graph (test)"), this);
-    TasksWidget * w1 = new TasksWidget(this);
+    m_tasksLabel = new QLabel(this);
+    updateLabel();
+
+    m_tasksView = new TasksViewWidget(this);
+    connect(m_tasksView, SIGNAL(newActiveTask(quint32,QString)),
+            this, SLOT(slotNewActiveTask(quint32,QString)));
+    connect(m_tasksView, SIGNAL(removeActiveTask(quint32)),
+            this, SLOT(slotRemoveActiveTask(quint32)));
+    connect(this, SIGNAL(abortTask(quint32)),
+            m_tasksView, SLOT(slotAbortTask(quint32)));
 
     m_layout = new QHBoxLayout(this);
-    m_layout->setContentsMargins(9, 2, 9, 1);
-    m_layout->addWidget(l1, 0);
-    m_layout->addWidget(w1, 1);
+    m_layout->setContentsMargins(9, 0, 9, 0);
+    m_layout->addWidget(m_tasksLabel, 0);
+    m_layout->addWidget(m_tasksView, 0);
     m_layout->addStretch(1);
+}
+
+void StatusBarWidget::mousePressEvent(QMouseEvent *)
+{
+    m_tasksView->tempAddTest();
 }
 
 void StatusBarWidget::setTasksModel(TasksModel *model)
 {
-    if (m_model) {
-        // forget previous model
-        disconnect(m_model, 0, this, 0);
-    }
-    m_model = model;
-    if (m_model) {
-        // use current model
-        connect(m_model, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(slotTasksChanged()));
-        connect(m_model, SIGNAL(rowsRemoved(QModelIndex,int,int)), this, SLOT(slotTasksChanged()));
-        connect(m_model, SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(slotTasksChanged()));
-       m_model->addTask(1, "uno", "un");
-       m_model->addTask(2, "tre", "t");
-       m_model->addTask(4, "qua", "q");
-    }
+    // clear previous data
+    qDeleteAll(m_buttons);
+    m_buttons.clear();
+
+    // apply the model to the tasks widget
+    m_tasksView->setTasksModel(model);
 }
 
 static void drawVerticalShadow(QPainter * painter, int width, int height)
 {
     QLinearGradient lg( 0, 0, 0, height );
-    lg.setColorAt( 0.0, QColor( 0, 0, 0, 64 ) );
-    lg.setColorAt( 0.4, QColor( 0, 0, 0, 16 ) );
-    lg.setColorAt( 0.7, QColor( 0, 0, 0, 5 ) );
+    lg.setColorAt( 0.0, QColor( 0, 0, 0, 128 ) );
+    lg.setColorAt( 0.4, QColor( 0, 0, 0, 32 ) );
+    lg.setColorAt( 0.7, QColor( 0, 0, 0, 10 ) );
     lg.setColorAt( 1.0, QColor( 0, 0, 0, 0 ) );
     painter->fillRect( 0, 0, width, height, lg );
 }
 
 void StatusBarWidget::paintEvent(QPaintEvent * event)
 {
+    if (event->rect().top() >= 10)
+        return;
+
     // the first time create the Shadow Tile
     if (!m_shadowTile) {
-        m_shadowTile = new QPixmap(64, 8);
+        m_shadowTile = new QPixmap(64, 10);
         m_shadowTile->fill(Qt::transparent);
         QPainter shadowPainter(m_shadowTile);
-        drawVerticalShadow(&shadowPainter, 64, 8);
+        drawVerticalShadow(&shadowPainter, 64, 10);
     }
+
+    // draw styled background (as
+    QPainter p(this);
+#if defined(DRAW_STYLED)
+    QStyleOption option;
+    option.rect = rect();
+    option.state = QStyle::State_Horizontal;
+    style()->drawControl(QStyle::CE_ToolBar, &option, &p, this);
+#endif
 
     // draw dubtle shadow
-    if (event->rect().top() < 8) {
-        QRect shadowRect = event->rect();
-        shadowRect.setTop(0);
-        shadowRect.setHeight(8);
-        QPainter p(this);
-        p.drawTiledPixmap(shadowRect, *m_shadowTile);
-    }
+    QRect shadowRect = event->rect();
+    shadowRect.setTop(0);
+    shadowRect.setHeight(10);
+    p.drawTiledPixmap(shadowRect, *m_shadowTile);
 }
 
-void StatusBarWidget::slotTasksChanged()
+void StatusBarWidget::slotNewActiveTask(quint32 tid, const QString &taskName)
 {
-    // look for rows added under the tasks table parent
-    //if (parent != m_model->tasksTableIndex())
-    //    return;
-
-    QList<quint32> tasks = m_model->activeTasksId();
-
-    // delete exceeding buttons
-    QList<KillTaskButton *>::iterator it = m_buttons.begin();
-    while (it != m_buttons.end()) {
-        KillTaskButton *button = *it;
-        quint32 tid = button->tid();
-        if (!tasks.contains(tid)) {
-            it = m_buttons.erase(it);
-            delete button;
-            continue;
+    foreach (KillTaskButton *button, m_buttons) {
+        if (button->tid() == tid) {
+            qWarning("StatusBarWidget::slotNewActiveTask: task %d already in", tid);
+            return;
         }
-        tasks.removeAll(tid);
-        ++it;
     }
-
-    // create new buttons
-    foreach (quint32 tid, tasks) {
-        QString taskName = m_model->taskName(tid);
-        KillTaskButton *button = new KillTaskButton(tid, this);
-        connect(button, SIGNAL(clicked()), this, SLOT(slotKillTask()), Qt::QueuedConnection);
-        button->setText(tr("Kill %1").arg(taskName));
-        button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-        button->setIcon(QIcon(":/inspector/images/status-ok.png"));
-        m_buttons.append(button);
-        m_layout->insertWidget(m_layout->count() - 1, button);
-    }
+    KillTaskButton *button = new KillTaskButton(tid, taskName, this);
+    connect(button, SIGNAL(clicked()), this, SLOT(slotKillTaskClicked()));
+    m_buttons.append(button);
+    m_layout->insertWidget(m_layout->count() - 1, button);
+    updateLabel();
 }
 
-void StatusBarWidget::slotKillTask()
+void StatusBarWidget::slotRemoveActiveTask(quint32 tid)
 {
-    KillTaskButton *button = static_cast<KillTaskButton *>(sender());
-    quint32 taskId = button->tid();
-    // don't use 'button' after this line, because it should be deleted!
-    m_model->killTask(taskId);
+    foreach (KillTaskButton *button, m_buttons) {
+        if (button->tid() == tid) {
+            m_buttons.removeAll(button);
+            button->deleteLater();
+            updateLabel();
+            return;
+        }
+    }
+    qWarning("StatusBarWidget::slotRemoveActiveTask: task %d not present", tid);
+}
+
+void StatusBarWidget::slotKillTaskClicked()
+{
+    quint32 taskId = static_cast<KillTaskButton *>(sender())->tid();
+    // don't use the button after this line, because it should be deleted
+    emit abortTask(taskId);
+}
+
+void StatusBarWidget::updateLabel()
+{
+    int count = m_buttons.count();
+    if (!count)
+        m_tasksLabel->setText(tr("No Active Tasks"));
+    else
+        m_tasksLabel->setText(tr("%1 Active Tasks", "%1 may be 1..N", count).arg(count));
 }

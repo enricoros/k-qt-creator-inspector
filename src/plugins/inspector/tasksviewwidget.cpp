@@ -27,7 +27,8 @@
 **
 **************************************************************************/
 
-#include "taskswidget.h"
+#include "tasksviewwidget.h"
+#include "tasksmodel.h"
 #include "tasksscene.h"
 #include <QPalette>
 
@@ -35,8 +36,9 @@ using namespace Inspector::Internal;
 
 // the scene drawing the tasks
 
-TasksWidget::TasksWidget(QWidget *parent)
+TasksViewWidget::TasksViewWidget(QWidget *parent)
   : QGraphicsView(parent)
+  , m_tasksModel(0)
   , m_scene(new TasksScene)
 {
     // customize widget
@@ -47,18 +49,64 @@ TasksWidget::TasksWidget(QWidget *parent)
     setScene(m_scene);
 }
 
-void TasksWidget::setTasksModel(TasksModel *model)
+void TasksViewWidget::setTasksModel(TasksModel *model)
 {
-    Q_UNUSED(model);
-    qWarning("TasksWidget::setTasksModel: TODO this");
+    // clear previous model data
+    if (m_tasksModel) {
+        // forget previous model
+        disconnect(m_tasksModel, 0, this, 0);
+    }
+
+    // set new model
+    m_tasksModel = model;
+
+    // handle new model's data
+    if (m_tasksModel) {
+        // use current model
+        connect(m_tasksModel, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(slotTasksChanged()));
+        connect(m_tasksModel, SIGNAL(rowsRemoved(QModelIndex,int,int)), this, SLOT(slotTasksChanged()));
+        connect(m_tasksModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(slotTasksChanged()));
+    }
 }
 
-QSize TasksWidget::sizeHint() const
+void TasksViewWidget::tempAddTest()
+{
+    static quint32 id = 1;
+    m_tasksModel->addTask(id, tr("Task%1").arg(id), "No Description Provided");
+    id++;
+}
+
+QSize TasksViewWidget::sizeHint() const
 {
     return minimumSizeHint();
 }
 
-QSize TasksWidget::minimumSizeHint() const
+QSize TasksViewWidget::minimumSizeHint() const
 {
     return QSize(100, TasksScene::fixedHeight());
+}
+
+void TasksViewWidget::slotAbortTask(quint32 tid)
+{
+    qWarning("TasksViewWidget::slotAbortTask: %d TODO", tid);
+}
+
+void TasksViewWidget::slotTasksChanged()
+{
+    QList<quint32> tasks = m_tasksModel->activeTasksId();
+/*
+    // delete exceeding buttons
+    QList<KillTaskButton *>::iterator it = m_buttons.begin();
+    while (it != m_buttons.end()) {
+        KillTaskButton *button = *it;
+        quint32 tid = button->tid();
+        if (!tasks.contains(tid))
+            emit removeActiveTask(tid);
+        tasks.removeAll(tid);
+        ++it;
+    }
+*/
+    // create new buttons
+    foreach (quint32 tid, tasks)
+        emit newActiveTask(tid, m_tasksModel->taskName(tid));
 }

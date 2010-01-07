@@ -75,4 +75,4 @@ private:
 } // namespace Internal
 } // namespace Inspector
 
-#endif // TASKSWIDGET_H
+#endif // TASKSSCENE_H
