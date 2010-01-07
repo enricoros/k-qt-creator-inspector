@@ -85,7 +85,7 @@ public:
 
 signals:
     // requests ModuleContoller to activate this module
-    void requestActivation();
+    void requestActivation(const QString &text);
     // tells ModuleController that this module is idle again
     void deactivated();
 

@@ -69,13 +69,6 @@ void TasksViewWidget::setTasksModel(TasksModel *model)
     }
 }
 
-void TasksViewWidget::tempAddTest()
-{
-    static quint32 id = 1;
-    m_tasksModel->addTask(id, tr("Task%1").arg(id), "No Description Provided");
-    id++;
-}
-
 QSize TasksViewWidget::sizeHint() const
 {
     return minimumSizeHint();
@@ -83,30 +76,34 @@ QSize TasksViewWidget::sizeHint() const
 
 QSize TasksViewWidget::minimumSizeHint() const
 {
-    return QSize(100, TasksScene::fixedHeight());
+    return QSize(200, TasksScene::fixedHeight());
 }
 
-void TasksViewWidget::slotAbortTask(quint32 tid)
+void TasksViewWidget::slotStopTask(quint32 tid)
 {
-    qWarning("TasksViewWidget::slotAbortTask: %d TODO", tid);
+    if (m_tasksModel)
+        m_tasksModel->requestStopTask(tid);
 }
 
 void TasksViewWidget::slotTasksChanged()
 {
-    QList<quint32> tasks = m_tasksModel->activeTasksId();
-/*
-    // delete exceeding buttons
-    QList<KillTaskButton *>::iterator it = m_buttons.begin();
-    while (it != m_buttons.end()) {
-        KillTaskButton *button = *it;
-        quint32 tid = button->tid();
-        if (!tasks.contains(tid))
+    QList<quint32> newTasks = m_tasksModel->activeTasksId();
+
+    // notify exceeding tasks
+    QList<quint32>::iterator it = m_activeTasks.begin();
+    while (it != m_activeTasks.end()) {
+        quint32 tid = *it;
+        if (!newTasks.removeAll(tid)) {
+            it = m_activeTasks.erase(it);
             emit removeActiveTask(tid);
-        tasks.removeAll(tid);
+            continue;
+        }
         ++it;
     }
-*/
-    // create new buttons
-    foreach (quint32 tid, tasks)
+
+    // notify new tasks
+    foreach (quint32 tid, newTasks) {
+        m_activeTasks.append(tid);
         emit newActiveTask(tid, m_tasksModel->taskName(tid));
+    }
 }

@@ -37,12 +37,17 @@ class QLabel;
 class QPixmap;
 
 namespace Inspector {
+
+class Instance;
+
 namespace Internal {
 
 class KillTaskButton;
-class TasksModel;
 class TasksViewWidget;
 
+/**
+  \brief Shows Inspector::Instance information, like running Tasks
+*/
 class StatusBarWidget : public QWidget
 {
     Q_OBJECT
@@ -50,13 +55,11 @@ class StatusBarWidget : public QWidget
 public:
     StatusBarWidget(QWidget *parent = 0);
 
-    // TEMP FOR TESTING
-    void mousePressEvent(QMouseEvent *);
-
-    void setTasksModel(TasksModel *model);
+    /// sets the Instance handled by this Status
+    void setInstance(Inspector::Instance *instance);
 
 signals:
-    void abortTask(quint32 tid);
+    void stopTask(quint32 tid);
 
 protected:
     void paintEvent(QPaintEvent *);
@@ -64,10 +67,10 @@ protected:
 private slots:
     void slotNewActiveTask(quint32 tid, const QString &name);
     void slotRemoveActiveTask(quint32 tid);
-    void slotKillTaskClicked();
+    void slotStopTaskClicked();
 
 private:
-    void updateLabel();
+    void updateLabels();
     QPixmap *m_shadowTile;
     QLabel *m_tasksLabel;
     TasksViewWidget *m_tasksView;

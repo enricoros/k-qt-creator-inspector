@@ -33,6 +33,7 @@
 #include "notificationwidget.h"
 #include <coreplugin/icore.h>
 #include <coreplugin/modemanager.h>
+#include <QTimer>
 
 using namespace Inspector::Internal;
 
@@ -45,9 +46,8 @@ WarningsModule::WarningsModule(Inspector::Instance *instance, QObject *parent)
     m_notification->hide();
     Core::ICore::instance()->modeManager()->addWidget(m_notification);
 
-    // read the data coming from the commserver
-    connect(parentInstance()->commServer(), SIGNAL(incomingData(quint32,quint32,QByteArray*)),
-            this, SLOT(slotProcessIncomingData(quint32,quint32,QByteArray*)));
+    // activate right now
+    QTimer::singleShot(0, this, SLOT(slotDelayedActivation()));
 }
 
 WarningsModule::~WarningsModule()
@@ -74,6 +74,11 @@ AbstractView *WarningsModule::createView(int viewId)
     return AbstractModule::createView(viewId);
 }
 
+void WarningsModule::slotDelayedActivation()
+{
+    emit requestActivation(tr("Automatic Warnings"));
+}
+
 void WarningsModule::slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data)
 {
     Q_UNUSED(data);
@@ -91,4 +96,20 @@ void WarningsModule::slotNotificationClicked()
 
     // switch view to this instance
     parentInstance()->makeVisible(Uid, 0);
+}
+
+void WarningsModule::slotActivate()
+{
+    // read the data coming from the CommServer
+    connect(parentInstance()->commServer(), SIGNAL(incomingData(quint32,quint32,QByteArray*)),
+            this, SLOT(slotProcessIncomingData(quint32,quint32,QByteArray*)));
+}
+
+void WarningsModule::slotDeactivate()
+{
+    // disconnect from the CommServer
+    disconnect(parentInstance()->commServer(), 0, this, 0);
+
+    // notify that we have been deactivated
+    emit deactivated();
 }

@@ -99,6 +99,7 @@ AbstractModule::AbstractModule(Inspector::Instance *instance, QObject *parent)
     d->stateMachine.addState(sActive);
     d->stateMachine.addState(sDeactivate);
     d->stateMachine.setInitialState(sIdle);
+    d->stateMachine.start();
 }
 
 AbstractModule::~AbstractModule()

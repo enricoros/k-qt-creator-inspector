@@ -30,20 +30,16 @@
 #include "modulecontroller.h"
 #include "abstractmodule.h"
 #include "abstractview.h"
-#include "instance.h"
-#include "module-info/infomodule.h"
-#include "module-painting/paintingmodule.h"
-#include "module-warnings/warningsmodule.h"
+#include "tasksmodel.h"
 
 using namespace Inspector::Internal;
 
-ModuleController::ModuleController(Inspector::Instance *instance)
-  : QObject(instance)
-  , m_instance(instance)
+ModuleController::ModuleController(TasksModel *tasksModel, QObject *parent)
+  : QObject(parent)
+  , m_tasksModel(tasksModel)
 {
-    addModule(new InfoModule(m_instance));
-    addModule(new PaintingModule(m_instance));
-    addModule(new WarningsModule(m_instance));
+    connect(m_tasksModel, SIGNAL(itemChanged(QStandardItem*)),
+            this, SLOT(slotModelItemChanged(QStandardItem*)));
 }
 
 ModuleController::~ModuleController()
@@ -68,7 +64,7 @@ void ModuleController::addModule(AbstractModule * module)
         }
     }
     // register the AbstractModule
-    connect(module, SIGNAL(requestActivation()), this, SLOT(slotModuleActivationRequested()));
+    connect(module, SIGNAL(requestActivation(QString)), this, SLOT(slotModuleActivationRequested(QString)));
     connect(module, SIGNAL(deactivated()), this, SLOT(slotModuleDeactivated()));
     connect(module, SIGNAL(destroyed()), this, SLOT(slotModuleDestroyed()));
     m_modules.append(module);
@@ -122,10 +118,25 @@ AbstractModule *ModuleController::moduleForUid(int moduleUid) const
     return 0;
 }
 
-void ModuleController::slotModuleActivationRequested()
+void ModuleController::slotModuleActivationRequested(const QString &text)
 {
     AbstractModule * module = static_cast<AbstractModule *>(sender());
+
+    // update the model
+    QString name = text.isEmpty() ? module->name() : text;
+    if (!m_tasksModel->addTask(module->uid(), name, "provide description here")) {
+        qWarning("ModuleController::slotModuleActivationRequested: can't add module %d", module->uid());
+        return;
+    }
+    if (!m_tasksModel->startTask(module->uid())) {
+        qWarning("ModuleController::slotModuleActivationRequested: can't start module %d", module->uid());
+        return;
+    }
+
+    // activate module
     module->controlActivate();
+
+    // CHANGE THIS? superseed by the model?
     if (!m_activeModules.contains(module))
         m_activeModules.append(module);
 }
@@ -133,12 +144,40 @@ void ModuleController::slotModuleActivationRequested()
 void ModuleController::slotModuleDeactivated()
 {
     AbstractModule * module = static_cast<AbstractModule *>(sender());
+
+    // update the model
+    if (!m_tasksModel->stopTask(module->uid())) {
+        qWarning("ModuleController::slotModuleDeactivated: can't stop module %d", module->uid());
+        return;
+    }
+
+    // CHANGE THIS? superseed by the model?
     m_activeModules.removeAll(module);
 }
 
 void ModuleController::slotModuleDestroyed()
 {
     AbstractModule * module = static_cast<AbstractModule *>(sender());
-    if (m_modules.contains(module))
+    // CHANGE THIS? superseed by the model?
+    if (m_modules.contains(module)) {
+        m_tasksModel->stopTask(module->uid());
         removeModule(module);
+    }
+}
+
+void ModuleController::slotModelItemChanged(QStandardItem *item)
+{
+    // get the TaskItem
+    TaskItem *taskItem = dynamic_cast<TaskItem *>(item);
+    if (!taskItem)
+        return;
+
+    // check if the RequestStop flag is set
+    if (taskItem->requestStop()) {
+        // FIXME THIS: equivalence TaskId <-> ModuleId implied here
+        AbstractModule * module = moduleForUid(taskItem->tid());
+        if (module)
+            module->controlDeactivate();
+        return;
+    }
 }

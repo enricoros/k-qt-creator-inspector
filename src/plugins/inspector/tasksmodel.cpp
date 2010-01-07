@@ -46,9 +46,9 @@ TaskItem::TaskItem(quint32 tid, const QString &name, const QString &description)
   , m_started(false)
   , m_stopped(false)
   , m_duration(0)
+  , m_requestStop(false)
   , m_progress(0)
 {
-    start();
 }
 
 bool TaskItem::start()
@@ -70,6 +70,15 @@ bool TaskItem::stop()
         return true;
     }
     return false;
+}
+
+bool TaskItem::setRequestStop()
+{
+    if (m_stopped)
+        return false;
+    m_requestStop = true;
+    emitDataChanged();
+    return true;
 }
 
 void TaskItem::setProgress(int progress)
@@ -123,6 +132,11 @@ qreal TaskItem::duration() const
     return m_duration;
 }
 
+bool TaskItem::requestStop() const
+{
+    return m_requestStop;
+}
+
 int TaskItem::progress() const
 {
     return m_progress;
@@ -170,8 +184,14 @@ QString TasksModel::taskName(quint32 taskId) const
     return item ? item->name() : QString();
 }
 
-void TasksModel::addTask(quint32 tid, const QString &name, const QString &description)
+bool TasksModel::addTask(quint32 tid, const QString &name, const QString &description)
 {
+    // safety check
+    if (task(tid)) {
+        qWarning("TasksModel::addTask: already present %d", tid);
+        return false;
+    }
+
     // add item
     TaskItem *taskItem = new TaskItem(tid, name, description);
     tasksRoot()->insertRow(0, taskItem);
@@ -182,18 +202,20 @@ void TasksModel::addTask(quint32 tid, const QString &name, const QString &descri
     // if task is already active, increment active count
     if (taskItem->isActive())
         setItemValue(Tasks_Row, 1, itemValue(Tasks_Row, 1).toInt() + 1);
+    return true;
 }
 
-void TasksModel::startTask(quint32 tid)
+bool TasksModel::startTask(quint32 tid)
 {
+    // safety checks
     TaskItem *item = task(tid);
     if (!item) {
         qWarning("TasksModel::startTask: can't find task %d", tid);
-        return;
+        return false;
     }
     if (item->isStarted()) {
         qWarning("TasksModel::startTask: task %d already started", tid);
-        return;
+        return false;
     }
 
     // start task
@@ -202,18 +224,20 @@ void TasksModel::startTask(quint32 tid)
     // if started, increment active count
     if (started)
         setItemValue(Tasks_Row, 1, itemValue(Tasks_Row, 1).toInt() + 1);
+    return true;
 }
 
-void TasksModel::stopTask(quint32 tid)
+bool TasksModel::stopTask(quint32 tid)
 {
+    // safety checks
     TaskItem *item = task(tid);
     if (!item) {
         qWarning("TasksModel::stopTask: can't find task %d", tid);
-        return;
+        return false;
     }
     if (item->isEnded()) {
         qWarning("TasksModel::stopTask: task %d already stopped", tid);
-        return;
+        return false;
     }
 
     // stop task
@@ -222,6 +246,25 @@ void TasksModel::stopTask(quint32 tid)
     // if stopped, decrement active count
     if (stopped)
         setItemValue(Tasks_Row, 1, itemValue(Tasks_Row, 1).toInt() - 1);
+    return true;
+}
+
+bool TasksModel::requestStopTask(quint32 tid)
+{
+    // safety checks
+    TaskItem *item = task(tid);
+    if (!item) {
+        qWarning("TasksModel::requestStopTask: can't find task %d", tid);
+        return false;
+    }
+    if (item->isEnded()) {
+        qWarning("TasksModel::requestStopTask: task %d already stopped", tid);
+        return true;
+    }
+
+    // mark as requesting stop
+    item->setRequestStop();
+    return true;
 }
 
 TaskItem *TasksModel::task(quint32 tid) const

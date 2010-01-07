@@ -52,7 +52,7 @@ class Window : public QWidget
 public:
     Window(QWidget *parent = 0);
 
-    /// sets the Instance handled by this widget
+    /// sets the Instance handled by this Window
     void setInstance(Inspector::Instance *instance);
 
 public slots:
