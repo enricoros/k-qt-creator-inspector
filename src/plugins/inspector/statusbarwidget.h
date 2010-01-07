@@ -32,29 +32,16 @@
 
 #include <QWidget>
 #include <QList>
-#include <QModelIndex>
-#include <QToolButton>
-class QAbstractButton;
 class QHBoxLayout;
+class QLabel;
 class QPixmap;
 
 namespace Inspector {
 namespace Internal {
 
+class KillTaskButton;
 class TasksModel;
-
-class KillTaskButton : public QToolButton
-{
-    Q_OBJECT
-
-public:
-    KillTaskButton(quint32 tid, QWidget *parent = 0);
-
-    quint32 tid() const;
-
-private:
-    quint32 m_tid;
-};
+class TasksViewWidget;
 
 class StatusBarWidget : public QWidget
 {
@@ -63,21 +50,29 @@ class StatusBarWidget : public QWidget
 public:
     StatusBarWidget(QWidget *parent = 0);
 
+    // TEMP FOR TESTING
+    void mousePressEvent(QMouseEvent *);
+
     void setTasksModel(TasksModel *model);
 
+signals:
+    void abortTask(quint32 tid);
+
 protected:
-    // ::QWidget
     void paintEvent(QPaintEvent *);
 
 private slots:
-    void slotTasksChanged();
-    void slotKillTask();
+    void slotNewActiveTask(quint32 tid, const QString &name);
+    void slotRemoveActiveTask(quint32 tid);
+    void slotKillTaskClicked();
 
 private:
+    void updateLabel();
     QPixmap *m_shadowTile;
+    QLabel *m_tasksLabel;
+    TasksViewWidget *m_tasksView;
     QList<KillTaskButton *> m_buttons;
     QHBoxLayout *m_layout;
-    TasksModel *m_model;
 };
 
 } // namespace Internal

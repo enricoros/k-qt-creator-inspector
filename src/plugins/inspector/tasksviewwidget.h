@@ -27,8 +27,8 @@
 **
 **************************************************************************/
 
-#ifndef TASKSWIDGET_H
-#define TASKSWIDGET_H
+#ifndef TASKSVIEWWIDGET_H
+#define TASKSVIEWWIDGET_H
 
 #include <QGraphicsView>
 
@@ -38,24 +38,36 @@ namespace Internal {
 class TasksModel;
 class TasksScene;
 
-class TasksWidget : public QGraphicsView
+class TasksViewWidget : public QGraphicsView
 {
     Q_OBJECT
 
 public:
-    TasksWidget(QWidget *parent = 0);
+    TasksViewWidget(QWidget *parent = 0);
 
     void setTasksModel(TasksModel *model);
+    void tempAddTest();
 
     // ::QWidget
     QSize sizeHint() const;
     QSize minimumSizeHint() const;
 
+signals:
+    void newActiveTask(quint32 tid, const QString &name);
+    void removeActiveTask(quint32 tid);
+
+public slots:
+    void slotAbortTask(quint32 tid);
+
+private slots:
+    void slotTasksChanged();
+
 private:
-    TasksScene * m_scene;
+    TasksModel *m_tasksModel;
+    TasksScene *m_scene;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // TASKSWIDGET_H
+#endif // TASKSVIEWWIDGET_H

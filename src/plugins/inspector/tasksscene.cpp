@@ -28,7 +28,7 @@
 **************************************************************************/
 
 #include "tasksscene.h"
-#include "taskswidget.h"
+#include "tasksviewwidget.h"
 #include <QGraphicsItem>
 #include <QGraphicsWidget>
 #include <QGraphicsSceneMouseEvent>
@@ -99,7 +99,7 @@ void TasksScene::mouseMoveEvent(QGraphicsSceneMouseEvent * event)
     qreal scrollPercent = event->scenePos().x() / (qreal)sceneWidth;
     if (scrollPercent < 0.95) {
         m_scrollLocked = false;
-        TasksWidget * widget = dynamic_cast<TasksWidget *>(views().first());
+        TasksViewWidget * widget = dynamic_cast<TasksViewWidget *>(views().first());
         int newVal = (int)(scrollPercent * (qreal)widget->horizontalScrollBar()->maximum());
         widget->horizontalScrollBar()->setValue(newVal);
     } else
@@ -198,7 +198,7 @@ void TasksScene::updateCurrentScene()
 
     // if locked scrolling, update view's scrollbar too
     if (m_scrollLocked && !views().isEmpty()) {
-        TasksWidget * widget = dynamic_cast<TasksWidget *>(views().first());
+        TasksViewWidget * widget = dynamic_cast<TasksViewWidget *>(views().first());
         widget->horizontalScrollBar()->setValue(contentsWidth);
     }
 
