@@ -152,7 +152,6 @@ TasksModel::TasksModel(QObject *parent)
     setItemValue(Tasks_Row, 0, 0);
     setItemValue(Tasks_Row, 1, 0);
     setItemValue(Tasks_Row, 2, "tasks");
-    openDebugWidget();
 }
 
 int TasksModel::totalTasksCount() const
