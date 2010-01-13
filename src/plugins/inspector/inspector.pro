@@ -20,8 +20,7 @@ HEADERS += \
     modulecontroller.h \
     statusbarwidget.h \
     tasksmodel.h \
-    tasksscene.h \
-    tasksviewwidget.h \
+    tasksscroller.h \
     window.h \
     module-info/infomodule.h \
     module-info/infopanel.h \
@@ -45,8 +44,7 @@ SOURCES += \
     modulecontroller.cpp \
     statusbarwidget.cpp \
     tasksmodel.cpp \
-    tasksscene.cpp \
-    tasksviewwidget.cpp \
+    tasksscroller.cpp \
     window.cpp \
     module-info/infomodule.cpp \
     module-info/infopanel.cpp \
