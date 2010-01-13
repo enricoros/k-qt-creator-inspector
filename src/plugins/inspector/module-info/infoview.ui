@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>554</width>
-    <height>471</height>
+    <width>552</width>
+    <height>460</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -468,7 +468,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>&lt;b&gt;Usage:&lt;/b&gt; For testing Inspector, &lt;em&gt;start the executable in debugging mode and pause it&lt;/em&gt;. This is when all the tricky work takes place. Of course the &quot;debugging helpers&quot; must be the special ones, built just for this purpose.&lt;br/&gt;&lt;br/&gt;&lt;b&gt;Disclaimer:&lt;/b&gt; Inspector is in beta stage. The concept works, however the implementation is still not complete. In particular be aware of the following limitations:&lt;br/&gt; - the analysis is done on the main thread (gui) events only&lt;br/&gt; - runtime reconfiguration is not allowed&lt;br/&gt; - it's not optimized and there are bugs</string>
+      <string>&lt;b&gt;Usage:&lt;/b&gt; For testing Inspector, &lt;em&gt;start the executable in debugging mode and pause it&lt;/em&gt;. This is when all the tricky work takes place. Of course the &quot;debugging helpers&quot; must be the special ones, built just for this purpose.&lt;br/&gt;&lt;br/&gt;&lt;b&gt;Disclaimer:&lt;/b&gt; Inspector is in beta stage. The concept works, however the implementation is still not complete. In particular be aware of the following limitations:&lt;br/&gt; - output when running on multiple threads is unpredictable&lt;br/&gt; - it's not optimized and there are bugs</string>
      </property>
      <property name="textFormat">
       <enum>Qt::RichText</enum>
