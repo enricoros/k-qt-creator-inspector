@@ -27,17 +27,89 @@
 **
 **************************************************************************/
 
-#include "tasksscene.h"
-#include "tasksviewwidget.h"
+#include "tasksscroller.h"
+#include "tasksmodel.h"
 #include <QGraphicsItem>
-#include <QGraphicsWidget>
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsWidget>
+#include <QPalette>
 #include <QScrollBar>
-#include <QTimerEvent>
-#include <QTimer>
 
-namespace Inspector {
-namespace Internal {
+using namespace Inspector::Internal;
+
+// the scene drawing the tasks
+
+TasksScroller::TasksScroller(QWidget *parent)
+  : QGraphicsView(parent)
+  , m_tasksModel(0)
+  , m_scene(new TasksScene)
+{
+    // customize widget
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    setFrameStyle(QFrame::NoFrame);
+    setScene(m_scene);
+}
+
+void TasksScroller::setTasksModel(TasksModel *model)
+{
+    // clear previous model data
+    if (m_tasksModel) {
+        // forget previous model
+        disconnect(m_tasksModel, 0, this, 0);
+    }
+
+    // set new model
+    m_tasksModel = model;
+
+    // handle new model's data
+    if (m_tasksModel) {
+        // use current model
+        connect(m_tasksModel, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(slotTasksChanged()));
+        connect(m_tasksModel, SIGNAL(rowsRemoved(QModelIndex,int,int)), this, SLOT(slotTasksChanged()));
+        connect(m_tasksModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(slotTasksChanged()));
+    }
+}
+
+QSize TasksScroller::sizeHint() const
+{
+    return minimumSizeHint();
+}
+
+QSize TasksScroller::minimumSizeHint() const
+{
+    return QSize(200, TasksScene::fixedHeight());
+}
+
+void TasksScroller::slotStopTask(quint32 tid)
+{
+    if (m_tasksModel)
+        m_tasksModel->requestStopTask(tid);
+}
+
+void TasksScroller::slotTasksChanged()
+{
+    QList<quint32> newTasks = m_tasksModel->activeTasksId();
+
+    // notify exceeding tasks
+    QList<quint32>::iterator it = m_activeTasks.begin();
+    while (it != m_activeTasks.end()) {
+        quint32 tid = *it;
+        if (!newTasks.removeAll(tid)) {
+            it = m_activeTasks.erase(it);
+            emit removeActiveTask(tid);
+            continue;
+        }
+        ++it;
+    }
+
+    // notify new tasks
+    foreach (quint32 tid, newTasks) {
+        m_activeTasks.append(tid);
+        emit newActiveTask(tid, m_tasksModel->taskName(tid));
+    }
+}
 
 TasksScene::TasksScene(QObject * parent)
   : QGraphicsScene(parent)
@@ -99,7 +171,7 @@ void TasksScene::mouseMoveEvent(QGraphicsSceneMouseEvent * event)
     qreal scrollPercent = event->scenePos().x() / (qreal)sceneWidth;
     if (scrollPercent < 0.95) {
         m_scrollLocked = false;
-        TasksViewWidget * widget = dynamic_cast<TasksViewWidget *>(views().first());
+        TasksScroller * widget = dynamic_cast<TasksScroller *>(views().first());
         int newVal = (int)(scrollPercent * (qreal)widget->horizontalScrollBar()->maximum());
         widget->horizontalScrollBar()->setValue(newVal);
     } else
@@ -125,7 +197,7 @@ void TasksScene::regenScene()
 
 }
 
-class TaskRectangle : public QGraphicsWidget
+class Inspector::Internal::TaskRectangle : public QGraphicsWidget
 {
     public:
         TaskRectangle(int start, QGraphicsItem * parent = 0)
@@ -198,7 +270,7 @@ void TasksScene::updateCurrentScene()
 
     // if locked scrolling, update view's scrollbar too
     if (m_scrollLocked && !views().isEmpty()) {
-        TasksViewWidget * widget = dynamic_cast<TasksViewWidget *>(views().first());
+        TasksScroller * widget = dynamic_cast<TasksScroller *>(views().first());
         widget->horizontalScrollBar()->setValue(contentsWidth);
     }
 
@@ -225,6 +297,3 @@ void TasksScene::updateCurrentScene()
         m_currentTasks.append(i);
     }
 }
-
-} // namespace Internal
-} // namespace Inspector

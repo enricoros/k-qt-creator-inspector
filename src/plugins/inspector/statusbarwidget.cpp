@@ -29,7 +29,7 @@
 
 #include "statusbarwidget.h"
 #include "instance.h"
-#include "tasksviewwidget.h"
+#include "tasksscroller.h"
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPaintEvent>
@@ -71,7 +71,7 @@ StatusBarWidget::StatusBarWidget(QWidget *parent)
   : QWidget(parent)
   , m_shadowTile(0)
   , m_tasksLabel(0)
-  , m_tasksView(0)
+  , m_taskScroller(0)
   , m_layout(0)
 {
     QPalette pal;
@@ -92,18 +92,18 @@ StatusBarWidget::StatusBarWidget(QWidget *parent)
     m_tasksLabel = new QLabel(this);
     updateLabels();
 
-    m_tasksView = new TasksViewWidget(this);
-    connect(m_tasksView, SIGNAL(newActiveTask(quint32,QString)),
+    m_taskScroller = new TasksScroller(this);
+    connect(m_taskScroller, SIGNAL(newActiveTask(quint32,QString)),
             this, SLOT(slotNewActiveTask(quint32,QString)));
-    connect(m_tasksView, SIGNAL(removeActiveTask(quint32)),
+    connect(m_taskScroller, SIGNAL(removeActiveTask(quint32)),
             this, SLOT(slotRemoveActiveTask(quint32)));
     connect(this, SIGNAL(stopTask(quint32)),
-            m_tasksView, SLOT(slotStopTask(quint32)));
+            m_taskScroller, SLOT(slotStopTask(quint32)));
 
     m_layout = new QHBoxLayout(this);
     m_layout->setContentsMargins(9, 0, 9, 0);
     m_layout->addWidget(m_tasksLabel, 0);
-    m_layout->addWidget(m_tasksView, 0);
+    m_layout->addWidget(m_taskScroller, 0);
     m_layout->addStretch(1);
 }
 
@@ -115,7 +115,7 @@ void StatusBarWidget::setInstance(Inspector::Instance *instance)
 
     // apply the model to the tasks widget
     TasksModel *model = instance ? instance->tasksModel() : 0;
-    m_tasksView->setTasksModel(model);
+    m_taskScroller->setTasksModel(model);
 }
 
 static void drawVerticalShadow(QPainter * painter, int width, int height)

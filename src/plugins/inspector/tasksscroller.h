@@ -27,18 +27,53 @@
 **
 **************************************************************************/
 
-#ifndef TASKSSCENE_H
-#define TASKSSCENE_H
+#ifndef TASKSSCROLLER_H
+#define TASKSSCROLLER_H
 
-#include <QGraphicsScene>
 #include <QBasicTimer>
+#include <QGraphicsScene>
+#include <QGraphicsView>
 #include <QTime>
 
 namespace Inspector {
 namespace Internal {
 
+class TasksModel;
+class TasksScene;
 class TaskRectangle;
 
+class TasksScroller : public QGraphicsView
+{
+    Q_OBJECT
+
+public:
+    TasksScroller(QWidget *parent = 0);
+
+    void setTasksModel(TasksModel *model);
+
+    // ::QWidget
+    QSize sizeHint() const;
+    QSize minimumSizeHint() const;
+
+signals:
+    void newActiveTask(quint32 tid, const QString &name);
+    void removeActiveTask(quint32 tid);
+
+public slots:
+    void slotStopTask(quint32 tid);
+
+private slots:
+    void slotTasksChanged();
+
+private:
+    QList<quint32> m_activeTasks;
+    TasksModel *m_tasksModel;
+    TasksScene *m_scene;
+};
+
+/**
+  \brief The Scene to show scrolling tasks
+*/
 class TasksScene : public QGraphicsScene
 {
     Q_OBJECT
@@ -75,4 +110,4 @@ private:
 } // namespace Internal
 } // namespace Inspector
 
-#endif // TASKSSCENE_H
+#endif // TASKSSCROLLER_H

@@ -43,7 +43,7 @@ class Instance;
 namespace Internal {
 
 class KillTaskButton;
-class TasksViewWidget;
+class TasksScroller;
 
 /**
   \brief Shows Inspector::Instance information, like running Tasks
@@ -73,7 +73,7 @@ private:
     void updateLabels();
     QPixmap *m_shadowTile;
     QLabel *m_tasksLabel;
-    TasksViewWidget *m_tasksView;
+    TasksScroller *m_taskScroller;
     QList<KillTaskButton *> m_buttons;
     QHBoxLayout *m_layout;
 };
