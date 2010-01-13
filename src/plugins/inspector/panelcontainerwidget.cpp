@@ -27,7 +27,7 @@
 **
 **************************************************************************/
 
-#include "viewcontainerwidget.h"
+#include "panelcontainerwidget.h"
 #include <QGradient>
 #include <QPainter>
 #include <QPaintEvent>
@@ -36,7 +36,7 @@
 
 using namespace Inspector::Internal;
 
-ViewContainerWidget::ViewContainerWidget(QWidget * parent)
+PanelContainerWidget::PanelContainerWidget(QWidget * parent)
   : QWidget(parent)
   , m_widget(0)
   , m_disabled(false)
@@ -52,7 +52,7 @@ ViewContainerWidget::ViewContainerWidget(QWidget * parent)
     }
 
     // create the disabled warning lable
-    //m_disabledLabel = new QLabel(tr("This View is disabled. Probably the View is not available in the current state."), this);
+    //m_disabledLabel = new QLabel(tr("This panel is disabled. Probably the panel is not available in the current state."), this);
     //m_disabledLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     //m_disabledLabel->hide();
 
@@ -65,7 +65,7 @@ ViewContainerWidget::ViewContainerWidget(QWidget * parent)
 }
 
 /*
-void ViewContainerWidget::setDisableWidget(bool disabled)
+void PanelContainerWidget::setDisableWidget(bool disabled)
 {
     if (disabled != m_disabled) {
         m_disabled = disabled;
@@ -76,7 +76,7 @@ void ViewContainerWidget::setDisableWidget(bool disabled)
 }
 */
 
-void ViewContainerWidget::setWidget(QWidget * widget)
+void PanelContainerWidget::setPanel(QWidget * widget)
 {
     delete m_widget;
     m_widget = widget;
@@ -88,7 +88,7 @@ void ViewContainerWidget::setWidget(QWidget * widget)
     }
 }
 
-void ViewContainerWidget::paintEvent(QPaintEvent * event)
+void PanelContainerWidget::paintEvent(QPaintEvent * event)
 {
     // draw a light gradient as the background
     QPainter p(this);

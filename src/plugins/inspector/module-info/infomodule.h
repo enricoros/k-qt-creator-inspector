@@ -41,24 +41,13 @@ class InfoModule : public AbstractModule
 
 public:
     InfoModule(Inspector::Instance *, QObject *parent = 0);
-    ~InfoModule();
 
     // ::AbstractModule
     enum { Uid = 0x01 };
     int uid() const { return Uid; }
     QString name() const;
     ModuleMenuEntries menuEntries() const;
-    AbstractView *createView(int viewId);
-    void slotActivate();
-    void slotDeactivate();
-    void slotLock();
-    void slotUnlock();
-
-private:
-    QList<AbstractView *> m_views;
-
-private slots:
-    void slotViewDestroyed();
+    AbstractPanel *createPanel(int panelId);
 };
 
 } // namespace Internal

@@ -27,24 +27,38 @@
 **
 **************************************************************************/
 
-#include "abstractview.h"
-#include "abstractmodule.h"
+#ifndef TEMPERATUREPANEL_H
+#define TEMPERATUREPANEL_H
 
-using namespace Inspector::Internal;
+#include "abstractpanel.h"
+#include "ui_temperaturepanel.h"
 
-AbstractView::AbstractView(AbstractModule *parentModule)
-  : QWidget(0)
-  , m_parentModule(parentModule)
+namespace Inspector {
+namespace Internal {
+class PaintingModule;
+
+class TemperaturePanel : public AbstractPanel, public Ui::TemperaturePanel
 {
-    Q_ASSERT(parentModule);
-}
+    Q_OBJECT
 
-AbstractModule *AbstractView::parentModule() const
-{
-    return m_parentModule;
-}
+public:
+    TemperaturePanel(PaintingModule *parentModule);
 
-Inspector::Instance *AbstractView::parentInstance() const
-{
-    return m_parentModule->parentInstance();
-}
+private slots:
+    // 'new test' slots
+    void slotCheckIterations();
+    void slotCheckWeight();
+    void slotLoadDefaults();
+    void slotTestClicked();
+
+    // model slots
+    void slotModelItemChanged();
+
+    // results slots
+    void slotResultActivated(const QModelIndex &index);
+};
+
+} // namespace Internal
+} // namespace Inspector
+
+#endif // TEMPERATUREPANEL_H

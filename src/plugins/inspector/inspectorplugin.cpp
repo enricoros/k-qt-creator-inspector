@@ -169,7 +169,7 @@ void InspectorPlugin::slotDisplayInstance()
     if (instance && m_instances.contains(instance))
         m_window->setInstance(instance);
 
-    // switch to the Inspector view
+    // switch creator to the Inspector Mode
     Core::ICore::instance()->modeManager()->activateMode(Inspector::Internal::MODE_INSPECTOR);
 }
 

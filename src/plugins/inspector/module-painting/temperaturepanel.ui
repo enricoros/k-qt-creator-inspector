@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <author>Enrico Ros</author>
- <class>PaintTemperatureView</class>
- <widget class="QWidget" name="PaintTemperatureView">
+ <class>TemperaturePanel</class>
+ <widget class="QWidget" name="TemperaturePanel">
   <property name="geometry">
    <rect>
     <x>0</x>

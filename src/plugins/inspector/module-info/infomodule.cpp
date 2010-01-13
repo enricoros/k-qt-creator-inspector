@@ -28,18 +28,13 @@
 **************************************************************************/
 
 #include "infomodule.h"
-#include "infoview.h"
+#include "infopanel.h"
 
 using namespace Inspector::Internal;
 
 InfoModule::InfoModule(Inspector::Instance *instance, QObject *parent)
   : AbstractModule(instance, parent)
 {
-}
-
-InfoModule::~InfoModule()
-{
-    qDeleteAll(m_views);
 }
 
 QString InfoModule::name() const
@@ -54,43 +49,11 @@ ModuleMenuEntries InfoModule::menuEntries() const
     return entries;
 }
 
-AbstractView *InfoModule::createView(int viewId)
+AbstractPanel *InfoModule::createPanel(int panelId)
 {
-    if (viewId != 0) {
-        qWarning("InfoModule::createView: unhandled view %d", viewId);
+    if (panelId != 0) {
+        qWarning("InfoModule::createPanel: unhandled panel %d", panelId);
         return 0;
     }
-    AbstractView *view = new InfoView(this);
-    connect(view, SIGNAL(destroyed()), this, SLOT(slotViewDestroyed()));
-    m_views.append(view);
-    return view;
-}
-
-void InfoModule::slotActivate()
-{
-    qWarning("InfoModule::slotActivate: ACTIVATED");
-}
-
-void InfoModule::slotDeactivate()
-{
-    qWarning("InfoModule::slotDeactivate: DEACTIVATED");
-    emit deactivated();
-}
-
-void InfoModule::slotLock()
-{
-    foreach (AbstractView *view, m_views)
-        view->setEnabled(false);
-}
-
-void InfoModule::slotUnlock()
-{
-    foreach (AbstractView *view, m_views)
-        view->setEnabled(true);
-}
-
-void InfoModule::slotViewDestroyed()
-{
-    AbstractView *view = static_cast<AbstractView *>(sender());
-    m_views.removeAll(view);
+    return new InfoPanel(this);
 }

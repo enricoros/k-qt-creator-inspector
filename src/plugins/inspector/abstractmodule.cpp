@@ -112,9 +112,9 @@ ModuleMenuEntries AbstractModule::menuEntries() const
     return ModuleMenuEntries();
 }
 
-AbstractView *AbstractModule::createView(int viewId)
+AbstractPanel *AbstractModule::createPanel(int panelId)
 {
-    qWarning("AbstractModule::createView: module '%s' doesn't create view %d", qPrintable(name()), viewId);
+    qWarning("AbstractModule::createPanel: module '%s' doesn't create panel %d", qPrintable(name()), panelId);
     return 0;
 }
 

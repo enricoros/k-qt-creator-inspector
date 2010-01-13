@@ -67,11 +67,11 @@ ModuleMenuEntries WarningsModule::menuEntries() const
     return entries;
 }
 
-AbstractView *WarningsModule::createView(int viewId)
+AbstractPanel *WarningsModule::createPanel(int panelId)
 {
-    if (viewId == 0)
+    if (panelId == 0)
         return 0;
-    return AbstractModule::createView(viewId);
+    return AbstractModule::createPanel(panelId);
 }
 
 void WarningsModule::slotDelayedActivation()
@@ -94,7 +94,7 @@ void WarningsModule::slotNotificationClicked()
     m_notification->clearWarnings();
     m_notification->hide();
 
-    // switch view to this instance
+    // show our panel
     parentInstance()->makeVisible(Uid, 0);
 }
 

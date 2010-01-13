@@ -50,7 +50,7 @@ public:
     int uid() const { return Uid; }
     QString name() const;
     ModuleMenuEntries menuEntries() const;
-    AbstractView *createView(int viewId);
+    AbstractPanel *createPanel(int panelId);
 
 private slots:
     void slotDelayedActivation();

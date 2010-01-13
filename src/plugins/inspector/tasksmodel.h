@@ -52,7 +52,7 @@ public:
     QList<quint32> activeTasksId() const;
     QString taskName(quint32 taskId) const;
 
-    // called by the normal views
+    // flag a task for stopping
     bool requestStopTask(quint32 tid);
 
 private:

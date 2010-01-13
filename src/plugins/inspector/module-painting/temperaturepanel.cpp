@@ -27,7 +27,7 @@
 **
 **************************************************************************/
 
-#include "painttemperatureview.h"
+#include "temperaturepanel.h"
 #include "paintingmodel.h"
 #include "paintingmodule.h"
 #include "instance.h"
@@ -110,8 +110,8 @@ public:
 };
 
 
-PaintTemperatureView::PaintTemperatureView(PaintingModule *parentModule)
-  : AbstractView(parentModule)
+TemperaturePanel::TemperaturePanel(PaintingModule *parentModule)
+  : AbstractPanel(parentModule)
 {
     setupUi(this);
 
@@ -159,7 +159,7 @@ PaintTemperatureView::PaintTemperatureView(PaintingModule *parentModule)
     slotModelItemChanged();
 }
 
-void PaintTemperatureView::slotCheckIterations()
+void TemperaturePanel::slotCheckIterations()
 {
     int count = passesBox->value() - lowBox->value() - highBox->value();
     QPalette pal = palette();
@@ -175,13 +175,13 @@ void PaintTemperatureView::slotCheckIterations()
     samplesBox->setPalette(pal);
 }
 
-void PaintTemperatureView::slotCheckWeight()
+void TemperaturePanel::slotCheckWeight()
 {
     qreal pops = 100 * (qreal)passesBox->value() * (qreal)innerBox->value() / (qreal)(widthBox->value() * heightBox->value());
     popsBox->setText(tr("%1%").arg(QString::number(pops)));
 }
 
-void PaintTemperatureView::slotLoadDefaults()
+void TemperaturePanel::slotLoadDefaults()
 {
     passesBox->setValue(5);
     lowBox->setValue(1);
@@ -191,7 +191,7 @@ void PaintTemperatureView::slotLoadDefaults()
     heightBox->setValue(10);
 }
 
-void PaintTemperatureView::slotTestClicked()
+void TemperaturePanel::slotTestClicked()
 {
     // Build the args list: passes << headDrops << tailDrops << innerPasses << chunkWidth << chunkHeight << consoleDebug
     QVariantList args;
@@ -199,7 +199,7 @@ void PaintTemperatureView::slotTestClicked()
     parentModule()->parentInstance()->instanceModel()->callProbeFunction("qWindowTemperature", args);
 }
 
-void PaintTemperatureView::slotModelItemChanged()
+void TemperaturePanel::slotModelItemChanged()
 {
     PaintingModel *model = static_cast<PaintingModule *>(parentModule())->model();
     int value = model->ptProgress();
@@ -207,7 +207,7 @@ void PaintTemperatureView::slotModelItemChanged()
     ptProgress->setVisible(value > 0 && value < 100);
 }
 
-void PaintTemperatureView::slotResultActivated(const QModelIndex &index)
+void TemperaturePanel::slotResultActivated(const QModelIndex &index)
 {
     PaintingModel *model = static_cast<PaintingModule *>(parentModule())->model();
     const TemperatureItem *item = model->result(index.row());
