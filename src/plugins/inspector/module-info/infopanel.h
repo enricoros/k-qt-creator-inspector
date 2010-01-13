@@ -27,36 +27,33 @@
 **
 **************************************************************************/
 
-#ifndef VIEWCONTAINERWIDGET_H
-#define VIEWCONTAINERWIDGET_H
+#ifndef INFOPANEL_H
+#define INFOPANEL_H
 
-#include <QWidget>
-#include <QPixmap>
+#include "abstractpanel.h"
+#include "ui_infopanel.h"
 
 namespace Inspector {
 namespace Internal {
 
-class ViewContainerWidget : public QWidget
+class InfoPanel : public AbstractPanel, public Ui::InfoPanel
 {
     Q_OBJECT
 
 public:
-    ViewContainerWidget(QWidget * parent = 0);
+    InfoPanel(AbstractModule *parentModule);
 
-    void setWidget(QWidget * widget);
-    //void setDisableWidget(bool disabled);
-
-protected:
-    void paintEvent(QPaintEvent * event);
+private slots:
+    void slotRefreshInstanceData();
+    void slotRowsInserted(const QModelIndex &parent, int start, int end);
 
 private:
-    QPixmap m_watermarkPixmap;
-    QWidget * m_widget;
-    bool m_disabled;
-    //QLabel * m_disabledLabel;
+    void setFieldState(QWidget *field, int state);
+    QPixmap m_okPixmap;
+    QPixmap m_errorPixmap;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // VIEWCONTAINERWIDGET_H
+#endif // INFOPANEL_H

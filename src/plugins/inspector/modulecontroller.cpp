@@ -29,7 +29,7 @@
 
 #include "modulecontroller.h"
 #include "abstractmodule.h"
-#include "abstractview.h"
+#include "abstractpanel.h"
 #include "tasksmodel.h"
 
 using namespace Inspector::Internal;
@@ -100,14 +100,14 @@ QStringList ModuleController::moduleNames() const
     return names;
 }
 
-AbstractView *ModuleController::createView(int moduleUid, int viewId) const
+AbstractPanel *ModuleController::createPanel(int moduleUid, int panelId) const
 {
     AbstractModule * module = moduleForUid(moduleUid);
     if (!module) {
-        qWarning("ModuleController::createView: unknown module Uid %d", moduleUid);
+        qWarning("ModuleController::createPanel: unknown module Uid %d", moduleUid);
         return 0;
     }
-    return module->createView(viewId);
+    return module->createPanel(panelId);
 }
 
 AbstractModule *ModuleController::moduleForUid(int moduleUid) const

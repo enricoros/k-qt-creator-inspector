@@ -27,33 +27,38 @@
 **
 **************************************************************************/
 
-#ifndef INFOVIEW_H
-#define INFOVIEW_H
+#ifndef ABSTRACTPANEL_H
+#define ABSTRACTPANEL_H
 
-#include "abstractview.h"
-#include "ui_infoview.h"
+#include <QWidget>
 
 namespace Inspector {
+
+class Instance;
+
 namespace Internal {
 
-class InfoView : public AbstractView, public Ui::InfoView
+class AbstractModule;
+
+/**
+  \brief A QWidget subclass created by AbstractModules
+*/
+class AbstractPanel : public QWidget
 {
     Q_OBJECT
 
 public:
-    InfoView(AbstractModule *parentModule);
+    AbstractPanel(AbstractModule *parentModule);
 
-private slots:
-    void slotRefreshInstanceData();
-    void slotRowsInserted(const QModelIndex &parent, int start, int end);
+    AbstractModule *parentModule() const;
+    Inspector::Instance *parentInstance() const;
 
 private:
-    void setFieldState(QWidget *field, int state);
-    QPixmap m_okPixmap;
-    QPixmap m_errorPixmap;
+    AbstractPanel();
+    AbstractModule *m_parentModule;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // INFOVIEW_H
+#endif // ABSTRACTPANEL_H

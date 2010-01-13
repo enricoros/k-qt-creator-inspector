@@ -31,7 +31,7 @@
 #include "instance.h"
 #include "commserver.h"
 #include "paintingmodel.h"
-#include "painttemperatureview.h"
+#include "temperaturepanel.h"
 
 using namespace Inspector::Internal;
 
@@ -46,7 +46,7 @@ PaintingModule::PaintingModule(Inspector::Instance *instance, QObject *parent)
 
 PaintingModule::~PaintingModule()
 {
-    qDeleteAll(m_views);
+    qDeleteAll(m_panels);
     delete m_model;
 }
 
@@ -68,18 +68,18 @@ ModuleMenuEntries PaintingModule::menuEntries() const
     return entries;
 }
 
-AbstractView *PaintingModule::createView(int viewId)
+AbstractPanel *PaintingModule::createPanel(int panelId)
 {
-    AbstractView *view = 0;
-    if (viewId == 1) {
-        view = new PaintTemperatureView(this);
+    AbstractPanel *panel = 0;
+    if (panelId == 1) {
+        panel = new TemperaturePanel(this);
     } else {
-        qWarning("PaintingModule::createView: unknown view %d", viewId);
+        qWarning("PaintingModule::createPanel: unknown panel %d", panelId);
         return 0;
     }
-    connect(view, SIGNAL(destroyed()), this, SLOT(slotViewDestroyed()));
-    m_views.append(view);
-    return view;
+    connect(panel, SIGNAL(destroyed()), this, SLOT(slotPanelDestroyed()));
+    m_panels.append(panel);
+    return panel;
 }
 
 void PaintingModule::slotActivate()
@@ -95,14 +95,14 @@ void PaintingModule::slotDeactivate()
 
 void PaintingModule::slotLock()
 {
-    foreach (AbstractView *view, m_views)
-        view->setEnabled(false);
+    foreach (AbstractPanel *panel, m_panels)
+        panel->setEnabled(false);
 }
 
 void PaintingModule::slotUnlock()
 {
-    foreach (AbstractView *view, m_views)
-        view->setEnabled(true);
+    foreach (AbstractPanel *panel, m_panels)
+        panel->setEnabled(true);
 }
 
 void PaintingModule::slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data)
@@ -137,8 +137,8 @@ void PaintingModule::slotProcessIncomingData(quint32 channel, quint32 code1, QBy
     }
 }
 
-void PaintingModule::slotViewDestroyed()
+void PaintingModule::slotPanelDestroyed()
 {
-    AbstractView *view = static_cast<AbstractView *>(sender());
-    m_views.removeAll(view);
+    AbstractPanel *panel = static_cast<AbstractPanel *>(sender());
+    m_panels.removeAll(panel);
 }

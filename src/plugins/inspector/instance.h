@@ -64,10 +64,10 @@ public:
     // controls loaded modules
     Internal::ModuleController *moduleController() const;
 
-    void makeVisible(int moduleUid, int viewId);
+    void makeVisible(int moduleUid, int panelId);
 
 signals:
-    void requestDisplay(int moduleUid, int viewId);
+    void requestDisplay(int moduleUid, int panelId);
 
 private:
     InstanceModel *m_instanceModel;

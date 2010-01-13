@@ -40,7 +40,7 @@ class Instance;
 
 namespace Internal {
 
-class AbstractView;
+class AbstractPanel;
 class ModuleController;
 
 /**
@@ -50,10 +50,10 @@ struct ModuleMenuEntry {
     QStringList path;
     QIcon icon;
     int moduleUid;
-    int viewId;
+    int panelId;
 
-    ModuleMenuEntry(const QStringList &path, int moduleUid, int viewId, const QIcon &icon = QIcon())
-        : path(path), icon(icon), moduleUid(moduleUid), viewId(viewId) {}
+    ModuleMenuEntry(const QStringList &path, int moduleUid, int panelId, const QIcon &icon = QIcon())
+        : path(path), icon(icon), moduleUid(moduleUid), panelId(panelId) {}
 };
 
 typedef QList<ModuleMenuEntry> ModuleMenuEntries;
@@ -62,7 +62,7 @@ typedef QList<ModuleMenuEntry> ModuleMenuEntries;
   \brief Encapsulates functionalities relative to a probing context
 
   Handles a certain type of tests, encapsulates communication, database,
-  views and activation logic.
+  panels and activation logic.
 */
 class AbstractModule : public QObject
 {
@@ -76,9 +76,9 @@ public:
     virtual int uid() const = 0;
     virtual QString name() const = 0;
     virtual ModuleMenuEntries menuEntries() const;
+    virtual AbstractPanel *createPanel(int panelId);
     //virtual QList<int> cmdClasses() const = 0;
     //virtual * createCommSession(int cmdClass) = 0;
-    virtual AbstractView *createView(int viewId);
 
     // useful references
     Inspector::Instance *parentInstance() const;

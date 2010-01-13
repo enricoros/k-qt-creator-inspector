@@ -27,7 +27,7 @@
 **
 **************************************************************************/
 
-#include "infoview.h"
+#include "infopanel.h"
 #include "abstractmodule.h"
 #include "instance.h"
 #include "modulecontroller.h"
@@ -36,8 +36,8 @@
 using namespace Inspector;
 using namespace Inspector::Internal;
 
-InfoView::InfoView(AbstractModule *parentModule)
-  : AbstractView(parentModule)
+InfoPanel::InfoPanel(AbstractModule *parentModule)
+  : AbstractPanel(parentModule)
   , m_okPixmap(":/inspector/images/status-ok.png")
   , m_errorPixmap(":/inspector/images/status-err.png")
 {
@@ -67,7 +67,7 @@ InfoView::InfoView(AbstractModule *parentModule)
     connect(paintBox, SIGNAL(toggled(bool)), parentInstance()->instanceModel(), SLOT(setDebugPaint(bool)));
 }
 
-void InfoView::slotRefreshInstanceData()
+void InfoPanel::slotRefreshInstanceData()
 {
     InstanceModel *model = parentInstance()->instanceModel();
 
@@ -94,7 +94,7 @@ void InfoView::slotRefreshInstanceData()
     setFieldState(workLabel,        works);
 }
 
-void InfoView::slotRowsInserted(const QModelIndex &parent, int start, int end)
+void InfoPanel::slotRowsInserted(const QModelIndex &parent, int start, int end)
 {
     InstanceModel *model = parentInstance()->instanceModel();
     QStandardItem *parentItem = model->itemFromIndex(parent);
@@ -110,7 +110,7 @@ void InfoView::slotRowsInserted(const QModelIndex &parent, int start, int end)
     }
 }
 
-void InfoView::setFieldState(QWidget *field, int state)
+void InfoPanel::setFieldState(QWidget *field, int state)
 {
     if (QCheckBox *c = dynamic_cast<QCheckBox *>(field)) {
         c->setChecked(state == 1);

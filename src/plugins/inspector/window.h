@@ -42,8 +42,8 @@ class Instance;
 namespace Internal {
 
 class ComboTreeWidget;
+class PanelContainerWidget;
 class StatusBarWidget;
-class ViewContainerWidget;
 
 class Window : public QWidget
 {
@@ -56,16 +56,16 @@ public:
     void setInstance(Inspector::Instance *instance);
 
 public slots:
-    void slotActivateMenu(int moduleUid, int viewId);
+    void slotActivateMenu(int moduleUid, int panelId);
 
 private slots:
     void slotMenuChanged(const QStringList &path, const QVariant &data);
 
 private:
-    void showView(int moduleUid, int viewId);
+    void showPanel(int moduleUid, int panelId);
     Instance *              m_extInstance;
     ComboTreeWidget *       m_menuWidget;
-    ViewContainerWidget *   m_viewWidget;
+    PanelContainerWidget *  m_panelContainer;
     StatusBarWidget *       m_statusWidget;
 };
 

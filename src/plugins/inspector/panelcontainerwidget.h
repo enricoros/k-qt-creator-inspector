@@ -27,38 +27,36 @@
 **
 **************************************************************************/
 
-#ifndef ABSTRACTVIEW_H
-#define ABSTRACTVIEW_H
+#ifndef PANELCONTAINERWIDGET_H
+#define PANELCONTAINERWIDGET_H
 
 #include <QWidget>
+#include <QPixmap>
 
 namespace Inspector {
-
-class Instance;
-
 namespace Internal {
 
-class AbstractModule;
-
-/**
-  \brief A QWidget subclass created by AbstractModules
-*/
-class AbstractView : public QWidget
+class PanelContainerWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    AbstractView(AbstractModule *parentModule);
+    PanelContainerWidget(QWidget * parent = 0);
 
-    AbstractModule *parentModule() const;
-    Inspector::Instance *parentInstance() const;
+    void setPanel(QWidget * widget);
+    //void setDisableWidget(bool disabled);
+
+protected:
+    void paintEvent(QPaintEvent * event);
 
 private:
-    AbstractView();
-    AbstractModule *m_parentModule;
+    QPixmap m_watermarkPixmap;
+    QWidget * m_widget;
+    bool m_disabled;
+    //QLabel * m_disabledLabel;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // ABSTRACTVIEW_H
+#endif // PANELCONTAINERWIDGET_H

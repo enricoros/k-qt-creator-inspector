@@ -52,7 +52,7 @@ public:
     int uid() const { return Uid; }
     QString name() const;
     ModuleMenuEntries menuEntries() const;
-    AbstractView *createView(int viewId);
+    AbstractPanel *createPanel(int panelId);
 
     void slotActivate();
     void slotDeactivate();
@@ -61,11 +61,11 @@ public:
 
 private:
     PaintingModel *m_model;
-    QList<AbstractView *> m_views;
+    QList<AbstractPanel *> m_panels;
 
 private slots:
     void slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data);
-    void slotViewDestroyed();
+    void slotPanelDestroyed();
 };
 
 } // namespace Internal

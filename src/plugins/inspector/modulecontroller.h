@@ -58,7 +58,7 @@ public:
     // operate on modules
     ModuleMenuEntries menuEntries() const;
     QStringList moduleNames() const;
-    AbstractView *createView(int moduleUid, int viewId) const;
+    AbstractPanel *createPanel(int moduleUid, int panelId) const;
 
 signals:
     void modulesChanged();
