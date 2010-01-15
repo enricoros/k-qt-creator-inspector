@@ -22,6 +22,7 @@ HEADERS += \
     tasksmodel.h \
     tasksscroller.h \
     window.h \
+    module-blueprint/blueprintmodule.h \
     module-info/infomodule.h \
     module-info/infopanel.h \
     module-painting/paintingmodel.h \
@@ -46,6 +47,7 @@ SOURCES += \
     tasksmodel.cpp \
     tasksscroller.cpp \
     window.cpp \
+    module-blueprint/blueprintmodule.cpp \
     module-info/infomodule.cpp \
     module-info/infopanel.cpp \
     module-painting/paintingmodel.cpp \
