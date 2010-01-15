@@ -31,6 +31,7 @@
 #include "commserver.h"
 #include "inspectorplugin.h"
 #include "modulecontroller.h"
+#include "module-blueprint/blueprintmodule.h"
 #include "module-info/infomodule.h"
 #include "module-painting/paintingmodule.h"
 #include "module-warnings/warningsmodule.h"
@@ -53,6 +54,7 @@ Instance::Instance(QObject *parent)
     m_moduleController->addModule(new Internal::InfoModule(this));
     m_moduleController->addModule(new Internal::PaintingModule(this));
     m_moduleController->addModule(new Internal::WarningsModule(this));
+    m_moduleController->addModule(new Internal::BlueprintModule(this));
 }
 
 Instance::~Instance()
