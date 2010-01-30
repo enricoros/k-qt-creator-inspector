@@ -27,55 +27,47 @@
 **
 **************************************************************************/
 
-#ifndef INSTANCEMODEL_H
-#define INSTANCEMODEL_H
+#ifndef INSPECTORWINDOW_H
+#define INSPECTORWINDOW_H
 
-#include "abstracteasymodel.h"
-#include <QVariantList>
+#include <QtCore/QList>
+#include <QtGui/QWidget>
+class QStackedWidget;
 
 namespace Inspector {
 
-namespace Internal {
-}
+class Instance;
 
-class Q_DECL_EXPORT InstanceModel : public Internal::AbstractEasyModel
+namespace Internal {
+
+class NewTargetWindow;
+class SingleTabWidget;
+class TargetWindow;
+
+class InspectorWindow : public QWidget
 {
     Q_OBJECT
 
 public:
-    InstanceModel(QObject *parent = 0);
+    InspectorWindow(QWidget *parent = 0);
 
-    enum { InstanceStatus_Row = 0, ProbeStatus_Row = 1, CommServer_Row = 2 };
-
-    // instance status
-    QString prettyName() const;
-    QString targetName() const;
-    QString frameworkName() const;
-    bool debugPaint() const;
-    bool instanceEnabled() const;
-
-    // probe status (set by the Debugger plugin)
-    void setDebugEnabled(bool);
-    void setDebugStopped(bool);
-    void setProbePresent(bool);
-    void setProbeInjected(bool);
-    void setProbeActive(bool);
-    // startup params (read by the Debugger plugin)
-    QString localServerName() const;
-    int probeActivationFlags() const;
-
-    // temp model-function? maybe better in CommServer? ###
-    // this is here only for not exposing commserver to the Debugger plugin
-    bool callProbeFunction(const QString &name, const QVariantList &args = QVariantList());
-
-public slots:
-    void setDebugPaint(bool);
-    void setInstanceEnabled(bool);
+    void addInstance(Inspector::Instance *instance);
 
 signals:
-    void debuggerCallFunction(const QString &name, const QVariantList &args);
+    void requestWindowDisplay();
+
+private slots:
+    void slotDisplayTargetWindow();
+    void slotTopbarIndexChanged(int);
+
+private:
+    SingleTabWidget *       m_topbarWidget;
+    NewTargetWindow *       m_newTarget;
+    QStackedWidget *        m_centralWidget;
+    QList<TargetWindow *>   m_targets;
 };
 
+} // namespace Internal
 } // namespace Inspector
 
-#endif // INSTANCEMODEL_H
+#endif // INSPECTORWINDOW_H

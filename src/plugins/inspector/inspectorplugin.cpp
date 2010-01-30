@@ -28,9 +28,9 @@
 **************************************************************************/
 
 #include "inspectorplugin.h"
+#include "inspectorwindow.h"
 #include "instance.h"
 #include "notificationwidget.h"
-#include "window.h"
 #include "modulecontroller.h"
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/basemode.h>
@@ -79,6 +79,18 @@ InspectorPlugin::~InspectorPlugin()
     m_window = 0;
 }
 
+void InspectorPlugin::addInstance(Inspector::Instance * instance)
+{
+    if (m_instances.contains(instance)) {
+        qWarning("InspectorPlugin::addInstance: instance already present");
+        return;
+    }
+
+    instance->instanceModel()->setInstanceEnabled(m_pluginEnabled);
+    m_instances.append(instance);
+    m_window->addInstance(instance);
+}
+
 Inspector::Instance * InspectorPlugin::defaultInstance()
 {
     if (!s_pluginInstance || s_pluginInstance->m_instances.isEmpty())
@@ -93,19 +105,6 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     // check arguments
     parseArguments(arguments);
 
-    // create a single Instance - SINGLE debuggee is supposed here
-    Inspector::Instance *instance = new Inspector::Instance;
-    m_instances.append(instance);
-    instance->instanceModel()->setInstanceEnabled(m_pluginEnabled);
-    connect(instance, SIGNAL(requestDisplay(int,int)), this, SLOT(slotDisplayInstance()));
-
-    // UI
-
-    // create the Window
-    m_window = new Window;
-    m_window->setInstance(instance);
-    connect(instance, SIGNAL(requestDisplay(int,int)), m_window, SLOT(slotActivateMenu(int,int)));
-
     // get core objects
     Core::ICore *core = Core::ICore::instance();
     Core::ActionManager *actionManager = core->actionManager();
@@ -113,6 +112,19 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
         << Core::Constants::C_GLOBAL_ID;
     //QList<int> debuggerContext = QList<int>()
     //    << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING);
+
+    m_window = new InspectorWindow;
+    connect(m_window, SIGNAL(requestDisplay()), this, SLOT(slotDisplayWindow()));
+
+    // create the Mode, that registers the widget too
+    Core::BaseMode * inspectorMode = new Core::BaseMode;
+    inspectorMode->setDisplayName(tr("Probe"));
+    inspectorMode->setId(QLatin1String(Inspector::Internal::MODE_INSPECTOR));
+    inspectorMode->setIcon(QIcon(":/inspector/images/inspector-icon-32.png"));
+    inspectorMode->setPriority(Inspector::Internal::P_MODE_INSPECTOR);
+    inspectorMode->setWidget(m_window);
+    inspectorMode->setContext(globalContext);
+    addAutoReleasedObject(inspectorMode);
 
     // create the Menu and add it to the Debug menu
     Core::ActionContainer *inspContainer = actionManager->createMenu("Inspector.Container");
@@ -130,22 +142,16 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     inspContainer->addAction(command);
 
     QAction *workBenchAction = new QAction(tr("Current Instance"), this);
-    connect(workBenchAction, SIGNAL(triggered()), this, SLOT(slotDisplayInstance()));
+    connect(workBenchAction, SIGNAL(triggered()), this, SLOT(slotDisplayWindow()));
     command = actionManager->registerAction(workBenchAction, "Inspector.ShowInstance", globalContext);
     inspContainer->addAction(command);
 
-    // create the Mode, that registers the widget too
-    Core::BaseMode * inspectorMode = new Core::BaseMode;
-    inspectorMode->setDisplayName(tr("Probe"));
-    inspectorMode->setId(QLatin1String(Inspector::Internal::MODE_INSPECTOR));
-    inspectorMode->setIcon(QIcon(":/inspector/images/inspector-icon-32.png"));
-    inspectorMode->setPriority(Inspector::Internal::P_MODE_INSPECTOR);
-    inspectorMode->setWidget(m_window);
-    inspectorMode->setContext(globalContext);
-    addAutoReleasedObject(inspectorMode);
-
 //    connect(core->modeManager(), SIGNAL(currentModeChanged(Core::IMode*)),
 //            this, SLOT(modeChanged(Core::IMode*)), Qt::QueuedConnection);
+
+    // create a single Instance - SINGLE debuggee is supposed here
+    Inspector::Instance *instance = new Inspector::Instance;
+    addInstance(instance);
 
     return true;
 }
@@ -162,13 +168,8 @@ void InspectorPlugin::slotSetPluginEnabled(bool enabled)
         instance->instanceModel()->setInstanceEnabled(enabled);
 }
 
-void InspectorPlugin::slotDisplayInstance()
+void InspectorPlugin::slotDisplayWindow()
 {
-    // switch window to calling Instance if present
-    Inspector::Instance *instance = dynamic_cast<Inspector::Instance *>(sender());
-    if (instance && m_instances.contains(instance))
-        m_window->setInstance(instance);
-
     // switch creator to the Inspector Mode
     Core::ICore::instance()->modeManager()->activateMode(Inspector::Internal::MODE_INSPECTOR);
 }

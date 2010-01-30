@@ -27,55 +27,47 @@
 **
 **************************************************************************/
 
-#ifndef INSTANCEMODEL_H
-#define INSTANCEMODEL_H
+#ifndef TARGETWINDOW_H
+#define TARGETWINDOW_H
 
-#include "abstracteasymodel.h"
-#include <QVariantList>
+#include <QtGui/QWidget>
 
 namespace Inspector {
 
-namespace Internal {
-}
+class Instance;
 
-class Q_DECL_EXPORT InstanceModel : public Internal::AbstractEasyModel
+namespace Internal {
+
+class ComboTreeWidget;
+class PanelContainerWidget;
+class StatusBarWidget;
+
+class TargetWindow : public QWidget
 {
     Q_OBJECT
 
 public:
-    InstanceModel(QObject *parent = 0);
+    TargetWindow(Inspector::Instance *instance, QWidget *parent = 0);
 
-    enum { InstanceStatus_Row = 0, ProbeStatus_Row = 1, CommServer_Row = 2 };
-
-    // instance status
-    QString prettyName() const;
-    QString targetName() const;
-    QString frameworkName() const;
-    bool debugPaint() const;
-    bool instanceEnabled() const;
-
-    // probe status (set by the Debugger plugin)
-    void setDebugEnabled(bool);
-    void setDebugStopped(bool);
-    void setProbePresent(bool);
-    void setProbeInjected(bool);
-    void setProbeActive(bool);
-    // startup params (read by the Debugger plugin)
-    QString localServerName() const;
-    int probeActivationFlags() const;
-
-    // temp model-function? maybe better in CommServer? ###
-    // this is here only for not exposing commserver to the Debugger plugin
-    bool callProbeFunction(const QString &name, const QVariantList &args = QVariantList());
-
-public slots:
-    void setDebugPaint(bool);
-    void setInstanceEnabled(bool);
+    Inspector::Instance *targetInstance() const;
 
 signals:
-    void debuggerCallFunction(const QString &name, const QVariantList &args);
+    void requestTargetDisplay();
+
+private slots:
+    void slotMenuChanged(const QStringList &path, const QVariant &data);
+    void slotSetCurrentMenu(int moduleUid, int panelId);
+
+private:
+    void setInstance(Inspector::Instance *instance);
+    void showPanel(int moduleUid, int panelId);
+    Instance *              m_instance;
+    ComboTreeWidget *       m_menuWidget;
+    PanelContainerWidget *  m_panelContainer;
+    StatusBarWidget *       m_statusbarWidget;
 };
 
+} // namespace Internal
 } // namespace Inspector
 
-#endif // INSTANCEMODEL_H
+#endif // TARGETWINDOW_H

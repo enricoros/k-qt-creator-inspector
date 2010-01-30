@@ -43,7 +43,7 @@ Q_DECL_EXPORT Instance * defaultInstance();
 
 namespace Internal {
 
-class Window;
+class InspectorWindow;
 
 // constants
 const char * const MODE_INSPECTOR   = "Probe";
@@ -60,6 +60,10 @@ public:
     InspectorPlugin();
     ~InspectorPlugin();
 
+    // called by the 'New Target' window
+    void addInstance(Inspector::Instance *);
+    //void removeInstance(Inspector::Instance *);
+
     // single debuggee assumption lies here: we use a single instance from the outside
     static Inspector::Instance * defaultInstance();
 
@@ -69,13 +73,13 @@ public:
 
 private slots:
     void slotSetPluginEnabled(bool enabled);
-    void slotDisplayInstance();
+    void slotDisplayWindow();
 
 private:
     void parseArguments(const QStringList & arguments);
     static InspectorPlugin *s_pluginInstance;
+    Internal::InspectorWindow *m_window;
     QList<Instance *> m_instances;
-    Internal::Window *m_window;
     bool m_pluginEnabled;
 };
 
