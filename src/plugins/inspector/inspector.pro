@@ -14,14 +14,17 @@ HEADERS += \
     instance.h \
     instancemodel.h \
     inspectorplugin.h \
+    inspectorwindow.h \
+    newtargetwindow.h \
     notificationwidget.h \
     panelcontainerwidget.h \
     plotgrid.h \
     modulecontroller.h \
+    singletabwidget.h \
     statusbarwidget.h \
+    targetwindow.h \
     tasksmodel.h \
     tasksscroller.h \
-    window.h \
     module-blueprint/blueprintmodule.h \
     module-info/infomodule.h \
     module-info/infopanel.h \
@@ -39,14 +42,17 @@ SOURCES += \
     instance.cpp \
     instancemodel.cpp \
     inspectorplugin.cpp \
+    inspectorwindow.cpp \
+    newtargetwindow.cpp \
     notificationwidget.cpp \
     panelcontainerwidget.cpp \
     plotgrid.cpp \
     modulecontroller.cpp \
+    singletabwidget.cpp \
     statusbarwidget.cpp \
+    targetwindow.cpp \
     tasksmodel.cpp \
     tasksscroller.cpp \
-    window.cpp \
     module-blueprint/blueprintmodule.cpp \
     module-info/infomodule.cpp \
     module-info/infopanel.cpp \
@@ -56,6 +62,7 @@ SOURCES += \
     module-warnings/warningsmodule.cpp
 
 FORMS += \
+    newtargetwindow.ui \
     module-info/infopanel.ui \
     module-painting/temperaturepanel.ui
 

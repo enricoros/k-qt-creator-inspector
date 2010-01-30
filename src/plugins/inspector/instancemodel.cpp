@@ -35,8 +35,11 @@ using namespace Inspector;
 
 /* == InstanceModel Usage ==
 Row 'InstanceStatus_Row': Instance Status
-  0: enabled                ###remove?
-  1: af: debug paint        ###move?
+  0: prettyName             string
+  1: targetName             string
+  2: frameworkName          string
+  3: enabled                ###remove?
+  4: af: debug paint        ###move?
 
 Row 'ProbeStatus_Row': Probe Status
   0: target name            undefined
@@ -64,8 +67,11 @@ InstanceModel::InstanceModel(QObject *parent)
   : Internal::AbstractEasyModel(3, 0, parent)
 {
     // init model
-    setItemValue(InstanceStatus_Row, 0, true);
-    setItemValue(InstanceStatus_Row, 1, false);
+    setItemValue(InstanceStatus_Row, 0, QString("InstanceX"));
+    setItemValue(InstanceStatus_Row, 1, QString("tName"));
+    setItemValue(InstanceStatus_Row, 2, QString("Qt_F"));
+    setItemValue(InstanceStatus_Row, 3, true);
+    setItemValue(InstanceStatus_Row, 4, false);
     setItemValue(ProbeStatus_Row, 0, QString());
     setItemValue(ProbeStatus_Row, 1, -1);
     setItemValue(ProbeStatus_Row, 2, -1);
@@ -76,14 +82,29 @@ InstanceModel::InstanceModel(QObject *parent)
     setItemValue(ProbeStatus_Row, 7, -1);
 }
 
+QString InstanceModel::prettyName() const
+{
+    return itemValue(InstanceStatus_Row, 0).toString();
+}
+
+QString InstanceModel::targetName() const
+{
+    return itemValue(InstanceStatus_Row, 1).toString();
+}
+
+QString InstanceModel::frameworkName() const
+{
+    return itemValue(InstanceStatus_Row, 2).toString();
+}
+
 bool InstanceModel::debugPaint() const
 {
-    return itemValue(InstanceStatus_Row, 1).toBool();
+    return itemValue(InstanceStatus_Row, 4).toBool();
 }
 
 bool InstanceModel::instanceEnabled() const
 {
-    return itemValue(InstanceStatus_Row, 0).toBool();
+    return itemValue(InstanceStatus_Row, 3).toBool();
 }
 
 void InstanceModel::setDebugEnabled(bool value)
@@ -140,10 +161,10 @@ bool InstanceModel::callProbeFunction(const QString &name, const QVariantList &a
 
 void InstanceModel::setDebugPaint(bool value)
 {
-    setItemValue(InstanceStatus_Row, 1, value);
+    setItemValue(InstanceStatus_Row, 4, value);
 }
 
 void InstanceModel::setInstanceEnabled(bool value)
 {
-    setItemValue(InstanceStatus_Row, 0, value);
+    setItemValue(InstanceStatus_Row, 3, value);
 }

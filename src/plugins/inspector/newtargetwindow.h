@@ -27,49 +27,30 @@
 **
 **************************************************************************/
 
-#ifndef WINDOW_H
-#define WINDOW_H
+#ifndef NEWTARGETWINDOW_H
+#define NEWTARGETWINDOW_H
 
-#include <QWidget>
-#include "instance.h"
-class QComboBox;
-class QVBoxLayout;
+#include <QtGui/QWidget>
+
+namespace Ui {
+    class NewTargetWindow;
+}
 
 namespace Inspector {
-
-class Instance;
-
 namespace Internal {
 
-class ComboTreeWidget;
-class PanelContainerWidget;
-class StatusBarWidget;
-
-class Window : public QWidget
-{
+class NewTargetWindow : public QWidget {
     Q_OBJECT
 
 public:
-    Window(QWidget *parent = 0);
-
-    /// sets the Instance handled by this Window
-    void setInstance(Inspector::Instance *instance);
-
-public slots:
-    void slotActivateMenu(int moduleUid, int panelId);
-
-private slots:
-    void slotMenuChanged(const QStringList &path, const QVariant &data);
+    explicit NewTargetWindow(QWidget *parent = 0);
+    ~NewTargetWindow();
 
 private:
-    void showPanel(int moduleUid, int panelId);
-    Instance *              m_extInstance;
-    ComboTreeWidget *       m_menuWidget;
-    PanelContainerWidget *  m_panelContainer;
-    StatusBarWidget *       m_statusWidget;
+    Ui::NewTargetWindow *ui;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // WINDOW_H
+#endif // NEWTARGETWINDOW_H

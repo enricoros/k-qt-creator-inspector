@@ -27,7 +27,7 @@
 **
 **************************************************************************/
 
-#include "window.h"
+#include "targetwindow.h"
 #include "abstractpanel.h"
 #include "combotreewidget.h"
 #include "instance.h"
@@ -35,17 +35,13 @@
 #include "panelcontainerwidget.h"
 #include "statusbarwidget.h"
 #include "module-info/infomodule.h"
-#include <QVBoxLayout>
+#include <QtGui/QVBoxLayout>
 
-namespace Inspector {
-namespace Internal {
+using namespace Inspector::Internal;
 
-Window::Window(QWidget *parent)
+TargetWindow::TargetWindow(Inspector::Instance *instance, QWidget *parent)
   : QWidget(parent)
-  , m_extInstance(0)
-  , m_menuWidget(0)
-  , m_panelContainer(0)
-  , m_statusWidget(0)
+  , m_instance(0)
 {
     QVBoxLayout * layout = new QVBoxLayout(this);
     layout->setMargin(0);
@@ -58,59 +54,23 @@ Window::Window(QWidget *parent)
     m_panelContainer = new PanelContainerWidget(this);
     layout->addWidget(m_panelContainer);
 
-    m_statusWidget = new Inspector::Internal::StatusBarWidget(this);
-    layout->addWidget(m_statusWidget);
+    m_statusbarWidget = new Inspector::Internal::StatusBarWidget(this);
+    layout->addWidget(m_statusbarWidget);
+
+    setInstance(instance);
 }
 
-void Window::setInstance(Inspector::Instance *instance)
+Inspector::Instance *TargetWindow::targetInstance() const
 {
-    // remove references to any previous instance
-    if (m_extInstance) {
-        m_menuWidget->clear();
-        m_panelContainer->setPanel(new QWidget);
-        m_statusWidget->setInstance(0);
-    }
-
-    // set the new instance
-    m_extInstance = instance;
-
-    // connect it if not null
-    if (m_extInstance) {
-        // menu: add all entries by the plugged modules
-        ModuleMenuEntries entries = m_extInstance->moduleController()->menuEntries();
-        foreach (const ModuleMenuEntry &entry, entries) {
-            if ((entry.moduleUid & 0xFF000000) || (entry.panelId & 0xFFFFFF00)) {
-                qWarning("Window::setInstance: moduleUid (%d) or panelId (%d) not valid", entry.moduleUid, entry.panelId);
-                continue;
-            }
-            quint32 compoId = (entry.moduleUid << 8) + entry.panelId;
-            m_menuWidget->addItem(entry.path, compoId, entry.icon);
-        }
-
-        // link the taskbar
-        m_statusWidget->setInstance(m_extInstance);
-
-        // show information about the current instance
-        showPanel(InfoModule::Uid, 0);
-    }
+    return m_instance;
 }
 
-void Window::slotActivateMenu(int moduleUid, int panelId)
-{
-    if ((moduleUid & 0xFF000000) || (panelId & 0xFFFFFF00)) {
-        qWarning("Window::slotActivateMenu: moduleUid (%d) or panelId (%d) not valid", moduleUid, panelId);
-        return;
-    }
-    quint32 compoId = (moduleUid << 8) + panelId;
-    m_menuWidget->setCurrentPath(compoId);
-}
-
-void Window::slotMenuChanged(const QStringList &/*path*/, const QVariant &data)
+void TargetWindow::slotMenuChanged(const QStringList &/*path*/, const QVariant &data)
 {
     // sanity check on the menu code
     quint32 compoId = data.toInt();
     if (!compoId) {
-        qWarning("Window::slotMenuChanged: invalid module/panel ids, skipping panel creation");
+        qWarning("TargetWindow::slotMenuChanged: invalid module/panel ids, skipping panel creation");
         return;
     }
 
@@ -120,18 +80,65 @@ void Window::slotMenuChanged(const QStringList &/*path*/, const QVariant &data)
     showPanel(moduleUid, panelId);
 }
 
-void Window::showPanel(int moduleUid, int panelId)
+void TargetWindow::slotSetCurrentMenu(int moduleUid, int panelId)
 {
-    if (!m_extInstance) {
-        qWarning("Window::showPanel: requested panel %d:%d with a null instance", moduleUid, panelId);
+    if ((moduleUid & 0xFF000000) || (panelId & 0xFFFFFF00)) {
+        qWarning("TargetWindow::slotActivateMenu: moduleUid (%d) or panelId (%d) not valid", moduleUid, panelId);
+        return;
+    }
+    quint32 compoId = (moduleUid << 8) + panelId;
+    m_menuWidget->setCurrentPath(compoId);
+    emit requestTargetDisplay();
+}
+
+void TargetWindow::setInstance(Inspector::Instance *instance)
+{
+    // remove references to any previous instance
+    if (m_instance) {
+        disconnect(m_instance, 0, this, 0);
+        m_menuWidget->clear();
+        m_panelContainer->setPanel(new QWidget);
+        m_statusbarWidget->setInstance(0);
+    }
+
+    // set the new instance
+    m_instance = instance;
+
+    if (m_instance) {
+        // connect it
+        connect(m_instance, SIGNAL(requestDisplay(int,int)), this, SLOT(slotSetCurrentMenu(int,int)));
+
+        // menu: add all entries by the plugged modules
+        ModuleMenuEntries entries = m_instance->moduleController()->menuEntries();
+        foreach (const ModuleMenuEntry &entry, entries) {
+            if ((entry.moduleUid & 0xFF000000) || (entry.panelId & 0xFFFFFF00)) {
+                qWarning("TargetWindow::setInstance: moduleUid (%d) or panelId (%d) not valid", entry.moduleUid, entry.panelId);
+                continue;
+            }
+            quint32 compoId = (entry.moduleUid << 8) + entry.panelId;
+            m_menuWidget->addItem(entry.path, compoId, entry.icon);
+        }
+
+        // link the taskbar
+        m_statusbarWidget->setInstance(m_instance);
+
+        // show information about the current instance
+        showPanel(InfoModule::Uid, 0);
+    }
+}
+
+void TargetWindow::showPanel(int moduleUid, int panelId)
+{
+    if (!m_instance) {
+        qWarning("TargetWindow::showPanel: requested panel %d:%d with a null instance", moduleUid, panelId);
         m_panelContainer->setPanel(new QWidget);
         return;
     }
 
     // ask for panel creation
-    AbstractPanel * panel = m_extInstance->moduleController()->createPanel(moduleUid, panelId);
+    AbstractPanel *panel = m_instance->moduleController()->createPanel(moduleUid, panelId);
     if (!panel) {
-        qWarning("Window::showPanel: can't create panel %d for module %d", panelId, moduleUid);
+        qWarning("TargetWindow::showPanel: can't create panel %d for module %d", panelId, moduleUid);
         m_panelContainer->setPanel(new QWidget);
         return;
     }
@@ -139,6 +146,3 @@ void Window::showPanel(int moduleUid, int panelId)
     // set the panel
     m_panelContainer->setPanel(panel);
 }
-
-} // namespace Internal
-} // namespace Inspector
