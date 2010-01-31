@@ -30,7 +30,8 @@
 #ifndef NEWTARGETWINDOW_H
 #define NEWTARGETWINDOW_H
 
-#include <QtGui/QWidget>
+#include <QtGui/QScrollArea>
+class QGridLayout;
 
 namespace Ui {
     class NewTargetWindow;
@@ -39,15 +40,20 @@ namespace Ui {
 namespace Inspector {
 namespace Internal {
 
-class NewTargetWindow : public QWidget {
+class NewTargetWindow : public QScrollArea
+{
     Q_OBJECT
 
 public:
-    explicit NewTargetWindow(QWidget *parent = 0);
-    ~NewTargetWindow();
+    NewTargetWindow(QWidget *parent = 0);
 
 private:
-    Ui::NewTargetWindow *ui;
+    void appendWrappedWidget(const QString &title, const QIcon &icon, QWidget *widget);
+    void appendSubWidget(QGridLayout *layout, QWidget *widget,
+                         const QString &title = QString(),
+                         const QString &subTitle = QString());
+    QWidget *m_root;
+    QGridLayout *m_layout;
 };
 
 } // namespace Internal
