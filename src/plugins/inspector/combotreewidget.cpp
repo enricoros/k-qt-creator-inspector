@@ -30,6 +30,7 @@
 #include "combotreewidget.h"
 #include <QComboBox>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QList>
 #include <QModelIndex>
 #include <QPainter>
@@ -37,6 +38,9 @@
 
 namespace Inspector {
 namespace Internal {
+
+// keep this in sync with singletabwidget.cpp
+static const int MARGIN = 12;
 
 class NodesDelegate : public QStyledItemDelegate
 {
@@ -133,10 +137,13 @@ ComboTreeWidget::ComboTreeWidget(QWidget *parent)
   , m_rootNode(new MenuNode)
 {
     QHBoxLayout *layout = new QHBoxLayout(this);
-    layout->setMargin(0);
-    layout->setSpacing(0);
-    layout->addStretch(5);
-    setLayout(layout);
+    layout->setContentsMargins(MARGIN, 0, 0, 0);
+    layout->setSpacing(MARGIN);
+
+    m_titleLabel = new QLabel;
+    layout->addWidget(m_titleLabel);
+
+    layout->addStretch(100);
 
     QPixmap blankPixmap(16, 16);
     blankPixmap.fill(Qt::transparent);
@@ -147,6 +154,16 @@ ComboTreeWidget::~ComboTreeWidget()
 {
     qDeleteAll(m_comboPath);
     delete m_rootNode;
+}
+
+QString ComboTreeWidget::title() const
+{
+    return m_titleLabel->text();
+}
+
+void ComboTreeWidget::setTitle(const QString &title)
+{
+    m_titleLabel->setText(title);
 }
 
 void ComboTreeWidget::addItem(const QStringList &path, const QVariant &userData, const QIcon &icon)
@@ -251,11 +268,6 @@ QVariant ComboTreeWidget::currentData() const
     if (m_nodePath.isEmpty())
         return QVariant();
     return m_nodePath.last()->data;
-}
-
-void ComboTreeWidget::paintEvent(QPaintEvent *event)
-{
-    Utils::StyledBar::paintEvent(event);
 }
 
 void ComboTreeWidget::slotComboIndexChanged(int comboIndex)

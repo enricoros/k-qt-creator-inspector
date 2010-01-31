@@ -13,6 +13,7 @@
 namespace Inspector {
 namespace Internal {
 
+// keep this in sync with combotreewidget.cpp
 static const int MIN_LEFT_MARGIN = 50;
 static const int MARGIN = 12;
 static const int OTHER_HEIGHT = 38;

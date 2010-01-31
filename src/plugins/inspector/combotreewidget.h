@@ -35,6 +35,7 @@
 #include <QStringList>
 #include <QVariant>
 class QComboBox;
+class QLabel;
 
 namespace Inspector {
 namespace Internal {
@@ -74,6 +75,9 @@ public:
     ComboTreeWidget(QWidget *parent = 0);
     ~ComboTreeWidget();
 
+    QString title() const;
+    void setTitle(const QString &title);
+
     // contents setup
     void addItem(const QStringList &path, const QVariant &userData, const QIcon &icon = QIcon());
     void removeItem(const QStringList &path);
@@ -89,9 +93,6 @@ signals:
     void treeChanged();
     void pathSelected(const QStringList &path, const QVariant &userData);
 
-protected:
-    void paintEvent(QPaintEvent *event);
-
 private slots:
     void slotComboIndexChanged(int index);
 
@@ -100,6 +101,7 @@ private:
     QStringList searchPathRecursive(MenuNode *node, const QVariant &userData);
 
     MenuNode * m_rootNode;
+    QLabel * m_titleLabel;
     QList<MenuNode *> m_nodePath;
     QList<NodesComboBox *> m_comboPath;
     QIcon m_blankIcon;
