@@ -71,7 +71,7 @@ void InspectorWindow::addInstance(Inspector::Instance *instance)
     // create a new widget
     TargetWindow *targetWindow = new TargetWindow(instance);
     connect(targetWindow, SIGNAL(requestTargetDisplay()), this, SLOT(slotDisplayTargetWindow()));
-    QString tabName = tr("%1 (%2)").arg(instance->instanceModel()->prettyName()).arg(instance->instanceModel()->frameworkName());
+    QString tabName = tr("Inspecting %1 [%2 framework]").arg(instance->instanceModel()->targetName()).arg(instance->instanceModel()->frameworkName());
     m_topbarWidget->addTab(tabName);
     m_centralWidget->addWidget(targetWindow);
 }

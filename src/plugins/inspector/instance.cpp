@@ -87,5 +87,5 @@ Internal::ModuleController *Instance::moduleController() const
 
 void Instance::makeVisible(int moduleUid, int panelId)
 {
-    emit requestDisplay(moduleUid, panelId);
+    emit requestPanelDisplay(moduleUid, panelId);
 }

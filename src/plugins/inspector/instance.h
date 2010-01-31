@@ -67,7 +67,7 @@ public:
     void makeVisible(int moduleUid, int panelId);
 
 signals:
-    void requestDisplay(int moduleUid, int panelId);
+    void requestPanelDisplay(int moduleUid, int panelId);
 
 private:
     InstanceModel *m_instanceModel;

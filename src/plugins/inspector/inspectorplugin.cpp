@@ -114,7 +114,7 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     //    << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING);
 
     m_window = new InspectorWindow;
-    connect(m_window, SIGNAL(requestDisplay()), this, SLOT(slotDisplayWindow()));
+    connect(m_window, SIGNAL(requestWindowDisplay()), this, SLOT(slotDisplayWindow()));
 
     // create the Mode, that registers the widget too
     Core::BaseMode * inspectorMode = new Core::BaseMode;

@@ -56,7 +56,7 @@ signals:
 
 private slots:
     void slotMenuChanged(const QStringList &path, const QVariant &data);
-    void slotSetCurrentMenu(int moduleUid, int panelId);
+    void slotSetCurrentPanel(int moduleUid, int panelId);
 
 private:
     void setInstance(Inspector::Instance *instance);

@@ -67,9 +67,9 @@ InstanceModel::InstanceModel(QObject *parent)
   : Internal::AbstractEasyModel(3, 0, parent)
 {
     // init model
-    setItemValue(InstanceStatus_Row, 0, QString("InstanceX"));
-    setItemValue(InstanceStatus_Row, 1, QString("tName"));
-    setItemValue(InstanceStatus_Row, 2, QString("Qt_F"));
+    setItemValue(InstanceStatus_Row, 0, QString());
+    setItemValue(InstanceStatus_Row, 1, QString("targetName"));
+    setItemValue(InstanceStatus_Row, 2, QString("Qt"));
     setItemValue(InstanceStatus_Row, 3, true);
     setItemValue(InstanceStatus_Row, 4, false);
     setItemValue(ProbeStatus_Row, 0, QString());
@@ -84,6 +84,7 @@ InstanceModel::InstanceModel(QObject *parent)
 
 QString InstanceModel::prettyName() const
 {
+    qWarning("InstanceModel::prettyName: semantics undefined");
     return itemValue(InstanceStatus_Row, 0).toString();
 }
 
