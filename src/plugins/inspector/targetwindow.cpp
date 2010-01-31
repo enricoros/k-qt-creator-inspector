@@ -48,6 +48,7 @@ TargetWindow::TargetWindow(Inspector::Instance *instance, QWidget *parent)
     layout->setSpacing(0);
 
     m_menuWidget = new ComboTreeWidget(this);
+    m_menuWidget->setTitle(tr("Select a Module:"));
     connect(m_menuWidget, SIGNAL(pathSelected(QStringList,QVariant)), this, SLOT(slotMenuChanged(QStringList,QVariant)));
     layout->addWidget(m_menuWidget);
 
