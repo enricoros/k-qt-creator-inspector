@@ -27,46 +27,26 @@
 **
 **************************************************************************/
 
-#ifndef INSPECTORCONTAINER_H
-#define INSPECTORCONTAINER_H
+#include "nvidiacudaframework.h"
+#include <QObject>
 
-#include <QtCore/QList>
-#include <QtGui/QWidget>
-class QStackedWidget;
+using namespace Inspector::Internal;
 
-namespace Inspector {
-
-class Instance;
-
-namespace Internal {
-
-class InspectorWindow;
-class SingleTabWidget;
-class TargetWindow;
-
-class InspectorContainer : public QWidget
+NvidiaCudaFramework::NvidiaCudaFramework()
 {
-    Q_OBJECT
+}
 
-public:
-    InspectorContainer(QWidget *parent = 0);
+QString NvidiaCudaFramework::displayName() const
+{
+    return tr("NVIDIA CUDA (example)");
+}
 
-    void addInstance(Inspector::Instance *instance);
+QIcon NvidiaCudaFramework::icon() const
+{
+    return QIcon(/*FIXME*/);
+}
 
-signals:
-    void requestWindowDisplay();
-
-private slots:
-    void slotDisplayTargetWindow();
-
-private:
-    SingleTabWidget *       m_topbarWidget;
-    InspectorWindow *       m_inspectorWindow;
-    QStackedWidget *        m_centralWidget;
-    QList<TargetWindow *>   m_targets;
-};
-
-} // namespace Internal
-} // namespace Inspector
-
-#endif // INSPECTORCONTAINER_H
+bool NvidiaCudaFramework::isConfigurable() const
+{
+    return false;
+}

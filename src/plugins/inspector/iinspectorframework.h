@@ -27,46 +27,34 @@
 **
 **************************************************************************/
 
-#ifndef INSPECTORCONTAINER_H
-#define INSPECTORCONTAINER_H
+#ifndef IINSPECTORFRAMEWORK_H
+#define IINSPECTORFRAMEWORK_H
 
-#include <QtCore/QList>
-#include <QtGui/QWidget>
-class QStackedWidget;
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtGui/QIcon>
 
 namespace Inspector {
-
-class Instance;
-
 namespace Internal {
 
-class InspectorWindow;
-class SingleTabWidget;
-class TargetWindow;
-
-class InspectorContainer : public QWidget
+class IInspectorFramework : public QObject
 {
     Q_OBJECT
 
 public:
-    InspectorContainer(QWidget *parent = 0);
+    IInspectorFramework()
+    { }
+    virtual ~IInspectorFramework()
+    { }
 
-    void addInstance(Inspector::Instance *instance);
-
-signals:
-    void requestWindowDisplay();
-
-private slots:
-    void slotDisplayTargetWindow();
-
-private:
-    SingleTabWidget *       m_topbarWidget;
-    InspectorWindow *       m_inspectorWindow;
-    QStackedWidget *        m_centralWidget;
-    QList<TargetWindow *>   m_targets;
+    virtual QString displayName() const = 0;
+    virtual QIcon icon() const = 0;
+    virtual bool isConfigurable() const = 0;
+    virtual void configure() { }
+    // virtual void notificationMethod() { }
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // INSPECTORCONTAINER_H
+#endif // IINSPECTORFRAMEWORK_H

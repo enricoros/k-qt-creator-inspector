@@ -11,12 +11,15 @@ HEADERS += \
     abstractpanel.h \
     combotreewidget.h \
     commserver.h \
+    iinspectorframework.h \
     instance.h \
     instancemodel.h \
     inspectorcontainer.h \
     inspectorplugin.h \
     inspectorwindow.h \
+    nokiaqtframework.h \
     notificationwidget.h \
+    nvidiacudaframework.h \
     panelcontainerwidget.h \
     plotgrid.h \
     modulecontroller.h \
@@ -44,7 +47,9 @@ SOURCES += \
     inspectorcontainer.cpp \
     inspectorplugin.cpp \
     inspectorwindow.cpp \
+    nokiaqtframework.cpp \
     notificationwidget.cpp \
+    nvidiacudaframework.cpp \
     panelcontainerwidget.cpp \
     plotgrid.cpp \
     modulecontroller.cpp \
