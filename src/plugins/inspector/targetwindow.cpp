@@ -81,10 +81,10 @@ void TargetWindow::slotMenuChanged(const QStringList &/*path*/, const QVariant &
     showPanel(moduleUid, panelId);
 }
 
-void TargetWindow::slotSetCurrentMenu(int moduleUid, int panelId)
+void TargetWindow::slotSetCurrentPanel(int moduleUid, int panelId)
 {
     if ((moduleUid & 0xFF000000) || (panelId & 0xFFFFFF00)) {
-        qWarning("TargetWindow::slotActivateMenu: moduleUid (%d) or panelId (%d) not valid", moduleUid, panelId);
+        qWarning("TargetWindow::slotSetCurrentMenu: moduleUid (%d) or panelId (%d) not valid", moduleUid, panelId);
         return;
     }
     quint32 compoId = (moduleUid << 8) + panelId;
@@ -107,7 +107,7 @@ void TargetWindow::setInstance(Inspector::Instance *instance)
 
     if (m_instance) {
         // connect it
-        connect(m_instance, SIGNAL(requestDisplay(int,int)), this, SLOT(slotSetCurrentMenu(int,int)));
+        connect(m_instance, SIGNAL(requestPanelDisplay(int,int)), this, SLOT(slotSetCurrentPanel(int,int)));
 
         // menu: add all entries by the plugged modules
         ModuleMenuEntries entries = m_instance->moduleController()->menuEntries();
