@@ -43,7 +43,7 @@ Q_DECL_EXPORT Instance * defaultInstance();
 
 namespace Internal {
 
-class InspectorWindow;
+class InspectorContainer;
 
 // constants
 const char * const MODE_INSPECTOR   = "Probe";
@@ -78,7 +78,7 @@ private slots:
 private:
     void parseArguments(const QStringList & arguments);
     static InspectorPlugin *s_pluginInstance;
-    Internal::InspectorWindow *m_window;
+    Internal::InspectorContainer *m_container;
     QList<Instance *> m_instances;
     bool m_pluginEnabled;
 };
