@@ -13,9 +13,9 @@ HEADERS += \
     commserver.h \
     instance.h \
     instancemodel.h \
+    inspectorcontainer.h \
     inspectorplugin.h \
     inspectorwindow.h \
-    newtargetwindow.h \
     notificationwidget.h \
     panelcontainerwidget.h \
     plotgrid.h \
@@ -41,9 +41,9 @@ SOURCES += \
     commserver.cpp \
     instance.cpp \
     instancemodel.cpp \
+    inspectorcontainer.cpp \
     inspectorplugin.cpp \
     inspectorwindow.cpp \
-    newtargetwindow.cpp \
     notificationwidget.cpp \
     panelcontainerwidget.cpp \
     plotgrid.cpp \

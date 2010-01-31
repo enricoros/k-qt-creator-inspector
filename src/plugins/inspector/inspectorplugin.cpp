@@ -28,7 +28,7 @@
 **************************************************************************/
 
 #include "inspectorplugin.h"
-#include "inspectorwindow.h"
+#include "inspectorcontainer.h"
 #include "instance.h"
 #include "notificationwidget.h"
 #include "modulecontroller.h"
@@ -58,7 +58,7 @@ InspectorPlugin *Inspector::Internal::InspectorPlugin::s_pluginInstance = 0;
 
 InspectorPlugin::InspectorPlugin()
   : ExtensionSystem::IPlugin()
-  , m_window(0)
+  , m_container(0)
   , m_pluginEnabled(false)
 {
     // reference the plugin instance (for static accessors)
@@ -76,7 +76,7 @@ InspectorPlugin::~InspectorPlugin()
 
     // objects registered with 'addAutoReleasedObject' will be removed automatically, like:
     // m_window is deleted by the plugin system
-    m_window = 0;
+    m_container = 0;
 }
 
 void InspectorPlugin::addInstance(Inspector::Instance * instance)
@@ -88,7 +88,7 @@ void InspectorPlugin::addInstance(Inspector::Instance * instance)
 
     instance->instanceModel()->setInstanceEnabled(m_pluginEnabled);
     m_instances.append(instance);
-    m_window->addInstance(instance);
+    m_container->addInstance(instance);
 }
 
 Inspector::Instance * InspectorPlugin::defaultInstance()
@@ -113,8 +113,10 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     //QList<int> debuggerContext = QList<int>()
     //    << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING);
 
-    m_window = new InspectorWindow;
-    connect(m_window, SIGNAL(requestWindowDisplay()), this, SLOT(slotDisplayWindow()));
+    //addAutoReleasedObject(new NokiaQtFramework());
+
+    m_container = new InspectorContainer;
+    connect(m_container, SIGNAL(requestWindowDisplay()), this, SLOT(slotDisplayWindow()));
 
     // create the Mode, that registers the widget too
     Core::BaseMode * inspectorMode = new Core::BaseMode;
@@ -122,7 +124,7 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     inspectorMode->setId(QLatin1String(Inspector::Internal::MODE_INSPECTOR));
     inspectorMode->setIcon(QIcon(":/inspector/images/inspector-icon-32.png"));
     inspectorMode->setPriority(Inspector::Internal::P_MODE_INSPECTOR);
-    inspectorMode->setWidget(m_window);
+    inspectorMode->setWidget(m_container);
     inspectorMode->setContext(globalContext);
     addAutoReleasedObject(inspectorMode);
 

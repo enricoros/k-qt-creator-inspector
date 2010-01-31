@@ -30,41 +30,26 @@
 #ifndef INSPECTORWINDOW_H
 #define INSPECTORWINDOW_H
 
-#include <QtCore/QList>
-#include <QtGui/QWidget>
-class QStackedWidget;
+#include <QtGui/QScrollArea>
+class QGridLayout;
 
 namespace Inspector {
-
-class Instance;
-
 namespace Internal {
 
-class NewTargetWindow;
-class SingleTabWidget;
-class TargetWindow;
-
-class InspectorWindow : public QWidget
+class InspectorWindow : public QScrollArea
 {
     Q_OBJECT
 
 public:
     InspectorWindow(QWidget *parent = 0);
 
-    void addInstance(Inspector::Instance *instance);
-
-signals:
-    void requestWindowDisplay();
-
-private slots:
-    void slotDisplayTargetWindow();
-    void slotTopbarIndexChanged(int);
-
 private:
-    SingleTabWidget *       m_topbarWidget;
-    NewTargetWindow *       m_newTarget;
-    QStackedWidget *        m_centralWidget;
-    QList<TargetWindow *>   m_targets;
+    void appendWrappedWidget(const QString &title, const QIcon &icon, QWidget *widget);
+    void appendSubWidget(QGridLayout *layout, QWidget *widget,
+                         const QString &title = QString(),
+                         const QString &subTitle = QString());
+    QWidget *m_root;
+    QGridLayout *m_layout;
 };
 
 } // namespace Internal
