@@ -27,46 +27,26 @@
 **
 **************************************************************************/
 
-#ifndef INSPECTORCONTAINER_H
-#define INSPECTORCONTAINER_H
+#include "nokiaqtframework.h"
+#include <QObject>
 
-#include <QtCore/QList>
-#include <QtGui/QWidget>
-class QStackedWidget;
+using namespace Inspector::Internal;
 
-namespace Inspector {
-
-class Instance;
-
-namespace Internal {
-
-class InspectorWindow;
-class SingleTabWidget;
-class TargetWindow;
-
-class InspectorContainer : public QWidget
+NokiaQtFramework::NokiaQtFramework()
 {
-    Q_OBJECT
+}
 
-public:
-    InspectorContainer(QWidget *parent = 0);
+QString NokiaQtFramework::displayName() const
+{
+    return tr("Qt by Nokia");
+}
 
-    void addInstance(Inspector::Instance *instance);
+QIcon NokiaQtFramework::icon() const
+{
+    return QIcon(":/core/images/qtcreator_logo_32.png");
+}
 
-signals:
-    void requestWindowDisplay();
-
-private slots:
-    void slotDisplayTargetWindow();
-
-private:
-    SingleTabWidget *       m_topbarWidget;
-    InspectorWindow *       m_inspectorWindow;
-    QStackedWidget *        m_centralWidget;
-    QList<TargetWindow *>   m_targets;
-};
-
-} // namespace Internal
-} // namespace Inspector
-
-#endif // INSPECTORCONTAINER_H
+bool NokiaQtFramework::isConfigurable() const
+{
+    return true;
+}

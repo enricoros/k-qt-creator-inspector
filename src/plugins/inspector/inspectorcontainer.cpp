@@ -45,17 +45,19 @@ InspectorContainer::InspectorContainer(QWidget *parent)
     layout->setSpacing(0);
 
     m_topbarWidget = new SingleTabWidget(this);
-    connect(m_topbarWidget, SIGNAL(currentIndexChanged(int)), this, SLOT(slotTopbarIndexChanged(int)));
     m_topbarWidget->setTitle(tr("Select a Target:"));
     layout->addWidget(m_topbarWidget);
 
     m_centralWidget = new QStackedWidget(this);
     layout->addWidget(m_centralWidget);
 
-    m_inspectorWindow = new InspectorWindow;
     m_topbarWidget->addTab(tr("Workbench"));
+    m_inspectorWindow = new InspectorWindow;
     m_centralWidget->insertWidget(0, m_inspectorWindow);
     m_centralWidget->setCurrentWidget(m_inspectorWindow);
+
+    connect(m_topbarWidget, SIGNAL(currentIndexChanged(int)),
+            m_centralWidget, SLOT(setCurrentIndex(int)));
 }
 
 void InspectorContainer::addInstance(Inspector::Instance *instance)
@@ -85,9 +87,4 @@ void InspectorContainer::slotDisplayTargetWindow()
 
     // show myself
     emit requestWindowDisplay();
-}
-
-void InspectorContainer::slotTopbarIndexChanged(int index)
-{
-    m_centralWidget->setCurrentIndex(index);
 }

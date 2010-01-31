@@ -28,14 +28,18 @@
 **************************************************************************/
 
 #include "inspectorwindow.h"
+#include "iinspectorframework.h"
 #include "inspectorplugin.h"
 #include "instance.h"
 #include "modulecontroller.h"
+#include <extensionsystem/pluginmanager.h>
 #include <utils/stylehelper.h>
 #include <QtGui/QGridLayout>
+#include <QtGui/QHeaderView>
 #include <QtGui/QIcon>
 #include <QtGui/QLabel>
 #include <QtGui/QPainter>
+#include <QtGui/QPushButton>
 #include <QtGui/QTableWidget>
 
 namespace Inspector {
@@ -94,15 +98,15 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         desc1->setWordWrap(true);
         appendSubWidget(grid, desc1);
 
-        QWidget *runWidget = new QLabel("new options");
+        QWidget *runWidget = new QLabel("new options - *WIP*");
         appendSubWidget(grid, runWidget, tr("New Run"),
                         tr("Start a new instance of the selected project."));
 
-        QWidget *instWidget = new QLabel("running opts");
+        QWidget *instWidget = new QLabel("running opts - *WIP*");
         appendSubWidget(grid, instWidget, tr("Running Instances"),
                         tr("Attach to an existing process."));
 
-        QWidget *debugWidget = new QLabel("debugging opts");
+        QWidget *debugWidget = new QLabel("debugging opts - *WIP*");
         appendSubWidget(grid, debugWidget, tr("Debugging Instances"),
                         tr("Use an existing debugging session."));
 
@@ -119,7 +123,11 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         grid->setSpacing(0);
         grid->setColumnMinimumWidth(0, LEFT_MARGIN);
 
+        // TODO
         QTableWidget *tw = new QTableWidget;
+        tw->setRowCount(1);
+        tw->setColumnCount(4);
+        tw->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
         tw->setFrameStyle(QFrame::NoFrame);
         tw->setFixedHeight(50);
         appendSubWidget(grid, tw);
@@ -137,20 +145,37 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         grid->setSpacing(0);
         grid->setColumnMinimumWidth(0, LEFT_MARGIN);
 
-        QLabel *modules1 = new QLabel;
-        modules1->setWordWrap(true);
-        modules1->setText(tr("modules: %1\nrequires: %2").arg("some, hardcoded, strings, fix, this").arg("exclusive-probe"));
-//                InspectorPlugin::defaultInstance()->moduleController()->moduleNames()
-//                .join(", ")));
+        QList<IInspectorFramework *> frameworks =
+            ExtensionSystem::PluginManager::instance()->getObjects<IInspectorFramework>();
+        foreach (IInspectorFramework *framework, frameworks) {
+            QWidget *rowWidget = new QWidget;
+            QHBoxLayout *rowLay = new QHBoxLayout(rowWidget);
+            rowLay->setMargin(0);
 
-        appendSubWidget(grid, modules1, "Qt");
-        appendSubWidget(grid, 0, "Qt-Custom#1");
-        appendSubWidget(grid, 0, "CUDA");
-        appendSubWidget(grid, 0, "OpenCL");
+            if (!framework->icon().isNull()) {
+                QLabel *iconLabel = new QLabel;
+                iconLabel->setFixedSize(32, 32);
+                iconLabel->setPixmap(framework->icon().pixmap(32, 32));
+                rowLay->addWidget(iconLabel);
+            }
 
-        appendWrappedWidget(tr("Configure Frameworks"),
-                            QIcon(),
-                            widget);
+            // TODO
+            QLabel *modulesLabel = new QLabel;
+            modulesLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
+            modulesLabel->setWordWrap(true);
+            modulesLabel->setText(tr("modules: %1\nrequires: %2").arg("some, hardcoded, strings, fix, this").arg("exclusive-probe"));
+            rowLay->addWidget(modulesLabel);
+
+            if (framework->isConfigurable()) {
+                QPushButton *btn = new QPushButton;
+                btn->setIcon(QIcon(":/projectexplorer/images/rebuild.png"));
+                rowLay->addWidget(btn);
+            }
+
+            appendSubWidget(grid, rowWidget, framework->displayName());
+        }
+
+        appendWrappedWidget(tr("Configure Frameworks"), QIcon(), widget);
     }
 }
 

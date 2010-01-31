@@ -31,6 +31,8 @@
 #include "inspectorcontainer.h"
 #include "instance.h"
 #include "notificationwidget.h"
+#include "nokiaqtframework.h"
+#include "nvidiacudaframework.h"
 #include "modulecontroller.h"
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/basemode.h>
@@ -107,13 +109,12 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
 
     // get core objects
     Core::ICore *core = Core::ICore::instance();
-    Core::ActionManager *actionManager = core->actionManager();
-    QList<int> globalContext = QList<int>()
-        << Core::Constants::C_GLOBAL_ID;
-    //QList<int> debuggerContext = QList<int>()
-    //    << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING);
+    QList<int> ourContext;
+    ourContext << Core::Constants::C_GLOBAL_ID;
+    ourContext << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING);
 
-    //addAutoReleasedObject(new NokiaQtFramework());
+    addAutoReleasedObject(new NokiaQtFramework());
+    addAutoReleasedObject(new NvidiaCudaFramework());
 
     m_container = new InspectorContainer;
     connect(m_container, SIGNAL(requestWindowDisplay()), this, SLOT(slotDisplayWindow()));
@@ -125,10 +126,11 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     inspectorMode->setIcon(QIcon(":/inspector/images/inspector-icon-32.png"));
     inspectorMode->setPriority(Inspector::Internal::P_MODE_INSPECTOR);
     inspectorMode->setWidget(m_container);
-    inspectorMode->setContext(globalContext);
+    inspectorMode->setContext(ourContext);
     addAutoReleasedObject(inspectorMode);
 
     // create the Menu and add it to the Debug menu
+    Core::ActionManager *actionManager = core->actionManager();
     Core::ActionContainer *inspContainer = actionManager->createMenu("Inspector.Container");
     QMenu *inspMenu = inspContainer->menu();
     inspMenu->setTitle(tr("&Inspector"));
@@ -140,12 +142,12 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     enableAction->setCheckable(true);
     enableAction->setChecked(m_pluginEnabled);
     connect(enableAction, SIGNAL(toggled(bool)), this, SLOT(slotSetPluginEnabled(bool)));
-    Core::Command *command = actionManager->registerAction(enableAction, "Inspector.Enable", globalContext);
+    Core::Command *command = actionManager->registerAction(enableAction, "Inspector.Enable", ourContext);
     inspContainer->addAction(command);
 
     QAction *workBenchAction = new QAction(tr("Current Instance"), this);
     connect(workBenchAction, SIGNAL(triggered()), this, SLOT(slotDisplayWindow()));
-    command = actionManager->registerAction(workBenchAction, "Inspector.ShowInstance", globalContext);
+    command = actionManager->registerAction(workBenchAction, "Inspector.ShowInstance", ourContext);
     inspContainer->addAction(command);
 
 //    connect(core->modeManager(), SIGNAL(currentModeChanged(Core::IMode*)),
