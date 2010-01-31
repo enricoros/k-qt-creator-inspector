@@ -38,15 +38,10 @@ NvidiaCudaFramework::NvidiaCudaFramework()
 
 QString NvidiaCudaFramework::displayName() const
 {
-    return tr("NVIDIA CUDA (example)");
+    return tr("NVIDIA CUDA");
 }
 
 QIcon NvidiaCudaFramework::icon() const
 {
     return QIcon(/*FIXME*/);
-}
-
-bool NvidiaCudaFramework::isConfigurable() const
-{
-    return false;
 }

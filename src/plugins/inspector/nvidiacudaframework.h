@@ -45,7 +45,6 @@ public:
     // ::IInspectorFramework
     QString displayName() const;
     QIcon icon() const;
-    bool isConfigurable() const;
 };
 
 } // namespace Internal

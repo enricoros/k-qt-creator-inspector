@@ -28,7 +28,8 @@
 **************************************************************************/
 
 #include "nokiaqtframework.h"
-#include <QObject>
+#include <QtCore/QObject>
+#include <QtGui/QMessageBox>
 
 using namespace Inspector::Internal;
 
@@ -49,4 +50,10 @@ QIcon NokiaQtFramework::icon() const
 bool NokiaQtFramework::isConfigurable() const
 {
     return true;
+}
+
+void NokiaQtFramework::configure()
+{
+    QMessageBox::information(0, tr("Configure Nokia Qt Framework"),
+        tr("Configuration not implemented, please try again later."));
 }
