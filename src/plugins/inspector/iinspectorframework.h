@@ -49,9 +49,10 @@ public:
 
     virtual QString displayName() const = 0;
     virtual QIcon icon() const = 0;
-    virtual bool isConfigurable() const = 0;
+    virtual bool isConfigurable() const { return false; }
+
+public slots:
     virtual void configure() { }
-    // virtual void notificationMethod() { }
 };
 
 } // namespace Internal

@@ -43,7 +43,12 @@ class InspectorWindow : public QScrollArea
 public:
     InspectorWindow(QWidget *parent = 0);
 
+private slots:
+    void slotNewTarget();
+
 private:
+    QWidget *newFrameworkCombo();
+    QWidget *newInspectButton(quint32 id);
     void appendWrappedWidget(const QString &title, const QIcon &icon, QWidget *widget);
     void appendSubWidget(QGridLayout *layout, QWidget *widget,
                          const QString &title = QString(),

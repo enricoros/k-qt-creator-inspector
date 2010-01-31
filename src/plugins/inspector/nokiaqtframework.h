@@ -46,6 +46,7 @@ public:
     QString displayName() const;
     QIcon icon() const;
     bool isConfigurable() const;
+    void configure();
 };
 
 } // namespace Internal

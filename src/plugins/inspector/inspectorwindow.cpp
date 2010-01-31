@@ -34,13 +34,14 @@
 #include "modulecontroller.h"
 #include <extensionsystem/pluginmanager.h>
 #include <utils/stylehelper.h>
+#include <QtGui/QComboBox>
 #include <QtGui/QGridLayout>
 #include <QtGui/QHeaderView>
 #include <QtGui/QIcon>
 #include <QtGui/QLabel>
 #include <QtGui/QPainter>
-#include <QtGui/QPushButton>
 #include <QtGui/QTableWidget>
+#include <QtGui/QToolButton>
 
 namespace Inspector {
 namespace Internal {
@@ -98,7 +99,15 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         desc1->setWordWrap(true);
         appendSubWidget(grid, desc1);
 
-        QWidget *runWidget = new QLabel("new options - *WIP*");
+        QWidget *runWidget = new QWidget;
+        QHBoxLayout *runLayout = new QHBoxLayout(runWidget);
+        runLayout->addWidget(new QLabel("Inspect"));
+        runLayout->addWidget(new QComboBox);
+        runLayout->addWidget(new QLabel("with"));
+        runLayout->addWidget(newFrameworkCombo());
+        runLayout->addWidget(new QLabel("framework"));
+        runLayout->addStretch();
+        runLayout->addWidget(newInspectButton(1 /*FIXME*/));
         appendSubWidget(grid, runWidget, tr("New Run"),
                         tr("Start a new instance of the selected project."));
 
@@ -166,17 +175,46 @@ InspectorWindow::InspectorWindow(QWidget *parent)
             modulesLabel->setText(tr("modules: %1\nrequires: %2").arg("some, hardcoded, strings, fix, this").arg("exclusive-probe"));
             rowLay->addWidget(modulesLabel);
 
-            if (framework->isConfigurable()) {
-                QPushButton *btn = new QPushButton;
-                btn->setIcon(QIcon(":/projectexplorer/images/rebuild.png"));
-                rowLay->addWidget(btn);
-            }
+            QToolButton *btn = new QToolButton;
+            btn->setIcon(QIcon(":/projectexplorer/images/rebuild.png"));
+            if (framework->isConfigurable())
+                connect(btn, SIGNAL(clicked()), framework, SLOT(configure()));
+            else
+                btn->setEnabled(false);
+            rowLay->addWidget(btn);
 
             appendSubWidget(grid, rowWidget, framework->displayName());
         }
 
         appendWrappedWidget(tr("Configure Frameworks"), QIcon(), widget);
     }
+}
+
+void InspectorWindow::slotNewTarget()
+{
+    quint32 id = static_cast<QToolButton *>(sender())->property("id").toUInt();
+    // TODO
+    Q_UNUSED(id);
+}
+
+QWidget *InspectorWindow::newFrameworkCombo()
+{
+    QComboBox *combo = new QComboBox;
+    QList<IInspectorFramework *> frameworks =
+        ExtensionSystem::PluginManager::instance()->getObjects<IInspectorFramework>();
+    foreach (IInspectorFramework *framework, frameworks)
+        combo->addItem(framework->displayName());
+    return combo;
+}
+
+QWidget *InspectorWindow::newInspectButton(quint32 id)
+{
+    QToolButton *btn = new QToolButton;
+    btn->setProperty("id", id);
+    btn->setAutoRaise(false);
+    btn->setIcon(QIcon(":/projectexplorer/images/run.png"));
+    connect(btn, SIGNAL(clicked()), this, SLOT(slotNewTarget()));
+    return btn;
 }
 
 // keep this in sync with PanelsWidget::addPropertiesPanel in projectwindow.cpp
