@@ -62,7 +62,6 @@ SOURCES += \
     module-warnings/warningsmodule.cpp
 
 FORMS += \
-    newtargetwindow.ui \
     module-info/infopanel.ui \
     module-painting/temperaturepanel.ui
 
