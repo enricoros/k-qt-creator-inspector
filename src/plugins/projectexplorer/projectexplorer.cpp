@@ -1290,6 +1290,12 @@ void ProjectExplorerPlugin::startRunControl(RunControl *runControl, const QStrin
     updateRunActions();
 }
 
+// enrico - this exposes a public call to the Inspector plugin
+void ProjectExplorerPlugin::inspectorExecuteRunConfiguration(RunConfiguration *runConfiguration, const QString &runMode)
+{
+    executeRunConfiguration(runConfiguration, runMode);
+}
+
 void ProjectExplorerPlugin::buildQueueFinished(bool success)
 {
     if (debug)

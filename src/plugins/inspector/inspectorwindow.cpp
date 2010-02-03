@@ -33,6 +33,7 @@
 #include "instance.h"
 #include "modulecontroller.h"
 #include <extensionsystem/pluginmanager.h>
+#include <projectexplorer/projectexplorerconstants.h>
 #include <projectexplorer/projectexplorer.h>
 #include <projectexplorer/project.h>
 #include <projectexplorer/runconfiguration.h>
@@ -212,9 +213,13 @@ InspectorWindow::InspectorWindow(QWidget *parent)
 
 void InspectorWindow::slotNewTarget()
 {
-    quint32 id = static_cast<QToolButton *>(sender())->property("id").toUInt();
-    // TODO
-    Q_UNUSED(id);
+    int id = static_cast<QToolButton *>(sender())->property("id").toInt();
+    if (id == BUTTON_INSPECT_RUN) {
+        if (ProjectExplorer::RunConfiguration *rc = m_runconfCombo->currentRunConfiguration()) {
+            ProjectExplorer::ProjectExplorerPlugin::instance()->
+                    inspectorExecuteRunConfiguration(rc, ProjectExplorer::Constants::DEBUGMODE);
+        }
+    }
 }
 
 void InspectorWindow::slotProjectChanged()
