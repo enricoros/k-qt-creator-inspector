@@ -57,6 +57,7 @@ signals:
     void requestWindowDisplay();
 
 private slots:
+    void slotDisplayInspectorWindow();
     void slotDisplayTargetWindow();
 
 private:

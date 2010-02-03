@@ -218,6 +218,7 @@ void InspectorWindow::slotNewTarget()
         if (ProjectExplorer::RunConfiguration *rc = m_runconfCombo->currentRunConfiguration()) {
             ProjectExplorer::ProjectExplorerPlugin::instance()->
                     inspectorExecuteRunConfiguration(rc, ProjectExplorer::Constants::DEBUGMODE);
+            emit requestDisplay();
         }
     }
 }

@@ -58,6 +58,9 @@ InspectorContainer::InspectorContainer(QWidget *parent)
 
     connect(m_topbarWidget, SIGNAL(currentIndexChanged(int)),
             m_centralWidget, SLOT(setCurrentIndex(int)));
+
+    connect(m_inspectorWindow, SIGNAL(requestDisplay()),
+            this, SLOT(slotDisplayInspectorWindow()));
 }
 
 void InspectorContainer::addInstance(Inspector::Instance *instance)
@@ -76,6 +79,15 @@ void InspectorContainer::addInstance(Inspector::Instance *instance)
     QString tabName = tr("Inspecting %1 [%2 framework]").arg(instance->instanceModel()->targetName()).arg(instance->instanceModel()->frameworkName());
     m_topbarWidget->addTab(tabName);
     m_centralWidget->addWidget(targetWindow);
+}
+
+void InspectorContainer::slotDisplayInspectorWindow()
+{
+    // switch to the inspector window
+    m_centralWidget->setCurrentWidget(m_inspectorWindow);
+
+    // show myself
+    emit requestWindowDisplay();
 }
 
 void InspectorContainer::slotDisplayTargetWindow()
