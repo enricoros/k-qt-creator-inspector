@@ -136,6 +136,9 @@ public:
 
     void startRunControl(RunControl *runControl, const QString &mode);
 
+    // enrico - this exposes a public call to the Inspector plugin
+    void inspectorExecuteRunConfiguration(RunConfiguration *runConfiguration, const QString &runMode);
+
 signals:
     void aboutToShowContextMenu(ProjectExplorer::Project *project,
                                 ProjectExplorer::Node *node);
