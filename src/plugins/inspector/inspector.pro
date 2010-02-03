@@ -1,6 +1,9 @@
 TEMPLATE = lib
 TARGET = Inspector
-QT += network svg
+
+QT += gui \
+    network \
+    svg
 
 include(../../qtcreatorplugin.pri)
 include(inspector_dependencies.pri)

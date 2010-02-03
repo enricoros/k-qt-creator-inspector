@@ -36,10 +36,6 @@
 #include "stackhandler.h"
 #include "watchhandler.h"
 
-#include <extensionsystem/pluginmanager.h>
-#include <inspector/instance.h>
-#include <inspector/instancemodel.h>
-#include <inspector/inspectorplugin.h>
 #include <utils/qtcassert.h>
 
 #include <QtCore/QFile>
@@ -563,6 +559,7 @@ void GdbEngine::tryQueryDebuggingHelpersClassic()
 
 void GdbEngine::tryActivateInspectorHelpersClassic()
 {
+#if 0
     // get the listening socket name
     Inspector::Instance *inspInstance = Inspector::defaultInstance();
     Inspector::InstanceModel *instanceModel = inspInstance->instanceModel();
@@ -589,6 +586,9 @@ void GdbEngine::tryActivateInspectorHelpersClassic()
     callFunction(_("qPerfActivate"), QVariantList() << serverName << activationFlags);
     instanceModel->setProbeInjected(true);  // FIXME
     instanceModel->setProbeActive(true);    // check this too
+#else
+    qWarning("GdbEngine::tryActivateInspectorHelpersClassic: restore this");
+#endif
 }
 
 void GdbEngine::recheckDebuggingHelperAvailabilityClassic()
