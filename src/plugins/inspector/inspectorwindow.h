@@ -30,11 +30,23 @@
 #ifndef INSPECTORWINDOW_H
 #define INSPECTORWINDOW_H
 
+#include <QtCore/QList>
+#include <QtGui/QComboBox>
 #include <QtGui/QScrollArea>
 class QGridLayout;
 
+namespace ProjectExplorer {
+class Project;
+class RunConfiguration;
+}
+
 namespace Inspector {
 namespace Internal {
+
+class IInspectorFramework;
+class FrameworksComboBox;
+class ProjectsComboBox;
+class RunconfComboBox;
 
 class InspectorWindow : public QScrollArea
 {
@@ -45,6 +57,7 @@ public:
 
 private slots:
     void slotNewTarget();
+    void slotProjectChanged();
 
 private:
     QWidget *newFrameworkCombo();
@@ -55,6 +68,75 @@ private:
                          const QString &subTitle = QString());
     QWidget *m_root;
     QGridLayout *m_layout;
+
+    ProjectsComboBox *m_projectsCombo;
+    RunconfComboBox *m_runconfCombo;
+    FrameworksComboBox *m_frameworksCombo;
+};
+
+/**
+  \brif A QComboBox synced with current projects
+*/
+class ProjectsComboBox : public QComboBox
+{
+    Q_OBJECT
+
+public:
+    ProjectsComboBox(QWidget *parent = 0);
+
+    bool isEmpty() const;
+    ProjectExplorer::Project *currentProject() const;
+
+signals:
+    void currentProjectChanged();
+
+private slots:
+    void add(ProjectExplorer::Project *);
+    void remove(ProjectExplorer::Project *);
+    void activeChanged(ProjectExplorer::Project *);
+
+private:
+    QList<ProjectExplorer::Project *> m_comboIndexToProject;
+};
+
+/**
+  \brief A QComboBox synced with the RunConfigurations of a Project
+*/
+class RunconfComboBox : public QComboBox
+{
+    Q_OBJECT
+
+public:
+    RunconfComboBox(QWidget *parent = 0);
+
+    void setProject(ProjectExplorer::Project *);
+    ProjectExplorer::Project *currentProject() const;
+    ProjectExplorer::RunConfiguration *currentRunConfiguration() const;
+
+private slots:
+    void add(ProjectExplorer::RunConfiguration *);
+    void remove(ProjectExplorer::RunConfiguration *);
+    void updateDisplayName();
+    void activeChanged();
+
+private:
+    ProjectExplorer::Project *m_project;
+};
+
+/**
+  \brief A QComboBox synced with the current InspectorFrameworks
+*/
+class FrameworksComboBox : public QComboBox
+{
+    Q_OBJECT
+
+public:
+    FrameworksComboBox(QWidget *parent = 0);
+
+    IInspectorFramework *currentFramework() const;
+
+signals:
+    void currentFrameworkChanged();
 };
 
 } // namespace Internal

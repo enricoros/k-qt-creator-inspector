@@ -33,6 +33,10 @@
 #include "instance.h"
 #include "modulecontroller.h"
 #include <extensionsystem/pluginmanager.h>
+#include <projectexplorer/projectexplorer.h>
+#include <projectexplorer/project.h>
+#include <projectexplorer/runconfiguration.h>
+#include <projectexplorer/session.h>
 #include <utils/stylehelper.h>
 #include <QtGui/QComboBox>
 #include <QtGui/QGridLayout>
@@ -51,6 +55,8 @@ const int ABOVE_HEADING_MARGIN(10);
 const int ABOVE_CONTENTS_MARGIN(4);
 const int BELOW_CONTENTS_MARGIN(16);
 const int LEFT_MARGIN(16);
+
+const int BUTTON_INSPECT_RUN = 0x0001;
 
 class OnePixelBlackLine : public QWidget
 {
@@ -86,6 +92,13 @@ InspectorWindow::InspectorWindow(QWidget *parent)
     setFrameStyle(QFrame::NoFrame);
     setWidgetResizable(true);
 
+    m_projectsCombo = new ProjectsComboBox;
+    m_runconfCombo = new RunconfComboBox;
+    m_frameworksCombo = new FrameworksComboBox;
+    connect(m_projectsCombo, SIGNAL(currentProjectChanged()),
+            this, SLOT(slotProjectChanged()));
+    slotProjectChanged();
+
     // create the New Local Target widget
     {
         QWidget *widget = new QWidget;
@@ -99,22 +112,27 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         desc1->setWordWrap(true);
         appendSubWidget(grid, desc1);
 
+        // run a new Instance
         QWidget *runWidget = new QWidget;
         QHBoxLayout *runLayout = new QHBoxLayout(runWidget);
-        runLayout->addWidget(new QLabel("Inspect"));
-        runLayout->addWidget(new QComboBox);
-        runLayout->addWidget(new QLabel("with"));
-        runLayout->addWidget(newFrameworkCombo());
-        runLayout->addWidget(new QLabel("framework"));
+        runLayout->addWidget(new QLabel(tr("Inspect")));
+        runLayout->addWidget(m_projectsCombo);
+        runLayout->addWidget(new QLabel(tr("running")));
+        runLayout->addWidget(m_runconfCombo);
+        runLayout->addWidget(new QLabel(tr("with")));
+        runLayout->addWidget(m_frameworksCombo);
+        runLayout->addWidget(new QLabel(tr("framework")));
         runLayout->addStretch();
-        runLayout->addWidget(newInspectButton(1 /*FIXME*/));
+        runLayout->addWidget(newInspectButton(BUTTON_INSPECT_RUN));
         appendSubWidget(grid, runWidget, tr("New Run"),
                         tr("Start a new instance of the selected project."));
 
+        // TODO - attach to an existing run
         QWidget *instWidget = new QLabel("running opts - *WIP*");
         appendSubWidget(grid, instWidget, tr("Running Instances"),
                         tr("Attach to an existing process."));
 
+        // TODO - use an existing debugging session
         QWidget *debugWidget = new QLabel("debugging opts - *WIP*");
         appendSubWidget(grid, debugWidget, tr("Debugging Instances"),
                         tr("Use an existing debugging session."));
@@ -197,14 +215,12 @@ void InspectorWindow::slotNewTarget()
     Q_UNUSED(id);
 }
 
-QWidget *InspectorWindow::newFrameworkCombo()
+void InspectorWindow::slotProjectChanged()
 {
-    QComboBox *combo = new QComboBox;
-    QList<IInspectorFramework *> frameworks =
-        ExtensionSystem::PluginManager::instance()->getObjects<IInspectorFramework>();
-    foreach (IInspectorFramework *framework, frameworks)
-        combo->addItem(framework->displayName());
-    return combo;
+    ProjectExplorer::Project *project = m_projectsCombo->currentProject();
+    m_projectsCombo->setEnabled(project);
+    m_runconfCombo->setEnabled(project);
+    m_runconfCombo->setProject(project);
 }
 
 QWidget *InspectorWindow::newInspectButton(quint32 id)
@@ -295,6 +311,156 @@ void InspectorWindow::appendSubWidget(QGridLayout *layout, QWidget *widget,
         }
     } else if (widget)
         layout->addWidget(widget, insertionRow, 0, 1, 2);
+}
+
+//
+// ProjectsComboBox
+//
+ProjectsComboBox::ProjectsComboBox(QWidget *parent)
+  : QComboBox(parent)
+{
+    ProjectExplorer::SessionManager *session = ProjectExplorer::ProjectExplorerPlugin::instance()->session();
+    foreach(ProjectExplorer::Project *project, session->projects())
+        add(project);
+    connect(session, SIGNAL(projectAdded(ProjectExplorer::Project*)),
+            this, SLOT(add(ProjectExplorer::Project*)));
+    connect(session, SIGNAL(aboutToRemoveProject(ProjectExplorer::Project*)),
+            this, SLOT(remove(ProjectExplorer::Project*)));
+    connect(session, SIGNAL(startupProjectChanged(ProjectExplorer::Project*)),
+            this, SLOT(activeChanged(ProjectExplorer::Project*)));
+    connect(this, SIGNAL(currentIndexChanged(int)),
+            this, SIGNAL(currentProjectChanged()));
+}
+
+bool ProjectsComboBox::isEmpty() const
+{
+    return !count();
+}
+
+ProjectExplorer::Project *ProjectsComboBox::currentProject() const
+{
+    int index = currentIndex();
+    if (index < 0 || index >= m_comboIndexToProject.size())
+        return 0;
+    return m_comboIndexToProject.at(index);
+}
+
+void ProjectsComboBox::add(ProjectExplorer::Project *project)
+{
+    ProjectExplorer::SessionManager *session = ProjectExplorer::ProjectExplorerPlugin::instance()->session();
+    int index = session->projects().indexOf(project);
+    m_comboIndexToProject.insert(index, project);
+    insertItem(index, project->displayName());
+}
+
+void ProjectsComboBox::remove(ProjectExplorer::Project *project)
+{
+    int index = m_comboIndexToProject.indexOf(project);
+    m_comboIndexToProject.removeAt(index);
+    removeItem(index);
+}
+
+void ProjectsComboBox::activeChanged(ProjectExplorer::Project *project)
+{
+    int index = m_comboIndexToProject.indexOf(project);
+    setCurrentIndex(index);
+}
+
+//
+// RunconfComboBox
+//
+RunconfComboBox::RunconfComboBox(QWidget *parent)
+  : QComboBox(parent)
+  , m_project(0)
+{
+}
+
+void RunconfComboBox::setProject(ProjectExplorer::Project *project)
+{
+    if (m_project == project)
+        return;
+
+    // remove links to previous project
+    if (m_project) {
+        disconnect(m_project, 0, this, 0);
+        while (count())
+            remove(itemData(0).value<ProjectExplorer::RunConfiguration *>());
+    }
+
+    m_project = project;
+
+    // link this project
+    if (m_project) {
+        foreach(ProjectExplorer::RunConfiguration *rc, m_project->runConfigurations())
+            add(rc);
+        connect(m_project, SIGNAL(addedRunConfiguration(ProjectExplorer::RunConfiguration*)),
+                this, SLOT(add(ProjectExplorer::RunConfiguration*)));
+        connect(m_project, SIGNAL(removedRunConfiguration(ProjectExplorer::RunConfiguration*)),
+                this, SLOT(remove(ProjectExplorer::RunConfiguration*)));
+        connect(m_project, SIGNAL(activeRunConfigurationChanged()),
+                this, SLOT(activeChanged()));
+    }
+}
+
+ProjectExplorer::Project *RunconfComboBox::currentProject() const
+{
+    return m_project;
+}
+
+ProjectExplorer::RunConfiguration *RunconfComboBox::currentRunConfiguration() const
+{
+    if (currentIndex() < 0)
+        return 0;
+    return itemData(currentIndex()).value<ProjectExplorer::RunConfiguration*>();
+}
+
+void RunconfComboBox::add(ProjectExplorer::RunConfiguration *rc)
+{
+    connect(rc, SIGNAL(displayNameChanged()), SLOT(updateDisplayName()));
+    addItem(rc->displayName(), QVariant::fromValue(rc));
+    if (m_project->activeRunConfiguration() == rc)
+        setCurrentIndex(count() - 1);
+}
+
+void RunconfComboBox::remove(ProjectExplorer::RunConfiguration *rc)
+{
+    disconnect(rc, 0, this, 0);
+    removeItem(findData(QVariant::fromValue(rc)));
+}
+
+void RunconfComboBox::updateDisplayName()
+{
+    ProjectExplorer::RunConfiguration *rc = static_cast<ProjectExplorer::RunConfiguration*>(sender());
+    setItemText(findData(QVariant::fromValue(rc)), rc->displayName());
+}
+
+void RunconfComboBox::activeChanged()
+{
+    setCurrentIndex(findData(QVariant::fromValue(m_project->activeRunConfiguration())));
+}
+
+//
+// FrameworksComboBox
+//
+FrameworksComboBox::FrameworksComboBox(QWidget *parent)
+  : QComboBox(parent)
+{
+    QList<IInspectorFramework *> frameworks =
+        ExtensionSystem::PluginManager::instance()->getObjects<IInspectorFramework>();
+    foreach (IInspectorFramework *framework, frameworks)
+        addItem(framework->displayName());
+    connect(this, SIGNAL(currentIndexChanged(int)),
+            this, SIGNAL(currentFrameworkChanged()));
+}
+
+IInspectorFramework *FrameworksComboBox::currentFramework() const
+{
+    int index = currentIndex();
+    QList<IInspectorFramework *> frameworks =
+        ExtensionSystem::PluginManager::instance()->getObjects<IInspectorFramework>();
+    if (index < 0 || index >= frameworks.size())
+        return 0;
+    return frameworks.at(index);
 }
 
 } // namespace Internal
