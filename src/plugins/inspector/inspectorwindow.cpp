@@ -44,6 +44,7 @@
 #include <QtGui/QIcon>
 #include <QtGui/QLabel>
 #include <QtGui/QPainter>
+#include <QtGui/QPushButton>
 #include <QtGui/QTableWidget>
 #include <QtGui/QToolButton>
 
@@ -65,8 +66,7 @@ public:
         : QWidget(parent)
     {
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-        setMinimumHeight(1);
-        setMaximumHeight(1);
+        setFixedHeight(1);
     }
     void paintEvent(QPaintEvent *e)
     {
@@ -92,13 +92,6 @@ InspectorWindow::InspectorWindow(QWidget *parent)
     setFrameStyle(QFrame::NoFrame);
     setWidgetResizable(true);
 
-    m_projectsCombo = new ProjectsComboBox;
-    m_runconfCombo = new RunconfComboBox;
-    m_frameworksCombo = new FrameworksComboBox;
-    connect(m_projectsCombo, SIGNAL(currentProjectChanged()),
-            this, SLOT(slotProjectChanged()));
-    slotProjectChanged();
-
     // create the New Local Target widget
     {
         QWidget *widget = new QWidget;
@@ -107,25 +100,34 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         grid->setSpacing(0);
         grid->setColumnMinimumWidth(0, LEFT_MARGIN);
 
-        QLabel *desc1 = new QLabel;
-        desc1->setText(tr("Select the kind of local target you want to Inspect."));
-        desc1->setWordWrap(true);
-        appendSubWidget(grid, desc1);
+        /*QLabel *desc = new QLabel;
+        desc->setText(tr("Select the kind of local target you want to Inspect."));
+        desc->setWordWrap(true);
+        appendSubWidget(grid, desc);*/
 
-        // run a new Instance
+        // run a new Instance (TODO: turn this into a parser of "Inspect %1 running %2 with %3")
         QWidget *runWidget = new QWidget;
         QHBoxLayout *runLayout = new QHBoxLayout(runWidget);
-        runLayout->addWidget(new QLabel(tr("Inspect")));
-        runLayout->addWidget(m_projectsCombo);
-        runLayout->addWidget(new QLabel(tr("running")));
-        runLayout->addWidget(m_runconfCombo);
-        runLayout->addWidget(new QLabel(tr("with")));
-        runLayout->addWidget(m_frameworksCombo);
-        runLayout->addWidget(new QLabel(tr("framework")));
-        runLayout->addStretch();
-        runLayout->addWidget(newInspectButton(BUTTON_INSPECT_RUN));
-        appendSubWidget(grid, runWidget, tr("New Run"),
+         runLayout->addWidget(new QLabel(tr("Inspect")));
+        m_projectsCombo = new ProjectsComboBox;
+         runLayout->addWidget(m_projectsCombo);
+        m_runconfLabel = new QLabel(tr("running"));
+         runLayout->addWidget(m_runconfLabel);
+        m_runconfCombo = new RunconfComboBox;
+         runLayout->addWidget(m_runconfCombo);
+         runLayout->addWidget(new QLabel(tr("with")));
+        m_frameworksCombo = new FrameworksComboBox;
+         runLayout->addWidget(m_frameworksCombo);
+         runLayout->addWidget(new QLabel(tr("framework")));
+         runLayout->addStretch();
+        m_newRunButton = newInspectButton(BUTTON_INSPECT_RUN);
+         runLayout->addWidget(m_newRunButton);
+        appendSubWidget(grid, runWidget, tr("Run"),
                         tr("Start a new instance of the selected project."));
+
+        slotProjectChanged();
+        connect(m_projectsCombo, SIGNAL(currentProjectChanged()),
+                this, SLOT(slotProjectChanged()));
 
         // TODO - attach to an existing run
         QWidget *instWidget = new QLabel("running opts - *WIP*");
@@ -219,18 +221,23 @@ void InspectorWindow::slotProjectChanged()
 {
     ProjectExplorer::Project *project = m_projectsCombo->currentProject();
     m_projectsCombo->setEnabled(project);
-    m_runconfCombo->setEnabled(project);
     m_runconfCombo->setProject(project);
+    m_runconfLabel->setVisible(m_runconfCombo->count() > 1);
+    m_runconfCombo->setVisible(m_runconfCombo->count() > 1);
+    m_runconfCombo->setEnabled(project);
+    m_frameworksCombo->setEnabled(project);
+    m_newRunButton->setEnabled(project);
 }
 
-QWidget *InspectorWindow::newInspectButton(quint32 id)
+QAbstractButton *InspectorWindow::newInspectButton(int id)
 {
-    QToolButton *btn = new QToolButton;
-    btn->setProperty("id", id);
-    btn->setAutoRaise(false);
-    btn->setIcon(QIcon(":/projectexplorer/images/run.png"));
-    connect(btn, SIGNAL(clicked()), this, SLOT(slotNewTarget()));
-    return btn;
+    QPushButton *b = new QPushButton;
+    b->setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
+    b->setText(tr("Start"));
+    b->setIcon(QIcon(":/projectexplorer/images/run.png"));
+    b->setProperty("id", id);
+    connect(b, SIGNAL(clicked()), this, SLOT(slotNewTarget()));
+    return b;
 }
 
 // keep this in sync with PanelsWidget::addPropertiesPanel in projectwindow.cpp
@@ -319,6 +326,7 @@ void InspectorWindow::appendSubWidget(QGridLayout *layout, QWidget *widget,
 ProjectsComboBox::ProjectsComboBox(QWidget *parent)
   : QComboBox(parent)
 {
+    setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
     ProjectExplorer::SessionManager *session = ProjectExplorer::ProjectExplorerPlugin::instance()->session();
     foreach(ProjectExplorer::Project *project, session->projects())
         add(project);
@@ -373,6 +381,7 @@ RunconfComboBox::RunconfComboBox(QWidget *parent)
   : QComboBox(parent)
   , m_project(0)
 {
+    setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
 }
 
 void RunconfComboBox::setProject(ProjectExplorer::Project *project)
@@ -445,6 +454,7 @@ void RunconfComboBox::activeChanged()
 FrameworksComboBox::FrameworksComboBox(QWidget *parent)
   : QComboBox(parent)
 {
+    setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
     QList<IInspectorFramework *> frameworks =
         ExtensionSystem::PluginManager::instance()->getObjects<IInspectorFramework>();
     foreach (IInspectorFramework *framework, frameworks)
