@@ -60,6 +60,9 @@ class InspectorWindow : public QScrollArea
 public:
     InspectorWindow(QWidget *parent = 0);
 
+signals:
+    void requestDisplay();
+
 private slots:
     void slotNewTarget();
     void slotProjectChanged();
