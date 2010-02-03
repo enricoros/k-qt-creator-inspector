@@ -67,11 +67,6 @@
 #include <extensionsystem/pluginmanager.h>
 
 #include <coreplugin/manhattanstyle.h>
-
-#include <inspector/instance.h>
-#include <inspector/instancemodel.h>
-#include <inspector/inspectorplugin.h>
-
 #include <projectexplorer/projectexplorer.h>
 #include <projectexplorer/projectexplorerconstants.h>
 #include <projectexplorer/session.h>
@@ -982,11 +977,6 @@ bool DebuggerPlugin::initialize(const QStringList &arguments, QString *errorMess
     connect(editorManager, SIGNAL(editorOpened(Core::IEditor*)),
         this, SLOT(editorOpened(Core::IEditor*)));
 
-    // Inspector connection (temp HACK to issue debugger commands)
-    Inspector::InstanceModel *instanceModel = Inspector::defaultInstance()->instanceModel();
-    connect(instanceModel, SIGNAL(debuggerCallFunction(QString,QVariantList)),
-            m_manager, SLOT(callFunction(QString,QVariantList)));
-
     // Application interaction
     connect(theDebuggerAction(SettingsDialog), SIGNAL(triggered()),
         this, SLOT(showSettingsDialog()));
@@ -1321,9 +1311,6 @@ void DebuggerPlugin::handleStateChanged(int state)
 #endif
     m_startRemoteAction->setEnabled(!started && !starting);
     m_detachAction->setEnabled(detachable);
-
-    // notify Inspector Plugin about the debuggee state
-    Inspector::defaultInstance()->instanceModel()->setDebugEnabled(started);
 }
 
 void DebuggerPlugin::languageChanged(const QString &language)
