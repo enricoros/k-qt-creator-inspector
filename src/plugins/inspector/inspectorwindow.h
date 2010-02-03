@@ -33,7 +33,9 @@
 #include <QtCore/QList>
 #include <QtGui/QComboBox>
 #include <QtGui/QScrollArea>
+class QAbstractButton;
 class QGridLayout;
+class QLabel;
 
 namespace ProjectExplorer {
 class Project;
@@ -48,6 +50,9 @@ class FrameworksComboBox;
 class ProjectsComboBox;
 class RunconfComboBox;
 
+/**
+  \brief The Main Window of Inspector. Can start Instances
+*/
 class InspectorWindow : public QScrollArea
 {
     Q_OBJECT
@@ -61,7 +66,7 @@ private slots:
 
 private:
     QWidget *newFrameworkCombo();
-    QWidget *newInspectButton(quint32 id);
+    QAbstractButton *newInspectButton(int id);
     void appendWrappedWidget(const QString &title, const QIcon &icon, QWidget *widget);
     void appendSubWidget(QGridLayout *layout, QWidget *widget,
                          const QString &title = QString(),
@@ -70,8 +75,10 @@ private:
     QGridLayout *m_layout;
 
     ProjectsComboBox *m_projectsCombo;
+    QLabel *m_runconfLabel;
     RunconfComboBox *m_runconfCombo;
     FrameworksComboBox *m_frameworksCombo;
+    QAbstractButton *m_newRunButton;
 };
 
 /**
