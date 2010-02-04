@@ -40,7 +40,7 @@ class InfoModule : public AbstractModule
     Q_OBJECT
 
 public:
-    InfoModule(Inspector::Instance *, QObject *parent = 0);
+    InfoModule(Instance *, QObject *parent = 0);
 
     // ::AbstractModule
     enum { Uid = 0x01 };

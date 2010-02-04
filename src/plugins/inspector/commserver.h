@@ -37,10 +37,9 @@
 class QLocalServer;
 
 namespace Inspector {
+namespace Internal {
 
 class InstanceModel;
-
-namespace Internal {
 
 class CommServer : public QObject
 {

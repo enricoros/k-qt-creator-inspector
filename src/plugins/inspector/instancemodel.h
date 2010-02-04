@@ -34,11 +34,9 @@
 #include <QVariantList>
 
 namespace Inspector {
-
 namespace Internal {
-}
 
-class Q_DECL_EXPORT InstanceModel : public Internal::AbstractEasyModel
+class InstanceModel : public AbstractEasyModel
 {
     Q_OBJECT
 
@@ -76,6 +74,7 @@ signals:
     void debuggerCallFunction(const QString &name, const QVariantList &args);
 };
 
+} // namespace Internal
 } // namespace Inspector
 
 #endif // INSTANCEMODEL_H

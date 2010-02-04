@@ -35,7 +35,7 @@
 
 using namespace Inspector::Internal;
 
-PaintingModule::PaintingModule(Inspector::Instance *instance, QObject *parent)
+PaintingModule::PaintingModule(Instance *instance, QObject *parent)
   : AbstractModule(instance, parent)
   , m_model(new PaintingModel)
 {

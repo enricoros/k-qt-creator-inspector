@@ -44,7 +44,7 @@ AbstractModule *AbstractPanel::parentModule() const
     return m_parentModule;
 }
 
-Inspector::Instance *AbstractPanel::parentInstance() const
+Instance *AbstractPanel::parentInstance() const
 {
     return m_parentModule->parentInstance();
 }

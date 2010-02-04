@@ -32,7 +32,7 @@
 
 using namespace Inspector::Internal;
 
-InfoModule::InfoModule(Inspector::Instance *instance, QObject *parent)
+InfoModule::InfoModule(Instance *instance, QObject *parent)
   : AbstractModule(instance, parent)
 {
 }

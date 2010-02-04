@@ -46,7 +46,6 @@
 // for demarshalling communication with The Probe
 #include "../../../share/qtcreator/gdbmacros/perfunction.h"
 
-using namespace Inspector;
 using namespace Inspector::Internal;
 
 CommServer::CommServer(InstanceModel *model, QObject *parent)

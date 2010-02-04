@@ -31,7 +31,7 @@
 
 #include "../../../share/qtcreator/gdbmacros/perfunction.h"
 
-using namespace Inspector;
+using namespace Inspector::Internal;
 
 /* == InstanceModel Usage ==
 Row 'InstanceStatus_Row': Instance Status

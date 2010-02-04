@@ -27,8 +27,8 @@
 **
 **************************************************************************/
 
-#ifndef INSPECTORINSTANCE_H
-#define INSPECTORINSTANCE_H
+#ifndef INSTANCE_H
+#define INSTANCE_H
 
 #include <QObject>
 #include <QList>
@@ -37,16 +37,12 @@
 #include "tasksmodel.h"
 
 namespace Inspector {
-
-
 namespace Internal {
 
 class CommServer;
 class ModuleController;
 
-}
-
-class Q_DECL_EXPORT Instance : public QObject
+class Instance : public QObject
 {
     Q_OBJECT
 
@@ -56,13 +52,13 @@ public:
 
     // data models
     InstanceModel *instanceModel() const;
-    Internal::TasksModel *tasksModel() const;
+    TasksModel *tasksModel() const;
 
     // probe communication server
-    Internal::CommServer *commServer() const;
+    CommServer *commServer() const;
 
     // controls loaded modules
-    Internal::ModuleController *moduleController() const;
+    ModuleController *moduleController() const;
 
     void makeVisible(int moduleUid, int panelId);
 
@@ -71,11 +67,12 @@ signals:
 
 private:
     InstanceModel *m_instanceModel;
-    Internal::TasksModel *m_tasksModel;
-    Internal::CommServer *m_commServer;
-    Internal::ModuleController *m_moduleController;
+    TasksModel *m_tasksModel;
+    CommServer *m_commServer;
+    ModuleController *m_moduleController;
 };
 
+} // namespace Internal
 } // namespace Inspector
 
-#endif // INSPECTORINSTANCE_H
+#endif // INSTANCE_H

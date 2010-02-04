@@ -35,12 +35,10 @@
 #include <QList>
 
 namespace Inspector {
-
-class Instance;
-
 namespace Internal {
 
 class AbstractPanel;
+class Instance;
 class ModuleController;
 
 /**
@@ -69,7 +67,7 @@ class AbstractModule : public QObject
     Q_OBJECT
 
 public:
-    AbstractModule(Inspector::Instance *, QObject *parent = 0);
+    AbstractModule(Instance *, QObject *parent = 0);
     virtual ~AbstractModule();
 
     // describe the module
@@ -81,7 +79,7 @@ public:
     //virtual * createCommSession(int cmdClass) = 0;
 
     // useful references
-    Inspector::Instance *parentInstance() const;
+    Instance *parentInstance() const;
 
 signals:
     // requests ModuleContoller to activate this module

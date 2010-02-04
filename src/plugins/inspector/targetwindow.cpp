@@ -39,7 +39,7 @@
 
 using namespace Inspector::Internal;
 
-TargetWindow::TargetWindow(Inspector::Instance *instance, QWidget *parent)
+TargetWindow::TargetWindow(Instance *instance, QWidget *parent)
   : QWidget(parent)
   , m_instance(0)
 {
@@ -61,7 +61,7 @@ TargetWindow::TargetWindow(Inspector::Instance *instance, QWidget *parent)
     setInstance(instance);
 }
 
-Inspector::Instance *TargetWindow::targetInstance() const
+Instance *TargetWindow::targetInstance() const
 {
     return m_instance;
 }
@@ -92,7 +92,7 @@ void TargetWindow::slotSetCurrentPanel(int moduleUid, int panelId)
     emit requestTargetDisplay();
 }
 
-void TargetWindow::setInstance(Inspector::Instance *instance)
+void TargetWindow::setInstance(Instance *instance)
 {
     // remove references to any previous instance
     if (m_instance) {

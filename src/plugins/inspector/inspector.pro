@@ -21,7 +21,6 @@ HEADERS += \
     inspectorplugin.h \
     inspectorwindow.h \
     nokiaqtframework.h \
-    notificationwidget.h \
     nvidiacudaframework.h \
     panelcontainerwidget.h \
     plotgrid.h \
@@ -37,6 +36,7 @@ HEADERS += \
     module-painting/paintingmodel.h \
     module-painting/paintingmodule.h \
     module-painting/temperaturepanel.h \
+    module-warnings/notificationwidget.h \
     module-warnings/warningsmodule.h
 
 SOURCES += \
@@ -51,7 +51,6 @@ SOURCES += \
     inspectorplugin.cpp \
     inspectorwindow.cpp \
     nokiaqtframework.cpp \
-    notificationwidget.cpp \
     nvidiacudaframework.cpp \
     panelcontainerwidget.cpp \
     plotgrid.cpp \
@@ -67,6 +66,7 @@ SOURCES += \
     module-painting/paintingmodel.cpp \
     module-painting/paintingmodule.cpp \
     module-painting/temperaturepanel.cpp \
+    module-warnings/notificationwidget.cpp \
     module-warnings/warningsmodule.cpp
 
 FORMS += \

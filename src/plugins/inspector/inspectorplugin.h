@@ -34,16 +34,14 @@
 
 class QAction;
 
-namespace Inspector {
-
-class Instance;
-
 /// main accessor when using this plugin from the outside. we suppose a single debuggee for now.
-Q_DECL_EXPORT Instance * defaultInstance();
+//Q_DECL_EXPORT Instance * defaultInstance();
 
+namespace Inspector {
 namespace Internal {
 
 class InspectorContainer;
+class Instance;
 
 // constants
 const char * const MODE_INSPECTOR   = "Probe";
@@ -61,11 +59,11 @@ public:
     ~InspectorPlugin();
 
     // called by the 'New Target' window
-    void addInstance(Inspector::Instance *);
-    //void removeInstance(Inspector::Instance *);
+    void addInstance(Instance *);
+    //void removeInstance(Instance *);
 
     // single debuggee assumption lies here: we use a single instance from the outside
-    static Inspector::Instance * defaultInstance();
+    static Instance * defaultInstance();
 
     // ::ExtensionSystem::IPlugin
     bool initialize(const QStringList &arguments, QString *error_message);
