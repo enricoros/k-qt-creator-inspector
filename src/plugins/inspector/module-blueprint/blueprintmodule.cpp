@@ -39,7 +39,7 @@ namespace Internal {
   
 class BlueprintPanel : public AbstractPanel {
 public:
-    BlueprintPanel(AbstractModule *parentModule)
+    BlueprintPanel(IFrameworkModule *parentModule)
       : AbstractPanel(parentModule)
     {    
         QPixmap pixmap(":/inspector/images/blueprint.png");
@@ -54,7 +54,7 @@ public:
 };
 
 BlueprintModule::BlueprintModule(Instance *instance, QObject *parent)
-  : AbstractModule(instance, parent)
+  : IFrameworkModule(instance, parent)
 {
 }
 

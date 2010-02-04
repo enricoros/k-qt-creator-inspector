@@ -30,8 +30,8 @@
 #include "inspectorplugin.h"
 #include "inspectorcontainer.h"
 #include "instance.h"
-#include "nokiaqtframework.h"
-#include "nvidiacudaframework.h"
+#include "nokiaqtframework/nokiaqtframework.h"
+#include "nvidiacudaframework/nvidiacudaframework.h"
 #include "modulecontroller.h"
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/basemode.h>

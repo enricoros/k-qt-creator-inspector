@@ -28,18 +28,18 @@
 **************************************************************************/
 
 #include "abstractpanel.h"
-#include "abstractmodule.h"
+#include "iframeworkmodule.h"
 
 using namespace Inspector::Internal;
 
-AbstractPanel::AbstractPanel(AbstractModule *parentModule)
+AbstractPanel::AbstractPanel(IFrameworkModule *parentModule)
   : QWidget(0)
   , m_parentModule(parentModule)
 {
     Q_ASSERT(parentModule);
 }
 
-AbstractModule *AbstractPanel::parentModule() const
+IFrameworkModule *AbstractPanel::parentModule() const
 {
     return m_parentModule;
 }

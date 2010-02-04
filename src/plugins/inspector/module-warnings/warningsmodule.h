@@ -30,14 +30,14 @@
 #ifndef WARNINGSMODULE_H
 #define WARNINGSMODULE_H
 
-#include "abstractmodule.h"
+#include "iframeworkmodule.h"
 
 namespace Inspector {
 namespace Internal {
 
 class NotificationWidget;
 
-class WarningsModule : public AbstractModule
+class WarningsModule : public IFrameworkModule
 {
     Q_OBJECT
 
@@ -45,7 +45,7 @@ public:
     WarningsModule(Instance *, QObject *parent = 0);
     ~WarningsModule();
 
-    // ::AbstractModule
+    // ::IFrameworkModule
     enum { Uid = 0x03 };
     int uid() const { return Uid; }
     QString name() const;
@@ -57,7 +57,7 @@ private slots:
     void slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data);
     void slotNotificationClicked();
 
-    // ::AbstractModule
+    // ::IFrameworkModule
     void slotActivate();
     void slotDeactivate();
 

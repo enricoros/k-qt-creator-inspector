@@ -28,7 +28,7 @@
 **************************************************************************/
 
 #include "modulecontroller.h"
-#include "abstractmodule.h"
+#include "iframeworkmodule.h"
 #include "abstractpanel.h"
 #include "tasksmodel.h"
 
@@ -45,25 +45,25 @@ ModuleController::ModuleController(TasksModel *tasksModel, QObject *parent)
 ModuleController::~ModuleController()
 {
     // delete all the modules (bypassing the 'destroyed' hook)
-    QList<AbstractModule *> listCopy = m_modules;
+    QList<IFrameworkModule *> listCopy = m_modules;
     m_modules.clear();
     qDeleteAll(listCopy);
 }
 
-void ModuleController::addModule(AbstractModule * module)
+void ModuleController::addModule(IFrameworkModule * module)
 {
     if (!module) {
         qWarning("ModuleController::addModule: skipping null module");
         return;
     }
     // check for duplicate Ids
-    foreach (AbstractModule *mod, m_modules) {
+    foreach (IFrameworkModule *mod, m_modules) {
         if (mod->uid() == module->uid()) {
             qWarning("ModuleController::addModule: skipping module with duplicated Uid %d", module->uid());
             return;
         }
     }
-    // register the AbstractModule
+    // register the IFrameworkModule
     connect(module, SIGNAL(requestActivation(QString)), this, SLOT(slotModuleActivationRequested(QString)));
     connect(module, SIGNAL(deactivated()), this, SLOT(slotModuleDeactivated()));
     connect(module, SIGNAL(destroyed()), this, SLOT(slotModuleDestroyed()));
@@ -71,13 +71,13 @@ void ModuleController::addModule(AbstractModule * module)
     emit modulesChanged();
 }
 
-void ModuleController::removeModule(AbstractModule * module)
+void ModuleController::removeModule(IFrameworkModule * module)
 {
     if (!module) {
         qWarning("ModuleController::removeModule: skipping null module");
         return;
     }
-    // unregister the AbstractModule
+    // unregister the IFrameworkModule
     disconnect(module, 0, this, 0);
     m_modules.removeAll(module);
     m_activeModules.removeAll(module);
@@ -87,7 +87,7 @@ void ModuleController::removeModule(AbstractModule * module)
 ModuleMenuEntries ModuleController::menuEntries() const
 {
     ModuleMenuEntries entries;
-    foreach (AbstractModule *module, m_modules)
+    foreach (IFrameworkModule *module, m_modules)
         entries.append(module->menuEntries());
     return entries;
 }
@@ -95,14 +95,14 @@ ModuleMenuEntries ModuleController::menuEntries() const
 QStringList ModuleController::moduleNames() const
 {
     QStringList names;
-    foreach (AbstractModule *module, m_modules)
+    foreach (IFrameworkModule *module, m_modules)
         names.append(module->name());
     return names;
 }
 
 AbstractPanel *ModuleController::createPanel(int moduleUid, int panelId) const
 {
-    AbstractModule * module = moduleForUid(moduleUid);
+    IFrameworkModule * module = moduleForUid(moduleUid);
     if (!module) {
         qWarning("ModuleController::createPanel: unknown module Uid %d", moduleUid);
         return 0;
@@ -110,9 +110,9 @@ AbstractPanel *ModuleController::createPanel(int moduleUid, int panelId) const
     return module->createPanel(panelId);
 }
 
-AbstractModule *ModuleController::moduleForUid(int moduleUid) const
+IFrameworkModule *ModuleController::moduleForUid(int moduleUid) const
 {
-    foreach (AbstractModule *module, m_modules)
+    foreach (IFrameworkModule *module, m_modules)
         if (module->uid() == moduleUid)
             return module;
     return 0;
@@ -120,7 +120,7 @@ AbstractModule *ModuleController::moduleForUid(int moduleUid) const
 
 void ModuleController::slotModuleActivationRequested(const QString &text)
 {
-    AbstractModule * module = static_cast<AbstractModule *>(sender());
+    IFrameworkModule * module = static_cast<IFrameworkModule *>(sender());
 
     // update the model
     QString name = text.isEmpty() ? module->name() : text;
@@ -143,7 +143,7 @@ void ModuleController::slotModuleActivationRequested(const QString &text)
 
 void ModuleController::slotModuleDeactivated()
 {
-    AbstractModule * module = static_cast<AbstractModule *>(sender());
+    IFrameworkModule * module = static_cast<IFrameworkModule *>(sender());
 
     // update the model
     if (!m_tasksModel->stopTask(module->uid())) {
@@ -157,7 +157,7 @@ void ModuleController::slotModuleDeactivated()
 
 void ModuleController::slotModuleDestroyed()
 {
-    AbstractModule * module = static_cast<AbstractModule *>(sender());
+    IFrameworkModule * module = static_cast<IFrameworkModule *>(sender());
     // CHANGE THIS? superseed by the model?
     if (m_modules.contains(module)) {
         m_tasksModel->stopTask(module->uid());
@@ -175,7 +175,7 @@ void ModuleController::slotModelItemChanged(QStandardItem *item)
     // check if the RequestStop flag is set
     if (taskItem->requestStop()) {
         // FIXME THIS: equivalence TaskId <-> ModuleId implied here
-        AbstractModule * module = moduleForUid(taskItem->tid());
+        IFrameworkModule * module = moduleForUid(taskItem->tid());
         if (module)
             module->controlDeactivate();
         return;

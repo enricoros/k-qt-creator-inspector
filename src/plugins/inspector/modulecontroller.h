@@ -32,7 +32,7 @@
 
 #include <QObject>
 #include <QList>
-#include "abstractmodule.h"
+#include "iframeworkmodule.h"
 class QStandardItem;
 
 namespace Inspector {
@@ -52,8 +52,8 @@ public:
     ModuleController(TasksModel *, QObject *parent = 0);
     ~ModuleController();
 
-    void addModule(AbstractModule *);
-    void removeModule(AbstractModule *);
+    void addModule(IFrameworkModule *);
+    void removeModule(IFrameworkModule *);
 
     // operate on modules
     ModuleMenuEntries menuEntries() const;
@@ -64,10 +64,10 @@ signals:
     void modulesChanged();
 
 private:
-    AbstractModule * moduleForUid(int moduleUid) const;
+    IFrameworkModule * moduleForUid(int moduleUid) const;
     TasksModel *m_tasksModel;
-    QList<AbstractModule *> m_modules;
-    QList<AbstractModule *> m_activeModules;
+    QList<IFrameworkModule *> m_modules;
+    QList<IFrameworkModule *> m_activeModules;
 
 private slots:
     void slotModuleActivationRequested(const QString &text);

@@ -28,7 +28,7 @@
 **************************************************************************/
 
 #include "infopanel.h"
-#include "abstractmodule.h"
+#include "iframeworkmodule.h"
 #include "instance.h"
 #include "modulecontroller.h"
 #include <QFont>
@@ -36,7 +36,7 @@
 using namespace Inspector;
 using namespace Inspector::Internal;
 
-InfoPanel::InfoPanel(AbstractModule *parentModule)
+InfoPanel::InfoPanel(IFrameworkModule *parentModule)
   : AbstractPanel(parentModule)
   , m_okPixmap(":/inspector/images/status-ok.png")
   , m_errorPixmap(":/inspector/images/status-err.png")

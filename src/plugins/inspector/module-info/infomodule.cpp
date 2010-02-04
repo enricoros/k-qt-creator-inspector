@@ -33,7 +33,7 @@
 using namespace Inspector::Internal;
 
 InfoModule::InfoModule(Instance *instance, QObject *parent)
-  : AbstractModule(instance, parent)
+  : IFrameworkModule(instance, parent)
 {
 }
 

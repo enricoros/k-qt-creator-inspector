@@ -36,7 +36,7 @@
 using namespace Inspector::Internal;
 
 PaintingModule::PaintingModule(Instance *instance, QObject *parent)
-  : AbstractModule(instance, parent)
+  : IFrameworkModule(instance, parent)
   , m_model(new PaintingModel)
 {
     // read the data coming from the commserver

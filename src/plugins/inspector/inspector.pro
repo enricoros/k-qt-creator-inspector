@@ -10,18 +10,16 @@ include(inspector_dependencies.pri)
 
 HEADERS += \
     abstracteasymodel.h \
-    abstractmodule.h \
     abstractpanel.h \
     combotreewidget.h \
     commserver.h \
+    iframeworkmodule.h \
     iinspectorframework.h \
     instance.h \
     instancemodel.h \
     inspectorcontainer.h \
     inspectorplugin.h \
     inspectorwindow.h \
-    nokiaqtframework.h \
-    nvidiacudaframework.h \
     panelcontainerwidget.h \
     plotgrid.h \
     modulecontroller.h \
@@ -37,21 +35,21 @@ HEADERS += \
     module-painting/paintingmodule.h \
     module-painting/temperaturepanel.h \
     module-warnings/notificationwidget.h \
-    module-warnings/warningsmodule.h
+    module-warnings/warningsmodule.h \
+    nokiaqtframework/nokiaqtframework.h \
+    nvidiacudaframework/nvidiacudaframework.h
 
 SOURCES += \
     abstracteasymodel.cpp \
-    abstractmodule.cpp \
     abstractpanel.cpp \
     combotreewidget.cpp \
     commserver.cpp \
+    iframeworkmodule.cpp \
     instance.cpp \
     instancemodel.cpp \
     inspectorcontainer.cpp \
     inspectorplugin.cpp \
     inspectorwindow.cpp \
-    nokiaqtframework.cpp \
-    nvidiacudaframework.cpp \
     panelcontainerwidget.cpp \
     plotgrid.cpp \
     modulecontroller.cpp \
@@ -67,7 +65,9 @@ SOURCES += \
     module-painting/paintingmodule.cpp \
     module-painting/temperaturepanel.cpp \
     module-warnings/notificationwidget.cpp \
-    module-warnings/warningsmodule.cpp
+    module-warnings/warningsmodule.cpp \
+    nokiaqtframework/nokiaqtframework.cpp \
+    nvidiacudaframework/nvidiacudaframework.cpp
 
 FORMS += \
     module-info/infopanel.ui \

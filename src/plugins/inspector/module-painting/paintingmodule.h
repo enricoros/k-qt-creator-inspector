@@ -30,14 +30,14 @@
 #ifndef PAINTINGMODULE_H
 #define PAINTINGMODULE_H
 
-#include "abstractmodule.h"
+#include "iframeworkmodule.h"
 
 namespace Inspector {
 namespace Internal {
 
 class PaintingModel;
 
-class PaintingModule : public AbstractModule
+class PaintingModule : public IFrameworkModule
 {
     Q_OBJECT
 
@@ -47,7 +47,7 @@ public:
 
     PaintingModel *model() const;
 
-    // ::AbstractModule
+    // ::IFrameworkModule
     enum { Uid = 0x02 };
     int uid() const { return Uid; }
     QString name() const;
