@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>656</width>
-    <height>405</height>
+    <width>654</width>
+    <height>403</height>
    </rect>
   </property>
   <layout class="QGridLayout" name="gridLayout">
@@ -23,7 +23,7 @@
         </sizepolicy>
        </property>
        <property name="pixmap">
-        <pixmap resource="../inspector.qrc">:/inspector/images/menu-paintingtemperature.png</pixmap>
+        <pixmap resource="../nokiaqtframework.qrc">:/inspector/painting/menu-temperature.png</pixmap>
        </property>
       </widget>
      </item>
@@ -228,8 +228,8 @@
           <string>Test</string>
          </property>
          <property name="icon">
-          <iconset resource="../inspector.qrc">
-           <normaloff>:/inspector/images/menu-paintingtemperature.png</normaloff>:/inspector/images/menu-paintingtemperature.png</iconset>
+          <iconset resource="../nokiaqtframework.qrc">
+           <normaloff>:/inspector/painting/menu-temperature.png</normaloff>:/inspector/painting/menu-temperature.png</iconset>
          </property>
         </widget>
        </item>
@@ -386,8 +386,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>373</width>
-            <height>304</height>
+            <width>94</width>
+            <height>24</height>
            </rect>
           </property>
          </widget>
@@ -421,6 +421,7 @@
   </layout>
  </widget>
  <resources>
+  <include location="../nokiaqtframework.qrc"/>
   <include location="../inspector.qrc"/>
  </resources>
  <connections/>

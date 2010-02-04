@@ -27,57 +27,33 @@
 **
 **************************************************************************/
 
-#include "blueprintmodule.h"
-#include "abstractpanel.h"
-#include "instance.h"
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QPixmap>
+#include "infomodule.h"
+#include "infopanel.h"
 
-namespace Inspector {
-namespace Internal {
-  
-class BlueprintPanel : public AbstractPanel {
-public:
-    BlueprintPanel(IFrameworkModule *parentModule)
-      : AbstractPanel(parentModule)
-    {    
-        QPixmap pixmap(":/inspector/images/blueprint.png");
-        QLabel *label = new QLabel;
-        label->setFixedSize(pixmap.size());
-        label->setPixmap(pixmap);
+using namespace Inspector::Internal;
 
-        QHBoxLayout *hLay = new QHBoxLayout(this);
-        hLay->setMargin(0);
-        hLay->addWidget(label);
-    }
-};
-
-BlueprintModule::BlueprintModule(Instance *instance, QObject *parent)
+InfoModule::InfoModule(Instance *instance, QObject *parent)
   : IFrameworkModule(instance, parent)
 {
 }
 
-QString BlueprintModule::name() const
+QString InfoModule::name() const
 {
-    return tr("Blueprint (0.001)");
+    return tr("Information (0.8)");
 }
 
-ModuleMenuEntries BlueprintModule::menuEntries() const
+ModuleMenuEntries InfoModule::menuEntries() const
 {
     ModuleMenuEntries entries;
-    entries.append(ModuleMenuEntry(QStringList() << tr("Blueprint"), Uid, 1));
+    entries.append(ModuleMenuEntry(QStringList() << tr("Status"), Uid, 0, QIcon(":/inspector/info/menu-status.png")));
     return entries;
 }
 
-AbstractPanel *BlueprintModule::createPanel(int panelId)
+AbstractPanel *InfoModule::createPanel(int panelId)
 {
-    if (panelId != 1) {
-        qWarning("BlueprintModule::createPanel: unknown panel %d", panelId);
+    if (panelId != 0) {
+        qWarning("InfoModule::createPanel: unhandled panel %d", panelId);
         return 0;
     }
-    return new BlueprintPanel(this);
+    return new InfoPanel(this);
 }
-
-} // namespace Internal
-} // namespace Inspector

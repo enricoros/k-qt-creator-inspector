@@ -30,11 +30,10 @@
 #include "targetwindow.h"
 #include "abstractpanel.h"
 #include "combotreewidget.h"
+#include "iinspectorframework.h"
 #include "instance.h"
-#include "modulecontroller.h"
 #include "panelcontainerwidget.h"
 #include "statusbarwidget.h"
-#include "module-info/infomodule.h"
 #include <QtGui/QVBoxLayout>
 
 using namespace Inspector::Internal;
@@ -110,7 +109,7 @@ void TargetWindow::setInstance(Instance *instance)
         connect(m_instance, SIGNAL(requestPanelDisplay(int,int)), this, SLOT(slotSetCurrentPanel(int,int)));
 
         // menu: add all entries by the plugged modules
-        ModuleMenuEntries entries = m_instance->moduleController()->menuEntries();
+        ModuleMenuEntries entries = m_instance->framework()->menuEntries();
         foreach (const ModuleMenuEntry &entry, entries) {
             if ((entry.moduleUid & 0xFF000000) || (entry.panelId & 0xFFFFFF00)) {
                 qWarning("TargetWindow::setInstance: moduleUid (%d) or panelId (%d) not valid", entry.moduleUid, entry.panelId);
@@ -124,7 +123,7 @@ void TargetWindow::setInstance(Instance *instance)
         m_statusbarWidget->setInstance(m_instance);
 
         // show information about the current instance
-        showPanel(InfoModule::Uid, 0);
+        showPanel(m_instance->framework()->infoModuleUid(), 0);
     }
 }
 
@@ -137,7 +136,7 @@ void TargetWindow::showPanel(int moduleUid, int panelId)
     }
 
     // ask for panel creation
-    AbstractPanel *panel = m_instance->moduleController()->createPanel(moduleUid, panelId);
+    AbstractPanel *panel = m_instance->framework()->createPanel(moduleUid, panelId);
     if (!panel) {
         qWarning("TargetWindow::showPanel: can't create panel %d for module %d", panelId, moduleUid);
         m_panelContainer->setPanel(new QWidget);

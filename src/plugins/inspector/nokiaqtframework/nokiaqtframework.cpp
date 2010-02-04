@@ -28,31 +28,54 @@
 **************************************************************************/
 
 #include "nokiaqtframework.h"
-#include <QtCore/QObject>
+#include "blueprint/blueprintmodule.h"
+#include "info/infomodule.h"
+#include "painting/paintingmodule.h"
+#include "warnings/warningsmodule.h"
 #include <QtGui/QMessageBox>
 
 using namespace Inspector::Internal;
 
-NokiaQtFramework::NokiaQtFramework()
+//
+// NokiaQtFramework
+//
+NokiaQtFramework::NokiaQtFramework(Instance *instance, QObject *parent)
+  : IInspectorFramework(instance, parent)
+{
+    addModule(new InfoModule(instance));
+    addModule(new PaintingModule(instance));
+    addModule(new WarningsModule(instance));
+    addModule(new BlueprintModule(instance));
+}
+
+int NokiaQtFramework::infoModuleUid() const
+{
+    return InfoModule::Uid;
+}
+
+//
+// NokiaQtFrameworkFactory
+//
+NokiaQtFrameworkFactory::NokiaQtFrameworkFactory()
 {
 }
 
-QString NokiaQtFramework::displayName() const
+QString NokiaQtFrameworkFactory::displayName() const
 {
     return tr("Qt by Nokia");
 }
 
-QIcon NokiaQtFramework::icon() const
+QIcon NokiaQtFrameworkFactory::icon() const
 {
     return QIcon(":/core/images/qtcreator_logo_32.png");
 }
 
-bool NokiaQtFramework::isConfigurable() const
+bool NokiaQtFrameworkFactory::isConfigurable() const
 {
     return true;
 }
 
-void NokiaQtFramework::configure()
+void NokiaQtFrameworkFactory::configure()
 {
     QMessageBox::information(0, tr("Configure Nokia Qt Framework"),
         tr("Configuration not implemented, please try again later."));

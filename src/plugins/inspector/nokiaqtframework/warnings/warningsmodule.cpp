@@ -63,7 +63,7 @@ QString WarningsModule::name() const
 ModuleMenuEntries WarningsModule::menuEntries() const
 {
     ModuleMenuEntries entries;
-    entries.append(ModuleMenuEntry(QStringList() << "Warnings", Uid, 0, QIcon(":/inspector/images/menu-warning.png")));
+    entries.append(ModuleMenuEntry(QStringList() << "Warnings", Uid, 0, QIcon(":/inspector/warnings/menu-warning.png")));
     return entries;
 }
 

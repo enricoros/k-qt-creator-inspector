@@ -31,7 +31,6 @@
 #include "iinspectorframework.h"
 #include "inspectorplugin.h"
 #include "instance.h"
-#include "modulecontroller.h"
 #include <extensionsystem/pluginmanager.h>
 #include <projectexplorer/projectexplorerconstants.h>
 #include <projectexplorer/projectexplorer.h>
@@ -175,17 +174,17 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         grid->setSpacing(0);
         grid->setColumnMinimumWidth(0, LEFT_MARGIN);
 
-        QList<IInspectorFramework *> frameworks =
-            ExtensionSystem::PluginManager::instance()->getObjects<IInspectorFramework>();
-        foreach (IInspectorFramework *framework, frameworks) {
+        QList<IInspectorFrameworkFactory *> factories =
+            ExtensionSystem::PluginManager::instance()->getObjects<IInspectorFrameworkFactory>();
+        foreach (IInspectorFrameworkFactory *factory, factories) {
             QWidget *rowWidget = new QWidget;
             QHBoxLayout *rowLay = new QHBoxLayout(rowWidget);
             rowLay->setMargin(0);
 
-            if (!framework->icon().isNull()) {
+            if (!factory->icon().isNull()) {
                 QLabel *iconLabel = new QLabel;
                 iconLabel->setFixedSize(32, 32);
-                iconLabel->setPixmap(framework->icon().pixmap(32, 32));
+                iconLabel->setPixmap(factory->icon().pixmap(32, 32));
                 rowLay->addWidget(iconLabel);
             }
 
@@ -198,13 +197,13 @@ InspectorWindow::InspectorWindow(QWidget *parent)
 
             QToolButton *btn = new QToolButton;
             btn->setIcon(QIcon(":/projectexplorer/images/rebuild.png"));
-            if (framework->isConfigurable())
-                connect(btn, SIGNAL(clicked()), framework, SLOT(configure()));
+            if (factory->isConfigurable())
+                connect(btn, SIGNAL(clicked()), factory, SLOT(configure()));
             else
                 btn->setEnabled(false);
             rowLay->addWidget(btn);
 
-            appendSubWidget(grid, rowWidget, framework->displayName());
+            appendSubWidget(grid, rowWidget, factory->displayName());
         }
 
         appendWrappedWidget(tr("Configure Frameworks"), QIcon(), widget);
@@ -461,22 +460,22 @@ FrameworksComboBox::FrameworksComboBox(QWidget *parent)
   : QComboBox(parent)
 {
     setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
-    QList<IInspectorFramework *> frameworks =
-        ExtensionSystem::PluginManager::instance()->getObjects<IInspectorFramework>();
-    foreach (IInspectorFramework *framework, frameworks)
-        addItem(framework->displayName());
+    QList<IInspectorFrameworkFactory *> factories =
+        ExtensionSystem::PluginManager::instance()->getObjects<IInspectorFrameworkFactory>();
+    foreach (IInspectorFrameworkFactory *factory, factories)
+        addItem(factory->displayName());
     connect(this, SIGNAL(currentIndexChanged(int)),
             this, SIGNAL(currentFrameworkChanged()));
 }
 
-IInspectorFramework *FrameworksComboBox::currentFramework() const
+IInspectorFrameworkFactory *FrameworksComboBox::currentFactory() const
 {
     int index = currentIndex();
-    QList<IInspectorFramework *> frameworks =
-        ExtensionSystem::PluginManager::instance()->getObjects<IInspectorFramework>();
-    if (index < 0 || index >= frameworks.size())
+    QList<IInspectorFrameworkFactory *> factories =
+        ExtensionSystem::PluginManager::instance()->getObjects<IInspectorFrameworkFactory>();
+    if (index < 0 || index >= factories.size())
         return 0;
-    return frameworks.at(index);
+    return factories.at(index);
 }
 
 } // namespace Internal

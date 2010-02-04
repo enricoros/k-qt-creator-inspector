@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>552</width>
-    <height>460</height>
+    <width>550</width>
+    <height>425</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,7 +26,7 @@
         </sizepolicy>
        </property>
        <property name="pixmap">
-        <pixmap resource="../inspector.qrc">:/inspector/images/submenu-up.png</pixmap>
+        <pixmap resource="../../inspector.qrc">:/inspector/images/submenu-up.png</pixmap>
        </property>
       </widget>
      </item>
@@ -55,7 +55,7 @@
        <bool>true</bool>
       </property>
       <attribute name="icon">
-       <iconset resource="../inspector.qrc">
+       <iconset resource="../../inspector.qrc">
         <normaloff>:/inspector/images/inspector-icon-32.png</normaloff>:/inspector/images/inspector-icon-32.png</iconset>
       </attribute>
       <attribute name="title">
@@ -88,7 +88,7 @@
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap resource="../inspector.qrc">:/inspector/images/status-ok.png</pixmap>
+          <pixmap resource="../../inspector.qrc">:/inspector/images/status-ok.png</pixmap>
          </property>
         </widget>
        </item>
@@ -205,7 +205,7 @@
        <bool>true</bool>
       </property>
       <attribute name="icon">
-       <iconset resource="../../debugger/debugger.qrc">
+       <iconset>
         <normaloff>:/debugger/images/debugger_start.png</normaloff>:/debugger/images/debugger_start.png</iconset>
       </attribute>
       <attribute name="title">
@@ -484,7 +484,8 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../debugger/debugger.qrc"/>
+  <include location="../../inspector.qrc"/>
+  <include location="../../inspector.qrc"/>
   <include location="../inspector.qrc"/>
  </resources>
  <connections>
