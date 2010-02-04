@@ -35,14 +35,23 @@
 namespace Inspector {
 namespace Internal {
 
+
 class NvidiaCudaFramework : public IInspectorFramework
 {
     Q_OBJECT
 
 public:
-    NvidiaCudaFramework();
+    NvidiaCudaFramework(Instance *instance, QObject *parent = 0);
+};
 
-    // ::IInspectorFramework
+
+class NvidiaCudaFrameworkFactory : public IInspectorFrameworkFactory
+{
+    Q_OBJECT
+
+public:
+    NvidiaCudaFrameworkFactory();
+
     QString displayName() const;
     QIcon icon() const;
 };

@@ -39,7 +39,7 @@ namespace Internal {
 
 class AbstractPanel;
 class Instance;
-class ModuleController;
+class IInspectorFramework;
 
 /**
   \brief Describes the items to put in the menus by one module
@@ -82,9 +82,9 @@ public:
     Instance *parentInstance() const;
 
 signals:
-    // requests ModuleContoller to activate this module
+    // requests IInspectorFramework to activate this module
     void requestActivation(const QString &text);
-    // tells ModuleController that this module is idle again
+    // tells IInspectorFramework that this module is idle again
     void deactivated();
 
 protected slots:
@@ -95,8 +95,8 @@ protected slots:
     virtual void slotUnlock();
 
 private:
-    // used by ModuleController for state transitions
-    friend class ModuleController;
+    // used by IInspectorFramework for state transitions
+    friend class IInspectorFramework;
     void controlActivate();
     void controlDeactivate();
     void controlRefuse();

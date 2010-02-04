@@ -27,56 +27,57 @@
 **
 **************************************************************************/
 
-#ifndef MODULECONTROLLER_H
-#define MODULECONTROLLER_H
-
-#include <QObject>
-#include <QList>
-#include "iframeworkmodule.h"
-class QStandardItem;
+#include "blueprintmodule.h"
+#include "abstractpanel.h"
+#include "instance.h"
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPixmap>
 
 namespace Inspector {
 namespace Internal {
-
-class TasksModel;
-
-/**
-  Features to add:
-   - model to store all the activations like "active modules", commands log, past modules, etc...
-**/
-class ModuleController : public QObject
-{
-    Q_OBJECT
-
+  
+class BlueprintPanel : public AbstractPanel {
 public:
-    ModuleController(TasksModel *, QObject *parent = 0);
-    ~ModuleController();
+    BlueprintPanel(IFrameworkModule *parentModule)
+      : AbstractPanel(parentModule)
+    {    
+        QPixmap pixmap(":/inspector/blueprint/blueprint.png");
+        QLabel *label = new QLabel;
+        label->setFixedSize(pixmap.size());
+        label->setPixmap(pixmap);
 
-    void addModule(IFrameworkModule *);
-    void removeModule(IFrameworkModule *);
-
-    // operate on modules
-    ModuleMenuEntries menuEntries() const;
-    QStringList moduleNames() const;
-    AbstractPanel *createPanel(int moduleUid, int panelId) const;
-
-signals:
-    void modulesChanged();
-
-private:
-    IFrameworkModule * moduleForUid(int moduleUid) const;
-    TasksModel *m_tasksModel;
-    QList<IFrameworkModule *> m_modules;
-    QList<IFrameworkModule *> m_activeModules;
-
-private slots:
-    void slotModuleActivationRequested(const QString &text);
-    void slotModuleDeactivated();
-    void slotModuleDestroyed();
-    void slotModelItemChanged(QStandardItem*);
+        QHBoxLayout *hLay = new QHBoxLayout(this);
+        hLay->setMargin(0);
+        hLay->addWidget(label);
+    }
 };
+
+BlueprintModule::BlueprintModule(Instance *instance, QObject *parent)
+  : IFrameworkModule(instance, parent)
+{
+}
+
+QString BlueprintModule::name() const
+{
+    return tr("Blueprint (0.001)");
+}
+
+ModuleMenuEntries BlueprintModule::menuEntries() const
+{
+    ModuleMenuEntries entries;
+    entries.append(ModuleMenuEntry(QStringList() << tr("Blueprint"), Uid, 1));
+    return entries;
+}
+
+AbstractPanel *BlueprintModule::createPanel(int panelId)
+{
+    if (panelId != 1) {
+        qWarning("BlueprintModule::createPanel: unknown panel %d", panelId);
+        return 0;
+    }
+    return new BlueprintPanel(this);
+}
 
 } // namespace Internal
 } // namespace Inspector
-
-#endif // MODULECONTROLLER_H

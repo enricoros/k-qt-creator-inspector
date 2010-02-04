@@ -28,20 +28,31 @@
 **************************************************************************/
 
 #include "nvidiacudaframework.h"
-#include <QObject>
 
 using namespace Inspector::Internal;
 
-NvidiaCudaFramework::NvidiaCudaFramework()
+//
+// NvidiaCudaFramework
+//
+NvidiaCudaFramework::NvidiaCudaFramework(Instance *instance, QObject *parent)
+  : IInspectorFramework(instance, parent)
+{
+    //addModule(0);
+}
+
+//
+// NvidiaCudaFrameworkFactory
+//
+NvidiaCudaFrameworkFactory::NvidiaCudaFrameworkFactory()
 {
 }
 
-QString NvidiaCudaFramework::displayName() const
+QString NvidiaCudaFrameworkFactory::displayName() const
 {
     return tr("NVIDIA CUDA");
 }
 
-QIcon NvidiaCudaFramework::icon() const
+QIcon NvidiaCudaFrameworkFactory::icon() const
 {
     return QIcon(/*FIXME*/);
 }

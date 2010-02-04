@@ -22,21 +22,11 @@ HEADERS += \
     inspectorwindow.h \
     panelcontainerwidget.h \
     plotgrid.h \
-    modulecontroller.h \
     singletabwidget.h \
     statusbarwidget.h \
     targetwindow.h \
     tasksmodel.h \
     tasksscroller.h \
-    module-blueprint/blueprintmodule.h \
-    module-info/infomodule.h \
-    module-info/infopanel.h \
-    module-painting/paintingmodel.h \
-    module-painting/paintingmodule.h \
-    module-painting/temperaturepanel.h \
-    module-warnings/notificationwidget.h \
-    module-warnings/warningsmodule.h \
-    nokiaqtframework/nokiaqtframework.h \
     nvidiacudaframework/nvidiacudaframework.h
 
 SOURCES += \
@@ -45,6 +35,7 @@ SOURCES += \
     combotreewidget.cpp \
     commserver.cpp \
     iframeworkmodule.cpp \
+    iinspectorframework.cpp \
     instance.cpp \
     instancemodel.cpp \
     inspectorcontainer.cpp \
@@ -52,29 +43,17 @@ SOURCES += \
     inspectorwindow.cpp \
     panelcontainerwidget.cpp \
     plotgrid.cpp \
-    modulecontroller.cpp \
     singletabwidget.cpp \
     statusbarwidget.cpp \
     targetwindow.cpp \
     tasksmodel.cpp \
     tasksscroller.cpp \
-    module-blueprint/blueprintmodule.cpp \
-    module-info/infomodule.cpp \
-    module-info/infopanel.cpp \
-    module-painting/paintingmodel.cpp \
-    module-painting/paintingmodule.cpp \
-    module-painting/temperaturepanel.cpp \
-    module-warnings/notificationwidget.cpp \
-    module-warnings/warningsmodule.cpp \
-    nokiaqtframework/nokiaqtframework.cpp \
     nvidiacudaframework/nvidiacudaframework.cpp
-
-FORMS += \
-    module-info/infopanel.ui \
-    module-painting/temperaturepanel.ui
 
 RESOURCES += \
     inspector.qrc
+
+include(nokiaqtframework/nokiaqtframework.pri)
 
 OTHER_FILES += \
     Inspector.pluginspec

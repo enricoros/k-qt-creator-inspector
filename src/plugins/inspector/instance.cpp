@@ -30,11 +30,7 @@
 #include "instance.h"
 #include "commserver.h"
 #include "inspectorplugin.h"
-#include "modulecontroller.h"
-#include "module-blueprint/blueprintmodule.h"
-#include "module-info/infomodule.h"
-#include "module-painting/paintingmodule.h"
-#include "module-warnings/warningsmodule.h"
+#include "nokiaqtframework/nokiaqtframework.h"
 
 using namespace Inspector::Internal;
 
@@ -43,21 +39,14 @@ Instance::Instance(QObject *parent)
   , m_instanceModel(new InstanceModel)
   , m_tasksModel(new TasksModel)
 {
-    // create the CommServer
     m_commServer = new CommServer(m_instanceModel);
-
-    // create the ModuleController and the Modules
-    m_moduleController = new ModuleController(m_tasksModel);
-
-    m_moduleController->addModule(new InfoModule(this));
-    m_moduleController->addModule(new PaintingModule(this));
-    m_moduleController->addModule(new WarningsModule(this));
-    m_moduleController->addModule(new BlueprintModule(this));
+    // HARDCODED, FIXME
+    m_framework = new NokiaQtFramework(this);
 }
 
 Instance::~Instance()
 {
-    delete m_moduleController;
+    delete m_framework;
     delete m_commServer;
     delete m_tasksModel;
     delete m_instanceModel;
@@ -78,9 +67,9 @@ CommServer *Instance::commServer() const
     return m_commServer;
 }
 
-ModuleController *Instance::moduleController() const
+IInspectorFramework *Instance::framework() const
 {
-    return m_moduleController;
+    return m_framework;
 }
 
 void Instance::makeVisible(int moduleUid, int panelId)

@@ -30,22 +30,69 @@
 #ifndef IINSPECTORFRAMEWORK_H
 #define IINSPECTORFRAMEWORK_H
 
+#include <QtCore/QList>
 #include <QtCore/QObject>
 #include <QtCore/QString>
 #include <QtGui/QIcon>
+#include "iframeworkmodule.h"
+class QStandardItem;
 
 namespace Inspector {
 namespace Internal {
 
+/**
+  \brief Handles everything within a framework
+*/
 class IInspectorFramework : public QObject
 {
     Q_OBJECT
 
 public:
-    IInspectorFramework()
+    IInspectorFramework(Instance *instance, QObject *parent = 0);
+    virtual ~IInspectorFramework();
+
+    // operate on modules
+    ModuleMenuEntries menuEntries() const;
+    QStringList moduleNames() const;
+    AbstractPanel *createPanel(int moduleUid, int panelId) const;
+
+    // to be reimplemented by subclasses
+    virtual int infoModuleUid() const = 0;
+
+signals:
+    void modulesChanged();
+
+protected:
+    void addModule(IFrameworkModule *);
+    void removeModule(IFrameworkModule *);
+    IFrameworkModule * moduleForUid(int moduleUid) const;
+
+    Instance *m_instance;
+    QList<IFrameworkModule *> m_modules;
+    QList<IFrameworkModule *> m_activeModules;
+
+private slots:
+    void slotModuleActivationRequested(const QString &text);
+    void slotModuleDeactivated();
+    void slotModuleDestroyed();
+    void slotModelItemChanged(QStandardItem*);
+};
+
+
+/**
+  \brief Describe, create (eventually restore) frameworks
+ */
+class IInspectorFrameworkFactory : public QObject
+{
+    Q_OBJECT
+
+public:
+    IInspectorFrameworkFactory()
     { }
-    virtual ~IInspectorFramework()
+    virtual ~IInspectorFrameworkFactory()
     { }
+
+    //IInspectorFramework *create(Instance *instance) const = 0;
 
     virtual QString displayName() const = 0;
     virtual QIcon icon() const = 0;

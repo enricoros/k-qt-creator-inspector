@@ -35,14 +35,26 @@
 namespace Inspector {
 namespace Internal {
 
+
 class NokiaQtFramework : public IInspectorFramework
 {
     Q_OBJECT
 
 public:
-    NokiaQtFramework();
+    NokiaQtFramework(Instance *instance, QObject *parent = 0);
 
-    // ::IInspectorFramework
+    // ::InspectorFramework
+    int infoModuleUid() const;
+};
+
+
+class NokiaQtFrameworkFactory : public IInspectorFrameworkFactory
+{
+    Q_OBJECT
+
+public:
+    NokiaQtFrameworkFactory();
+
     QString displayName() const;
     QIcon icon() const;
     bool isConfigurable() const;

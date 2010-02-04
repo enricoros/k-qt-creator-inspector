@@ -32,7 +32,6 @@
 #include "instance.h"
 #include "nokiaqtframework/nokiaqtframework.h"
 #include "nvidiacudaframework/nvidiacudaframework.h"
-#include "modulecontroller.h"
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/basemode.h>
 #include <coreplugin/coreconstants.h>
@@ -112,8 +111,8 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     ourContext << Core::Constants::C_GLOBAL_ID;
     ourContext << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING);
 
-    addAutoReleasedObject(new NokiaQtFramework());
-    addAutoReleasedObject(new NvidiaCudaFramework());
+    addAutoReleasedObject(new NokiaQtFrameworkFactory());
+    addAutoReleasedObject(new NvidiaCudaFrameworkFactory());
 
     m_container = new InspectorContainer;
     connect(m_container, SIGNAL(requestWindowDisplay()), this, SLOT(slotDisplayWindow()));

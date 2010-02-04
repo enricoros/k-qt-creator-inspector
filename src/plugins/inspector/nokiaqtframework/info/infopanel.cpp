@@ -30,7 +30,7 @@
 #include "infopanel.h"
 #include "iframeworkmodule.h"
 #include "instance.h"
-#include "modulecontroller.h"
+#include "iinspectorframework.h"
 #include <QFont>
 
 using namespace Inspector;
@@ -47,7 +47,7 @@ InfoPanel::InfoPanel(IFrameworkModule *parentModule)
     connName->setFont(smallFont);
 
     // update Plugin data
-    modLabel->setText(parentInstance()->moduleController()->moduleNames().join(", "));
+    modLabel->setText(parentInstance()->framework()->moduleNames().join(", "));
 
     // update Instance data
     connect(parentInstance()->instanceModel(), SIGNAL(itemChanged(QStandardItem*)), this, SLOT(slotRefreshInstanceData()));
