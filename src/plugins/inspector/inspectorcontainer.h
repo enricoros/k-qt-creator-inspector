@@ -35,12 +35,10 @@
 class QStackedWidget;
 
 namespace Inspector {
-
-class Instance;
-
 namespace Internal {
 
 class InspectorWindow;
+class Instance;
 class SingleTabWidget;
 class TargetWindow;
 
@@ -51,7 +49,7 @@ class InspectorContainer : public QWidget
 public:
     InspectorContainer(QWidget *parent = 0);
 
-    void addInstance(Inspector::Instance *instance);
+    void addInstance(Instance *instance);
 
 signals:
     void requestWindowDisplay();

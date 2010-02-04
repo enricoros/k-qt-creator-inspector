@@ -37,7 +37,7 @@
 
 using namespace Inspector::Internal;
 
-WarningsModule::WarningsModule(Inspector::Instance *instance, QObject *parent)
+WarningsModule::WarningsModule(Instance *instance, QObject *parent)
   : AbstractModule(instance, parent)
 {
     // create the NotificationWidget and add it to CORE (do it now, to stay on top later)

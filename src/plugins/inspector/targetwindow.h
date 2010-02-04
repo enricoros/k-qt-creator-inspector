@@ -33,12 +33,10 @@
 #include <QtGui/QWidget>
 
 namespace Inspector {
-
-class Instance;
-
 namespace Internal {
 
 class ComboTreeWidget;
+class Instance;
 class PanelContainerWidget;
 class StatusBarWidget;
 
@@ -47,9 +45,9 @@ class TargetWindow : public QWidget
     Q_OBJECT
 
 public:
-    TargetWindow(Inspector::Instance *instance, QWidget *parent = 0);
+    TargetWindow(Instance *instance, QWidget *parent = 0);
 
-    Inspector::Instance *targetInstance() const;
+    Instance *targetInstance() const;
 
 signals:
     void requestTargetDisplay();
@@ -59,7 +57,7 @@ private slots:
     void slotSetCurrentPanel(int moduleUid, int panelId);
 
 private:
-    void setInstance(Inspector::Instance *instance);
+    void setInstance(Instance *instance);
     void showPanel(int moduleUid, int panelId);
     Instance *              m_instance;
     ComboTreeWidget *       m_menuWidget;

@@ -53,7 +53,7 @@ public:
     }
 };
 
-BlueprintModule::BlueprintModule(Inspector::Instance *instance, QObject *parent)
+BlueprintModule::BlueprintModule(Instance *instance, QObject *parent)
   : AbstractModule(instance, parent)
 {
 }

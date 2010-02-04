@@ -42,7 +42,7 @@ class PaintingModule : public AbstractModule
     Q_OBJECT
 
 public:
-    PaintingModule(Inspector::Instance *, QObject *parent = 0);
+    PaintingModule(Instance *, QObject *parent = 0);
     ~PaintingModule();
 
     PaintingModel *model() const;

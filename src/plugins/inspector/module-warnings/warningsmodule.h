@@ -42,7 +42,7 @@ class WarningsModule : public AbstractModule
     Q_OBJECT
 
 public:
-    WarningsModule(Inspector::Instance *, QObject *parent = 0);
+    WarningsModule(Instance *, QObject *parent = 0);
     ~WarningsModule();
 
     // ::AbstractModule

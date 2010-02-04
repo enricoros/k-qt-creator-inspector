@@ -63,7 +63,7 @@ InspectorContainer::InspectorContainer(QWidget *parent)
             this, SLOT(slotDisplayInspectorWindow()));
 }
 
-void InspectorContainer::addInstance(Inspector::Instance *instance)
+void InspectorContainer::addInstance(Instance *instance)
 {
     // if already present, just show it
     foreach (TargetWindow *target, m_targets) {

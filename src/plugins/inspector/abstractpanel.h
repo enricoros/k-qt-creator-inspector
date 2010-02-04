@@ -33,12 +33,10 @@
 #include <QWidget>
 
 namespace Inspector {
-
-class Instance;
-
 namespace Internal {
 
 class AbstractModule;
+class Instance;
 
 /**
   \brief A QWidget subclass created by AbstractModules
@@ -51,7 +49,7 @@ public:
     AbstractPanel(AbstractModule *parentModule);
 
     AbstractModule *parentModule() const;
-    Inspector::Instance *parentInstance() const;
+    Instance *parentInstance() const;
 
 private:
     AbstractPanel();

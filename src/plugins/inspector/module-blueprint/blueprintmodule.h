@@ -40,7 +40,7 @@ class BlueprintModule : public AbstractModule
     Q_OBJECT
 
 public:
-    BlueprintModule(Inspector::Instance *, QObject *parent = 0);
+    BlueprintModule(Instance *, QObject *parent = 0);
 
     // ::AbstractModule
     enum { Uid = 0x04 };

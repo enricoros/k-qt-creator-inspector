@@ -107,7 +107,7 @@ StatusBarWidget::StatusBarWidget(QWidget *parent)
     m_layout->addStretch(1);
 }
 
-void StatusBarWidget::setInstance(Inspector::Instance *instance)
+void StatusBarWidget::setInstance(Instance *instance)
 {
     // clear previous data
     qDeleteAll(m_buttons);

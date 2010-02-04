@@ -62,11 +62,11 @@ private:
 };
 
 struct Inspector::Internal::AbstractModulePrivate {
-    Inspector::Instance *instance;
+    Instance *instance;
     QStateMachine stateMachine;
 };
 
-AbstractModule::AbstractModule(Inspector::Instance *instance, QObject *parent)
+AbstractModule::AbstractModule(Instance *instance, QObject *parent)
   : QObject(parent)
   , d(new AbstractModulePrivate)
 {
@@ -118,7 +118,7 @@ AbstractPanel *AbstractModule::createPanel(int panelId)
     return 0;
 }
 
-Inspector::Instance *AbstractModule::parentInstance() const
+Instance *AbstractModule::parentInstance() const
 {
     return d->instance;
 }

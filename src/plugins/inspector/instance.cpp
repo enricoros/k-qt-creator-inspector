@@ -36,25 +36,23 @@
 #include "module-painting/paintingmodule.h"
 #include "module-warnings/warningsmodule.h"
 
-using namespace Inspector;
-
-#include "instancemodel.h"
+using namespace Inspector::Internal;
 
 Instance::Instance(QObject *parent)
   : QObject(parent)
   , m_instanceModel(new InstanceModel)
-  , m_tasksModel(new Internal::TasksModel)
+  , m_tasksModel(new TasksModel)
 {
     // create the CommServer
-    m_commServer = new Internal::CommServer(m_instanceModel);
+    m_commServer = new CommServer(m_instanceModel);
 
     // create the ModuleController and the Modules
-    m_moduleController = new Internal::ModuleController(m_tasksModel);
+    m_moduleController = new ModuleController(m_tasksModel);
 
-    m_moduleController->addModule(new Internal::InfoModule(this));
-    m_moduleController->addModule(new Internal::PaintingModule(this));
-    m_moduleController->addModule(new Internal::WarningsModule(this));
-    m_moduleController->addModule(new Internal::BlueprintModule(this));
+    m_moduleController->addModule(new InfoModule(this));
+    m_moduleController->addModule(new PaintingModule(this));
+    m_moduleController->addModule(new WarningsModule(this));
+    m_moduleController->addModule(new BlueprintModule(this));
 }
 
 Instance::~Instance()
@@ -70,17 +68,17 @@ InstanceModel *Instance::instanceModel() const
     return m_instanceModel;
 }
 
-Internal::TasksModel *Instance::tasksModel() const
+TasksModel *Instance::tasksModel() const
 {
     return m_tasksModel;
 }
 
-Internal::CommServer *Instance::commServer() const
+CommServer *Instance::commServer() const
 {
     return m_commServer;
 }
 
-Internal::ModuleController *Instance::moduleController() const
+ModuleController *Instance::moduleController() const
 {
     return m_moduleController;
 }

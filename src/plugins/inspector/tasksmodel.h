@@ -39,7 +39,7 @@ namespace Internal {
 class ModuleController;
 class TaskItem;
 
-class Q_DECL_EXPORT TasksModel : public AbstractEasyModel
+class TasksModel : public AbstractEasyModel
 {
     Q_OBJECT
 

@@ -30,7 +30,6 @@
 #include "inspectorplugin.h"
 #include "inspectorcontainer.h"
 #include "instance.h"
-#include "notificationwidget.h"
 #include "nokiaqtframework.h"
 #include "nvidiacudaframework.h"
 #include "modulecontroller.h"
@@ -51,10 +50,10 @@
 
 using namespace Inspector::Internal;
 
-Q_DECL_EXPORT Inspector::Instance * Inspector::defaultInstance()
+/*Q_DECL_EXPORT Inspector::Internal::Instance * Inspector::defaultInstance()
 {
     return InspectorPlugin::defaultInstance();
-}
+}*/
 
 InspectorPlugin *Inspector::Internal::InspectorPlugin::s_pluginInstance = 0;
 
@@ -81,7 +80,7 @@ InspectorPlugin::~InspectorPlugin()
     m_container = 0;
 }
 
-void InspectorPlugin::addInstance(Inspector::Instance * instance)
+void InspectorPlugin::addInstance(Instance * instance)
 {
     if (m_instances.contains(instance)) {
         qWarning("InspectorPlugin::addInstance: instance already present");
@@ -93,7 +92,7 @@ void InspectorPlugin::addInstance(Inspector::Instance * instance)
     m_container->addInstance(instance);
 }
 
-Inspector::Instance * InspectorPlugin::defaultInstance()
+Instance * InspectorPlugin::defaultInstance()
 {
     if (!s_pluginInstance || s_pluginInstance->m_instances.isEmpty())
         return 0;
@@ -154,7 +153,7 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
 //            this, SLOT(modeChanged(Core::IMode*)), Qt::QueuedConnection);
 
     // create a single Instance - SINGLE debuggee is supposed here
-    Inspector::Instance *instance = new Inspector::Instance;
+    Instance *instance = new Instance;
     addInstance(instance);
 
     return true;
