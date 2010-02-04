@@ -38,7 +38,7 @@
 using namespace Inspector::Internal;
 
 WarningsModule::WarningsModule(Instance *instance, QObject *parent)
-  : AbstractModule(instance, parent)
+  : IFrameworkModule(instance, parent)
 {
     // create the NotificationWidget and add it to CORE (do it now, to stay on top later)
     m_notification = new Internal::NotificationWidget;
@@ -71,7 +71,7 @@ AbstractPanel *WarningsModule::createPanel(int panelId)
 {
     if (panelId == 0)
         return 0;
-    return AbstractModule::createPanel(panelId);
+    return IFrameworkModule::createPanel(panelId);
 }
 
 void WarningsModule::slotDelayedActivation()

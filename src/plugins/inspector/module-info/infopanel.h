@@ -41,7 +41,7 @@ class InfoPanel : public AbstractPanel, public Ui::InfoPanel
     Q_OBJECT
 
 public:
-    InfoPanel(AbstractModule *parentModule);
+    InfoPanel(IFrameworkModule *parentModule);
 
 private slots:
     void slotRefreshInstanceData();

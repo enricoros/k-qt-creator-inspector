@@ -27,7 +27,7 @@
 **
 **************************************************************************/
 
-#include "abstractmodule.h"
+#include "iframeworkmodule.h"
 #include <QAbstractTransition>
 #include <QStateMachine>
 #include <QState>
@@ -61,14 +61,14 @@ private:
     TestEvent::OpType m_opType;
 };
 
-struct Inspector::Internal::AbstractModulePrivate {
+struct Inspector::Internal::IFrameworkModulePrivate {
     Instance *instance;
     QStateMachine stateMachine;
 };
 
-AbstractModule::AbstractModule(Instance *instance, QObject *parent)
+IFrameworkModule::IFrameworkModule(Instance *instance, QObject *parent)
   : QObject(parent)
-  , d(new AbstractModulePrivate)
+  , d(new IFrameworkModulePrivate)
 {
     // 1. init d
     d->instance = instance;
@@ -102,60 +102,60 @@ AbstractModule::AbstractModule(Instance *instance, QObject *parent)
     d->stateMachine.start();
 }
 
-AbstractModule::~AbstractModule()
+IFrameworkModule::~IFrameworkModule()
 {
     delete d;
 }
 
-ModuleMenuEntries AbstractModule::menuEntries() const
+ModuleMenuEntries IFrameworkModule::menuEntries() const
 {
     return ModuleMenuEntries();
 }
 
-AbstractPanel *AbstractModule::createPanel(int panelId)
+AbstractPanel *IFrameworkModule::createPanel(int panelId)
 {
-    qWarning("AbstractModule::createPanel: module '%s' doesn't create panel %d", qPrintable(name()), panelId);
+    qWarning("IFrameworkModule::createPanel: module '%s' doesn't create panel %d", qPrintable(name()), panelId);
     return 0;
 }
 
-Instance *AbstractModule::parentInstance() const
+Instance *IFrameworkModule::parentInstance() const
 {
     return d->instance;
 }
 
-void AbstractModule::slotActivate()
+void IFrameworkModule::slotActivate()
 {
 }
 
-void AbstractModule::slotDeactivate()
+void IFrameworkModule::slotDeactivate()
 {
     emit deactivated();
 }
 
-void AbstractModule::slotLock()
+void IFrameworkModule::slotLock()
 {
 }
 
-void AbstractModule::slotUnlock()
+void IFrameworkModule::slotUnlock()
 {
 }
 
-void AbstractModule::controlActivate()
+void IFrameworkModule::controlActivate()
 {
     d->stateMachine.postEvent(new TestEvent(TestEvent::Activate));
 }
 
-void AbstractModule::controlDeactivate()
+void IFrameworkModule::controlDeactivate()
 {
     d->stateMachine.postEvent(new TestEvent(TestEvent::Deactivate));
 }
 
-void AbstractModule::controlRefuse()
+void IFrameworkModule::controlRefuse()
 {
     d->stateMachine.postEvent(new TestEvent(TestEvent::Refuse));
 }
 
-void AbstractModule::controlWait()
+void IFrameworkModule::controlWait()
 {
     d->stateMachine.postEvent(new TestEvent(TestEvent::Wait));
 }

@@ -30,19 +30,19 @@
 #ifndef INFOMODULE_H
 #define INFOMODULE_H
 
-#include "abstractmodule.h"
+#include "iframeworkmodule.h"
 
 namespace Inspector {
 namespace Internal {
 
-class InfoModule : public AbstractModule
+class InfoModule : public IFrameworkModule
 {
     Q_OBJECT
 
 public:
     InfoModule(Instance *, QObject *parent = 0);
 
-    // ::AbstractModule
+    // ::IFrameworkModule
     enum { Uid = 0x01 };
     int uid() const { return Uid; }
     QString name() const;

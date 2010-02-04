@@ -27,8 +27,8 @@
 **
 **************************************************************************/
 
-#ifndef ABSTRACTMODULE_H
-#define ABSTRACTMODULE_H
+#ifndef IFRAMEWORKMODULE_H
+#define IFRAMEWORKMODULE_H
 
 #include <QObject>
 #include <QIcon>
@@ -62,13 +62,13 @@ typedef QList<ModuleMenuEntry> ModuleMenuEntries;
   Handles a certain type of tests, encapsulates communication, database,
   panels and activation logic.
 */
-class AbstractModule : public QObject
+class IFrameworkModule : public QObject
 {
     Q_OBJECT
 
 public:
-    AbstractModule(Instance *, QObject *parent = 0);
-    virtual ~AbstractModule();
+    IFrameworkModule(Instance *, QObject *parent = 0);
+    virtual ~IFrameworkModule();
 
     // describe the module
     virtual int uid() const = 0;
@@ -101,10 +101,10 @@ private:
     void controlDeactivate();
     void controlRefuse();
     void controlWait();
-    struct AbstractModulePrivate *d;
+    struct IFrameworkModulePrivate *d;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // ABSTRACTMODULE_H
+#endif // IFRAMEWORKMODULE_H

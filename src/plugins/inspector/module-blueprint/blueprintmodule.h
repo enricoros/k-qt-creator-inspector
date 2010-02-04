@@ -30,19 +30,19 @@
 #ifndef BLUEPRINTMODULE_H
 #define BLUEPRINTMODULE_H
 
-#include "abstractmodule.h"
+#include "iframeworkmodule.h"
 
 namespace Inspector {
 namespace Internal {
 
-class BlueprintModule : public AbstractModule
+class BlueprintModule : public IFrameworkModule
 {
     Q_OBJECT
 
 public:
     BlueprintModule(Instance *, QObject *parent = 0);
 
-    // ::AbstractModule
+    // ::IFrameworkModule
     enum { Uid = 0x04 };
     int uid() const { return Uid; }
     QString name() const;
