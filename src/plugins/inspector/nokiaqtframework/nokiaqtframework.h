@@ -31,6 +31,7 @@
 #define NOKIAQTFRAMEWORK_H
 
 #include "iframework.h"
+#include <QtCore/QVariantList>
 
 namespace Inspector {
 namespace Internal {
@@ -48,6 +49,9 @@ public:
 
     // probe communication server
     LocalCommServer *commServer() const;
+
+    // ### move this
+    void callProbeFunction(const QString &name, const QVariantList &args);
 
     // ::InspectorFramework
     int infoModuleUid() const;

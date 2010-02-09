@@ -32,6 +32,7 @@
 #include "instancemodel.h"
 #include "paintingmodel.h"
 #include "paintingmodule.h"
+#include "../nokiaqtframework.h"
 #include <QPainter>
 #include <QPalette>
 #include <QStyledItemDelegate>
@@ -197,7 +198,8 @@ void TemperaturePanel::slotTestClicked()
     // Build the args list: passes << headDrops << tailDrops << innerPasses << chunkWidth << chunkHeight << consoleDebug
     QVariantList args;
     args << passesBox->value() << lowBox->value() << highBox->value() << innerBox->value() << widthBox->value() << heightBox->value() << debugBox->isChecked();
-    parentFramework()->instanceModel()->callProbeFunction("qWindowTemperature", args);
+    static_cast<NokiaQtFramework *>(parentFramework())->
+            callProbeFunction("qWindowTemperature", args);
 }
 
 void TemperaturePanel::slotModelItemChanged()

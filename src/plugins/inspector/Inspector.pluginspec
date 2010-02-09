@@ -18,7 +18,7 @@ Alternatively, this plugin may be used under the terms of the GNU Lesser General
         <dependency name="Core" version="1.3.82"/>
     </dependencyList>
     <argumentList>
-        <argument name="-inspectoron">Enable inspector by default</argument>
+        <argument name="-inspectoroff">Disable Inspector by default</argument>
         <argument name="-disable-slotmon-unused">Disable Signal/Slot monitoring</argument>
         <argument name="-disable-eloop-unused">Disable Event loop statistics</argument>
         <argument name="-disable-mmon-unused">Disable Memory allocations monitoring</argument>

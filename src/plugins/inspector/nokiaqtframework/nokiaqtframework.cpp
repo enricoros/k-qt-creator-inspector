@@ -61,6 +61,11 @@ LocalCommServer *NokiaQtFramework::commServer() const
     return m_commServer;
 }
 
+void NokiaQtFramework::callProbeFunction(const QString &name, const QVariantList &args)
+{
+    qWarning("NokiaQtFramework::callProbeFunction: not implemented");
+}
+
 int NokiaQtFramework::infoModuleUid() const
 {
     return InfoModule::Uid;
