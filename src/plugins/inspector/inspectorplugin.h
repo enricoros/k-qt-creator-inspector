@@ -34,9 +34,6 @@
 
 class QAction;
 
-/// main accessor when using this plugin from the outside. we suppose a single debuggee for now.
-//Q_DECL_EXPORT Instance * defaultInstance();
-
 namespace Inspector {
 namespace Internal {
 
@@ -61,9 +58,6 @@ public:
     // called by the 'New Target' window
     void addInstance(Instance *);
     //void removeInstance(Instance *);
-
-    // single debuggee assumption lies here: we use a single instance from the outside
-    static Instance * defaultInstance();
 
     // ::ExtensionSystem::IPlugin
     bool initialize(const QStringList &arguments, QString *error_message);

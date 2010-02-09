@@ -62,16 +62,9 @@ public:
     QString localServerName() const;
     int probeActivationFlags() const;
 
-    // temp model-function? maybe better in CommServer? ###
-    // this is here only for not exposing commserver to the Debugger plugin
-    bool callProbeFunction(const QString &name, const QVariantList &args = QVariantList());
-
 public slots:
     void setDebugPaint(bool);
     void setInstanceEnabled(bool);
-
-signals:
-    void debuggerCallFunction(const QString &name, const QVariantList &args);
 };
 
 } // namespace Internal

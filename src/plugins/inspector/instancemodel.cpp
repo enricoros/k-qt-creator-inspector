@@ -152,14 +152,6 @@ int InstanceModel::probeActivationFlags() const
     return flags;
 }
 
-bool InstanceModel::callProbeFunction(const QString &name, const QVariantList &args)
-{
-    // REFACTOR THIS!! ###
-    // this is the ONE AND ONLY link to control the debugger, for now
-    emit debuggerCallFunction(name, args);
-    return true;
-}
-
 void InstanceModel::setDebugPaint(bool value)
 {
     setItemValue(InstanceStatus_Row, 4, value);

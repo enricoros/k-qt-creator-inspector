@@ -49,17 +49,12 @@
 
 using namespace Inspector::Internal;
 
-/*Q_DECL_EXPORT Inspector::Internal::Instance * Inspector::defaultInstance()
-{
-    return InspectorPlugin::defaultInstance();
-}*/
-
 InspectorPlugin *Inspector::Internal::InspectorPlugin::s_pluginInstance = 0;
 
 InspectorPlugin::InspectorPlugin()
   : ExtensionSystem::IPlugin()
   , m_container(0)
-  , m_pluginEnabled(false)
+  , m_pluginEnabled(true)
 {
     // reference the plugin instance (for static accessors)
     s_pluginInstance = this;
@@ -89,13 +84,6 @@ void InspectorPlugin::addInstance(Instance * instance)
     instance->instanceModel()->setInstanceEnabled(m_pluginEnabled);
     m_instances.append(instance);
     m_container->addInstance(instance);
-}
-
-Instance * InspectorPlugin::defaultInstance()
-{
-    if (!s_pluginInstance || s_pluginInstance->m_instances.isEmpty())
-        return 0;
-    return s_pluginInstance->m_instances.first();
 }
 
 bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_message)
@@ -148,13 +136,6 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     command = actionManager->registerAction(workBenchAction, "Inspector.ShowInstance", ourContext);
     inspContainer->addAction(command);
 
-//    connect(core->modeManager(), SIGNAL(currentModeChanged(Core::IMode*)),
-//            this, SLOT(modeChanged(Core::IMode*)), Qt::QueuedConnection);
-
-    // create a single Instance - SINGLE debuggee is supposed here
-    Instance *instance = new Instance;
-    addInstance(instance);
-
     return true;
 }
 
@@ -178,8 +159,7 @@ void InspectorPlugin::slotDisplayWindow()
 
 void InspectorPlugin::parseArguments(const QStringList &arguments)
 {
-    if (arguments.contains("-inspectoron", Qt::CaseInsensitive))
-        m_pluginEnabled = true;
+    m_pluginEnabled = !arguments.contains("-inspectoroff", Qt::CaseInsensitive);
 }
 
 Q_EXPORT_PLUGIN(InspectorPlugin)
