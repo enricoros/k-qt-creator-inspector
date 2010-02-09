@@ -31,7 +31,6 @@
 #include "instancemodel.h"
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
-#include <coreplugin/modemanager.h>
 #include <QDebug>
 #include <QIcon>
 #include <QImage>

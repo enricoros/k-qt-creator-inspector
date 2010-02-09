@@ -174,9 +174,7 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         grid->setSpacing(0);
         grid->setColumnMinimumWidth(0, LEFT_MARGIN);
 
-        QList<IFrameworkFactory *> factories =
-            ExtensionSystem::PluginManager::instance()->getObjects<IFrameworkFactory>();
-        foreach (IFrameworkFactory *factory, factories) {
+        foreach (IFrameworkFactory *factory, FrameworksComboBox::allFactories()) {
             QWidget *rowWidget = new QWidget;
             QHBoxLayout *rowLay = new QHBoxLayout(rowWidget);
             rowLay->setMargin(0);
@@ -210,16 +208,41 @@ InspectorWindow::InspectorWindow(QWidget *parent)
     }
 }
 
-void InspectorWindow::slotNewTarget()
+void InspectorWindow::newTarget(ProjectExplorer::RunConfiguration *rc, IFrameworkFactory *factory)
+{
+    // sanity check
+    if (!factory->available()) {
+        qWarning("InspectorPlugin::newTarget: can't start more instances of creator's debugger");
+        return;
+    }
+
+    Instance *instance = new Instance(factory);
+    //instance->configure...
+  //  addInstance(instance);
+//    instance->start() ?
+
+    //ProjectExplorer::ProjectExplorerPlugin::instance()->
+    //   inspectorExecuteRunConfiguration(rc, ProjectExplorer::Constants::DEBUGMODE);
+
+    InspectorPlugin::pluginInstance()->addInstance(instance);
+}
+
+void InspectorWindow::slotCreateTarget()
 {
     int id = static_cast<QToolButton *>(sender())->property("id").toInt();
-    if (id == BUTTON_INSPECT_RUN) {
+    switch (id) {
+    case BUTTON_INSPECT_RUN:
         if (ProjectExplorer::RunConfiguration *rc = m_runconfCombo->currentRunConfiguration()) {
-            ProjectExplorer::ProjectExplorerPlugin::instance()->
-                    inspectorExecuteRunConfiguration(rc, ProjectExplorer::Constants::DEBUGMODE);
-            emit requestDisplay();
+            if (IFrameworkFactory *factory = m_frameworksCombo->currentFactory()) {
+                newTarget(rc, factory);
+            }
         }
+        break;
+    default:
+        qWarning("InspectorWindow::slotNewTarget: unhandled button %d", id);
+        return;
     }
+    emit requestDisplay();
 }
 
 void InspectorWindow::slotProjectChanged()
@@ -241,7 +264,7 @@ QAbstractButton *InspectorWindow::newInspectButton(int id)
     b->setText(tr("Start"));
     b->setIcon(QIcon(":/projectexplorer/images/run.png"));
     b->setProperty("id", id);
-    connect(b, SIGNAL(clicked()), this, SLOT(slotNewTarget()));
+    connect(b, SIGNAL(clicked()), this, SLOT(slotCreateTarget()));
     return b;
 }
 
@@ -460,9 +483,7 @@ FrameworksComboBox::FrameworksComboBox(QWidget *parent)
   : QComboBox(parent)
 {
     setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
-    QList<IFrameworkFactory *> factories =
-        ExtensionSystem::PluginManager::instance()->getObjects<IFrameworkFactory>();
-    foreach (IFrameworkFactory *factory, factories)
+    foreach (IFrameworkFactory *factory, allFactories())
         addItem(factory->displayName());
     connect(this, SIGNAL(currentIndexChanged(int)),
             this, SIGNAL(currentFrameworkChanged()));
@@ -471,11 +492,15 @@ FrameworksComboBox::FrameworksComboBox(QWidget *parent)
 IFrameworkFactory *FrameworksComboBox::currentFactory() const
 {
     int index = currentIndex();
-    QList<IFrameworkFactory *> factories =
-        ExtensionSystem::PluginManager::instance()->getObjects<IFrameworkFactory>();
+    QList<IFrameworkFactory *> factories = allFactories();
     if (index < 0 || index >= factories.size())
         return 0;
     return factories.at(index);
+}
+
+QList<IFrameworkFactory *> FrameworksComboBox::allFactories()
+{
+    return ExtensionSystem::PluginManager::instance()->getObjects<IFrameworkFactory>();
 }
 
 } // namespace Internal

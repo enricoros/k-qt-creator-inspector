@@ -27,37 +27,24 @@
 **
 **************************************************************************/
 
-#include "instance.h"
-#include "iframework.h"
+#include "shareddebugger.h"
 
 using namespace Inspector::Internal;
 
-Instance::Instance(IFrameworkFactory *factory, QObject *parent)
+SharedDebugger::SharedDebugger(QObject *parent)
   : QObject(parent)
-  , m_instanceModel(new InstanceModel)
-  , m_tasksModel(new TasksModel)
+  , m_available(false)
 {
-    m_framework = factory->createFramework(this);
+    syncStateWithManager();
 }
 
-Instance::~Instance()
+bool SharedDebugger::available() const
 {
-    delete m_framework;
-    delete m_tasksModel;
-    delete m_instanceModel;
+    return m_available;
 }
 
-InstanceModel *Instance::instanceModel() const
+void SharedDebugger::syncStateWithManager()
 {
-    return m_instanceModel;
-}
-
-TasksModel *Instance::tasksModel() const
-{
-    return m_tasksModel;
-}
-
-IFramework *Instance::framework() const
-{
-    return m_framework;
+    // ###
+    m_available = true;
 }

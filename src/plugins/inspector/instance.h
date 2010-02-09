@@ -40,13 +40,14 @@ namespace Inspector {
 namespace Internal {
 
 class IFramework;
+class IFrameworkFactory;
 
 class Instance : public QObject
 {
     Q_OBJECT
 
 public:
-    Instance(QObject *parent = 0);
+    Instance(IFrameworkFactory *, QObject *parent = 0);
     ~Instance();
 
     // data models
