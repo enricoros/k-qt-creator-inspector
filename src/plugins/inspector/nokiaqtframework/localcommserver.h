@@ -41,13 +41,13 @@ namespace Internal {
 
 class InstanceModel;
 
-class CommServer : public QObject
+class LocalCommServer : public QObject
 {
     Q_OBJECT
 
 public:
-    CommServer(InstanceModel *, QObject *parent = 0);
-    ~CommServer();
+    LocalCommServer(InstanceModel *, QObject *parent = 0);
+    ~LocalCommServer();
 
 signals:
     void incomingData(quint32 channel, quint32 code1, QByteArray *data);

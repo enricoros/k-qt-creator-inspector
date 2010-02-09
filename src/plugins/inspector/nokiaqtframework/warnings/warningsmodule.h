@@ -35,6 +35,7 @@
 namespace Inspector {
 namespace Internal {
 
+class NokiaQtFramework;
 class NotificationWidget;
 
 class WarningsModule : public IFrameworkModule
@@ -42,7 +43,7 @@ class WarningsModule : public IFrameworkModule
     Q_OBJECT
 
 public:
-    WarningsModule(Instance *, QObject *parent = 0);
+    WarningsModule(NokiaQtFramework *, QObject *parent = 0);
     ~WarningsModule();
 
     // ::IFrameworkModule
@@ -62,7 +63,8 @@ private slots:
     void slotDeactivate();
 
 private:
-    Internal::NotificationWidget *m_notification;
+    NokiaQtFramework *m_framework;
+    NotificationWidget *m_notification;
 };
 
 } // namespace Internal

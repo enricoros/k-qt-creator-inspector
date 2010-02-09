@@ -45,7 +45,7 @@ class RunConfiguration;
 namespace Inspector {
 namespace Internal {
 
-class IInspectorFrameworkFactory;
+class IFrameworkFactory;
 class FrameworksComboBox;
 class ProjectsComboBox;
 class RunconfComboBox;
@@ -143,7 +143,7 @@ class FrameworksComboBox : public QComboBox
 public:
     FrameworksComboBox(QWidget *parent = 0);
 
-    IInspectorFrameworkFactory *currentFactory() const;
+    IFrameworkFactory *currentFactory() const;
 
 signals:
     void currentFrameworkChanged();

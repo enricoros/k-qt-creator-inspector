@@ -12,9 +12,8 @@ HEADERS += \
     abstracteasymodel.h \
     abstractpanel.h \
     combotreewidget.h \
-    commserver.h \
     iframeworkmodule.h \
-    iinspectorframework.h \
+    iframework.h \
     instance.h \
     instancemodel.h \
     inspectorcontainer.h \
@@ -33,9 +32,8 @@ SOURCES += \
     abstracteasymodel.cpp \
     abstractpanel.cpp \
     combotreewidget.cpp \
-    commserver.cpp \
     iframeworkmodule.cpp \
-    iinspectorframework.cpp \
+    iframework.cpp \
     instance.cpp \
     instancemodel.cpp \
     inspectorcontainer.cpp \

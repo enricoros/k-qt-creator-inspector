@@ -29,7 +29,7 @@
 
 #include "blueprintmodule.h"
 #include "abstractpanel.h"
-#include "instance.h"
+#include "../nokiaqtframework.h"
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPixmap>
@@ -53,8 +53,8 @@ public:
     }
 };
 
-BlueprintModule::BlueprintModule(Instance *instance, QObject *parent)
-  : IFrameworkModule(instance, parent)
+BlueprintModule::BlueprintModule(NokiaQtFramework *framework, QObject *parent)
+  : IFrameworkModule(framework, parent)
 {
 }
 

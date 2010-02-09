@@ -39,8 +39,7 @@
 namespace Inspector {
 namespace Internal {
 
-class CommServer;
-class IInspectorFramework;
+class IFramework;
 
 class Instance : public QObject
 {
@@ -54,22 +53,13 @@ public:
     InstanceModel *instanceModel() const;
     TasksModel *tasksModel() const;
 
-    // probe communication server
-    CommServer *commServer() const;
-
     // the framework
-    IInspectorFramework *framework() const;
-
-    void makeVisible(int moduleUid, int panelId);
-
-signals:
-    void requestPanelDisplay(int moduleUid, int panelId);
+    IFramework *framework() const;
 
 private:
     InstanceModel *m_instanceModel;
     TasksModel *m_tasksModel;
-    CommServer *m_commServer;
-    IInspectorFramework *m_framework;
+    IFramework *m_framework;
 };
 
 } // namespace Internal

@@ -28,6 +28,7 @@
 **************************************************************************/
 
 #include "nokiaqtframework.h"
+#include "localcommserver.h"
 #include "blueprint/blueprintmodule.h"
 #include "info/infomodule.h"
 #include "painting/paintingmodule.h"
@@ -40,12 +41,24 @@ using namespace Inspector::Internal;
 // NokiaQtFramework
 //
 NokiaQtFramework::NokiaQtFramework(Instance *instance, QObject *parent)
-  : IInspectorFramework(instance, parent)
+  : IFramework(instance, parent)
 {
-    addModule(new InfoModule(instance));
-    addModule(new PaintingModule(instance));
-    addModule(new WarningsModule(instance));
-    addModule(new BlueprintModule(instance));
+    m_commServer = new LocalCommServer(instanceModel());
+
+    addModule(new InfoModule(this));
+    addModule(new PaintingModule(this));
+    addModule(new WarningsModule(this));
+    addModule(new BlueprintModule(this));
+}
+
+NokiaQtFramework::~NokiaQtFramework()
+{
+    delete m_commServer;
+}
+
+LocalCommServer *NokiaQtFramework::commServer() const
+{
+    return m_commServer;
 }
 
 int NokiaQtFramework::infoModuleUid() const

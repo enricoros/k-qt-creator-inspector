@@ -28,7 +28,6 @@
 **************************************************************************/
 
 #include "instance.h"
-#include "commserver.h"
 #include "inspectorplugin.h"
 #include "nokiaqtframework/nokiaqtframework.h"
 
@@ -39,7 +38,6 @@ Instance::Instance(QObject *parent)
   , m_instanceModel(new InstanceModel)
   , m_tasksModel(new TasksModel)
 {
-    m_commServer = new CommServer(m_instanceModel);
     // HARDCODED, FIXME
     m_framework = new NokiaQtFramework(this);
 }
@@ -47,7 +45,6 @@ Instance::Instance(QObject *parent)
 Instance::~Instance()
 {
     delete m_framework;
-    delete m_commServer;
     delete m_tasksModel;
     delete m_instanceModel;
 }
@@ -62,17 +59,7 @@ TasksModel *Instance::tasksModel() const
     return m_tasksModel;
 }
 
-CommServer *Instance::commServer() const
-{
-    return m_commServer;
-}
-
-IInspectorFramework *Instance::framework() const
+IFramework *Instance::framework() const
 {
     return m_framework;
-}
-
-void Instance::makeVisible(int moduleUid, int panelId)
-{
-    emit requestPanelDisplay(moduleUid, panelId);
 }

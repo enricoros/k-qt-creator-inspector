@@ -30,7 +30,7 @@
 #include "targetwindow.h"
 #include "abstractpanel.h"
 #include "combotreewidget.h"
-#include "iinspectorframework.h"
+#include "iframework.h"
 #include "instance.h"
 #include "panelcontainerwidget.h"
 #include "statusbarwidget.h"
@@ -106,7 +106,7 @@ void TargetWindow::setInstance(Instance *instance)
 
     if (m_instance) {
         // connect it
-        connect(m_instance, SIGNAL(requestPanelDisplay(int,int)), this, SLOT(slotSetCurrentPanel(int,int)));
+        connect(m_instance->framework(), SIGNAL(requestPanelDisplay(int,int)), this, SLOT(slotSetCurrentPanel(int,int)));
 
         // menu: add all entries by the plugged modules
         ModuleMenuEntries entries = m_instance->framework()->menuEntries();

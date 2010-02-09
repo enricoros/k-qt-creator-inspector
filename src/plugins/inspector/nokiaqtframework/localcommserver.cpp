@@ -27,8 +27,7 @@
 **
 **************************************************************************/
 
-#include "commserver.h"
-#include "instance.h"
+#include "localcommserver.h"
 #include "instancemodel.h"
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
@@ -48,7 +47,7 @@
 
 using namespace Inspector::Internal;
 
-CommServer::CommServer(InstanceModel *model, QObject *parent)
+LocalCommServer::LocalCommServer(InstanceModel *model, QObject *parent)
     : QObject(parent)
     , m_model(model)
     , m_socket(0)
@@ -76,12 +75,12 @@ CommServer::CommServer(InstanceModel *model, QObject *parent)
     m_model->setItemValue(InstanceModel::CommServer_Row, 0, true);
 }
 
-CommServer::~CommServer()
+LocalCommServer::~LocalCommServer()
 {
     delete m_localServer;
 }
 
-void CommServer::slotIncomingConnection()
+void LocalCommServer::slotIncomingConnection()
 {
     while (m_localServer->hasPendingConnections()) {
         QLocalSocket * nextConnection = m_localServer->nextPendingConnection();
@@ -99,7 +98,7 @@ void CommServer::slotIncomingConnection()
     }
 }
 
-void CommServer::slotReadConnection()
+void LocalCommServer::slotReadConnection()
 {
     m_incomingData += m_socket->readAll();
 
@@ -132,14 +131,14 @@ void CommServer::slotReadConnection()
     }
 }
 
-void CommServer::slotDisconnected()
+void LocalCommServer::slotDisconnected()
 {
     m_socket->deleteLater();
     m_socket = 0;
     m_model->setItemValue(InstanceModel::CommServer_Row, 3, false);
 }
 
-void CommServer::slotConnError(QLocalSocket::LocalSocketError error)
+void LocalCommServer::slotConnError(QLocalSocket::LocalSocketError error)
 {
     m_model->setItemValue(InstanceModel::CommServer_Row, 3, false);
 
@@ -147,7 +146,7 @@ void CommServer::slotConnError(QLocalSocket::LocalSocketError error)
     addMessageToModel(7, tr("error %1: %2").arg(error).arg(m_localServer->errorString()));
 }
 
-bool CommServer::processIncomingData(quint32 channel, quint32 code1, QByteArray *data)
+bool LocalCommServer::processIncomingData(quint32 channel, quint32 code1, QByteArray *data)
 {
     // Log Communication
     addMessageToModel(8, tr("%1:%2 (%3)").arg(channel).arg(code1).arg(data->size()));
@@ -172,7 +171,7 @@ bool CommServer::processIncomingData(quint32 channel, quint32 code1, QByteArray 
     //return false;
 }
 
-void CommServer::addMessageToModel(int column, const QString &message)
+void LocalCommServer::addMessageToModel(int column, const QString &message)
 {
     QStandardItem *parentItem = m_model->item(InstanceModel::CommServer_Row, column);
     if (parentItem)

@@ -62,16 +62,16 @@ private:
 };
 
 struct Inspector::Internal::IFrameworkModulePrivate {
-    Instance *instance;
+    IFramework *framework;
     QStateMachine stateMachine;
 };
 
-IFrameworkModule::IFrameworkModule(Instance *instance, QObject *parent)
+IFrameworkModule::IFrameworkModule(IFramework *framework, QObject *parent)
   : QObject(parent)
   , d(new IFrameworkModulePrivate)
 {
     // 1. init d
-    d->instance = instance;
+    d->framework = framework;
 
     // 2. state machine configuration
 
@@ -118,9 +118,9 @@ AbstractPanel *IFrameworkModule::createPanel(int panelId)
     return 0;
 }
 
-Instance *IFrameworkModule::parentInstance() const
+IFramework *IFrameworkModule::parentFramework() const
 {
-    return d->instance;
+    return d->framework;
 }
 
 void IFrameworkModule::slotActivate()

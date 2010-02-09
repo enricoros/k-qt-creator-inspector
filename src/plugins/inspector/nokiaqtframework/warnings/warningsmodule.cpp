@@ -28,17 +28,18 @@
 **************************************************************************/
 
 #include "warningsmodule.h"
-#include "commserver.h"
-#include "instance.h"
 #include "notificationwidget.h"
 #include <coreplugin/icore.h>
 #include <coreplugin/modemanager.h>
+#include "../localcommserver.h"
+#include "../nokiaqtframework.h"
 #include <QTimer>
 
 using namespace Inspector::Internal;
 
-WarningsModule::WarningsModule(Instance *instance, QObject *parent)
-  : IFrameworkModule(instance, parent)
+WarningsModule::WarningsModule(NokiaQtFramework *framework, QObject *parent)
+  : IFrameworkModule(framework, parent)
+  , m_framework(framework)
 {
     // create the NotificationWidget and add it to CORE (do it now, to stay on top later)
     m_notification = new Internal::NotificationWidget;
@@ -46,7 +47,7 @@ WarningsModule::WarningsModule(Instance *instance, QObject *parent)
     m_notification->hide();
     Core::ICore::instance()->modeManager()->addWidget(m_notification);
 
-    // activate right now
+    // schedule auto-activation
     QTimer::singleShot(0, this, SLOT(slotDelayedActivation()));
 }
 
@@ -95,20 +96,20 @@ void WarningsModule::slotNotificationClicked()
     m_notification->hide();
 
     // show our panel
-    parentInstance()->makeVisible(Uid, 0);
+    emit requestPanelDisplay(0);
 }
 
 void WarningsModule::slotActivate()
 {
     // read the data coming from the CommServer
-    connect(parentInstance()->commServer(), SIGNAL(incomingData(quint32,quint32,QByteArray*)),
+    connect(m_framework->commServer(), SIGNAL(incomingData(quint32,quint32,QByteArray*)),
             this, SLOT(slotProcessIncomingData(quint32,quint32,QByteArray*)));
 }
 
 void WarningsModule::slotDeactivate()
 {
     // disconnect from the CommServer
-    disconnect(parentInstance()->commServer(), 0, this, 0);
+    disconnect(m_framework->commServer(), 0, this, 0);
 
     // notify that we have been deactivated
     emit deactivated();

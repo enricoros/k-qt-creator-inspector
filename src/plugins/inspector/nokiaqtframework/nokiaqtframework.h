@@ -30,25 +30,34 @@
 #ifndef NOKIAQTFRAMEWORK_H
 #define NOKIAQTFRAMEWORK_H
 
-#include "iinspectorframework.h"
+#include "iframework.h"
 
 namespace Inspector {
 namespace Internal {
 
+class LocalCommServer;
 
-class NokiaQtFramework : public IInspectorFramework
+
+class NokiaQtFramework : public IFramework
 {
     Q_OBJECT
 
 public:
     NokiaQtFramework(Instance *instance, QObject *parent = 0);
+    ~NokiaQtFramework();
+
+    // probe communication server
+    LocalCommServer *commServer() const;
 
     // ::InspectorFramework
     int infoModuleUid() const;
+
+private:
+    LocalCommServer *m_commServer;
 };
 
 
-class NokiaQtFrameworkFactory : public IInspectorFrameworkFactory
+class NokiaQtFrameworkFactory : public IFrameworkFactory
 {
     Q_OBJECT
 

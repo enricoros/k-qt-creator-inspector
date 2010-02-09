@@ -35,12 +35,14 @@
 namespace Inspector {
 namespace Internal {
 
+class NokiaQtFramework;
+
 class InfoModule : public IFrameworkModule
 {
     Q_OBJECT
 
 public:
-    InfoModule(Instance *, QObject *parent = 0);
+    InfoModule(NokiaQtFramework *, QObject *parent = 0);
 
     // ::IFrameworkModule
     enum { Uid = 0x01 };

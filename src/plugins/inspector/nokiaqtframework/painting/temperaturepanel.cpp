@@ -28,9 +28,10 @@
 **************************************************************************/
 
 #include "temperaturepanel.h"
+#include "iframework.h"
+#include "instancemodel.h"
 #include "paintingmodel.h"
 #include "paintingmodule.h"
-#include "instance.h"
 #include <QPainter>
 #include <QPalette>
 #include <QStyledItemDelegate>
@@ -196,7 +197,7 @@ void TemperaturePanel::slotTestClicked()
     // Build the args list: passes << headDrops << tailDrops << innerPasses << chunkWidth << chunkHeight << consoleDebug
     QVariantList args;
     args << passesBox->value() << lowBox->value() << highBox->value() << innerBox->value() << widthBox->value() << heightBox->value() << debugBox->isChecked();
-    parentModule()->parentInstance()->instanceModel()->callProbeFunction("qWindowTemperature", args);
+    parentFramework()->instanceModel()->callProbeFunction("qWindowTemperature", args);
 }
 
 void TemperaturePanel::slotModelItemChanged()

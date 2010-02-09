@@ -30,13 +30,13 @@
 #ifndef NVIDIACUDAFRAMEWORK_H
 #define NVIDIACUDAFRAMEWORK_H
 
-#include "iinspectorframework.h"
+#include "iframework.h"
 
 namespace Inspector {
 namespace Internal {
 
 
-class NvidiaCudaFramework : public IInspectorFramework
+class NvidiaCudaFramework : public IFramework
 {
     Q_OBJECT
 
@@ -45,7 +45,7 @@ public:
 };
 
 
-class NvidiaCudaFrameworkFactory : public IInspectorFrameworkFactory
+class NvidiaCudaFrameworkFactory : public IFrameworkFactory
 {
     Q_OBJECT
 

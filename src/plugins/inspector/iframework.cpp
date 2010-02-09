@@ -27,14 +27,14 @@
 **
 **************************************************************************/
 
-#include "iinspectorframework.h"
+#include "iframework.h"
 #include "abstractpanel.h"
 #include "instance.h"
 #include "tasksmodel.h"
 
 using namespace Inspector::Internal;
 
-IInspectorFramework::IInspectorFramework(Instance *instance, QObject *parent)
+IFramework::IFramework(Instance *instance, QObject *parent)
   : QObject(parent)
   , m_instance(instance)
 {
@@ -42,7 +42,7 @@ IInspectorFramework::IInspectorFramework(Instance *instance, QObject *parent)
             this, SLOT(slotModelItemChanged(QStandardItem*)));
 }
 
-IInspectorFramework::~IInspectorFramework()
+IFramework::~IFramework()
 {
     // delete all the modules (bypassing the 'destroyed' hook)
     QList<IFrameworkModule *> listCopy = m_modules;
@@ -50,20 +50,26 @@ IInspectorFramework::~IInspectorFramework()
     qDeleteAll(listCopy);
 }
 
-void IInspectorFramework::addModule(IFrameworkModule * module)
+InstanceModel *IFramework::instanceModel() const
+{
+    return m_instance->instanceModel();
+}
+
+void IFramework::addModule(IFrameworkModule * module)
 {
     if (!module) {
-        qWarning("IInspectorFramework::addModule: skipping null module");
+        qWarning("IFramework::addModule: skipping null module");
         return;
     }
     // check for duplicate Ids
     foreach (IFrameworkModule *mod, m_modules) {
         if (mod->uid() == module->uid()) {
-            qWarning("IInspectorFramework::addModule: skipping module with duplicated Uid %d", module->uid());
+            qWarning("IFramework::addModule: skipping module with duplicated Uid %d", module->uid());
             return;
         }
     }
     // register the IFrameworkModule
+    connect(module, SIGNAL(requestPanelDisplay(int)), this, SLOT(slotModulePanelDisplayRequested(int)));
     connect(module, SIGNAL(requestActivation(QString)), this, SLOT(slotModuleActivationRequested(QString)));
     connect(module, SIGNAL(deactivated()), this, SLOT(slotModuleDeactivated()));
     connect(module, SIGNAL(destroyed()), this, SLOT(slotModuleDestroyed()));
@@ -71,10 +77,10 @@ void IInspectorFramework::addModule(IFrameworkModule * module)
     emit modulesChanged();
 }
 
-void IInspectorFramework::removeModule(IFrameworkModule * module)
+void IFramework::removeModule(IFrameworkModule * module)
 {
     if (!module) {
-        qWarning("IInspectorFramework::removeModule: skipping null module");
+        qWarning("IFramework::removeModule: skipping null module");
         return;
     }
     // unregister the IFrameworkModule
@@ -84,7 +90,7 @@ void IInspectorFramework::removeModule(IFrameworkModule * module)
     emit modulesChanged();
 }
 
-ModuleMenuEntries IInspectorFramework::menuEntries() const
+ModuleMenuEntries IFramework::menuEntries() const
 {
     ModuleMenuEntries entries;
     foreach (IFrameworkModule *module, m_modules)
@@ -92,7 +98,7 @@ ModuleMenuEntries IInspectorFramework::menuEntries() const
     return entries;
 }
 
-QStringList IInspectorFramework::moduleNames() const
+QStringList IFramework::moduleNames() const
 {
     QStringList names;
     foreach (IFrameworkModule *module, m_modules)
@@ -100,17 +106,17 @@ QStringList IInspectorFramework::moduleNames() const
     return names;
 }
 
-AbstractPanel *IInspectorFramework::createPanel(int moduleUid, int panelId) const
+AbstractPanel *IFramework::createPanel(int moduleUid, int panelId) const
 {
     IFrameworkModule * module = moduleForUid(moduleUid);
     if (!module) {
-        qWarning("IInspectorFramework::createPanel: unknown module Uid %d", moduleUid);
+        qWarning("IFramework::createPanel: unknown module Uid %d", moduleUid);
         return 0;
     }
     return module->createPanel(panelId);
 }
 
-IFrameworkModule *IInspectorFramework::moduleForUid(int moduleUid) const
+IFrameworkModule *IFramework::moduleForUid(int moduleUid) const
 {
     foreach (IFrameworkModule *module, m_modules)
         if (module->uid() == moduleUid)
@@ -118,18 +124,24 @@ IFrameworkModule *IInspectorFramework::moduleForUid(int moduleUid) const
     return 0;
 }
 
-void IInspectorFramework::slotModuleActivationRequested(const QString &text)
+void IFramework::slotModulePanelDisplayRequested(int panelId)
+{
+    int moduleUid = static_cast<IFrameworkModule *>(sender())->uid();
+    emit requestPanelDisplay(moduleUid, panelId);
+}
+
+void IFramework::slotModuleActivationRequested(const QString &text)
 {
     IFrameworkModule * module = static_cast<IFrameworkModule *>(sender());
 
     // update the model
     QString name = text.isEmpty() ? module->name() : text;
     if (!m_instance->tasksModel()->addTask(module->uid(), name, "provide description here")) {
-        qWarning("IInspectorFramework::slotModuleActivationRequested: can't add module %d", module->uid());
+        qWarning("IFramework::slotModuleActivationRequested: can't add module %d", module->uid());
         return;
     }
     if (!m_instance->tasksModel()->startTask(module->uid())) {
-        qWarning("IInspectorFramework::slotModuleActivationRequested: can't start module %d", module->uid());
+        qWarning("IFramework::slotModuleActivationRequested: can't start module %d", module->uid());
         return;
     }
 
@@ -141,13 +153,13 @@ void IInspectorFramework::slotModuleActivationRequested(const QString &text)
         m_activeModules.append(module);
 }
 
-void IInspectorFramework::slotModuleDeactivated()
+void IFramework::slotModuleDeactivated()
 {
     IFrameworkModule * module = static_cast<IFrameworkModule *>(sender());
 
     // update the model
     if (!m_instance->tasksModel()->stopTask(module->uid())) {
-        qWarning("IInspectorFramework::slotModuleDeactivated: can't stop module %d", module->uid());
+        qWarning("IFramework::slotModuleDeactivated: can't stop module %d", module->uid());
         return;
     }
 
@@ -155,7 +167,7 @@ void IInspectorFramework::slotModuleDeactivated()
     m_activeModules.removeAll(module);
 }
 
-void IInspectorFramework::slotModuleDestroyed()
+void IFramework::slotModuleDestroyed()
 {
     IFrameworkModule * module = static_cast<IFrameworkModule *>(sender());
     // CHANGE THIS? superseed by the model?
@@ -165,7 +177,7 @@ void IInspectorFramework::slotModuleDestroyed()
     }
 }
 
-void IInspectorFramework::slotModelItemChanged(QStandardItem *item)
+void IFramework::slotModelItemChanged(QStandardItem *item)
 {
     // get the TaskItem
     TaskItem *taskItem = dynamic_cast<TaskItem *>(item);

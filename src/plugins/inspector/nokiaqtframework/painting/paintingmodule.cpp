@@ -28,19 +28,19 @@
 **************************************************************************/
 
 #include "paintingmodule.h"
-#include "instance.h"
-#include "commserver.h"
 #include "paintingmodel.h"
 #include "temperaturepanel.h"
+#include "../localcommserver.h"
+#include "../nokiaqtframework.h"
 
 using namespace Inspector::Internal;
 
-PaintingModule::PaintingModule(Instance *instance, QObject *parent)
-  : IFrameworkModule(instance, parent)
+PaintingModule::PaintingModule(NokiaQtFramework *framework, QObject *parent)
+  : IFrameworkModule(framework, parent)
   , m_model(new PaintingModel)
 {
     // read the data coming from the commserver
-    connect(parentInstance()->commServer(), SIGNAL(incomingData(quint32,quint32,QByteArray*)),
+    connect(framework->commServer(), SIGNAL(incomingData(quint32,quint32,QByteArray*)),
             this, SLOT(slotProcessIncomingData(quint32,quint32,QByteArray*)));
 }
 

@@ -39,12 +39,12 @@ AbstractPanel::AbstractPanel(IFrameworkModule *parentModule)
     Q_ASSERT(parentModule);
 }
 
+IFramework *AbstractPanel::parentFramework() const
+{
+    return m_parentModule->parentFramework();
+}
+
 IFrameworkModule *AbstractPanel::parentModule() const
 {
     return m_parentModule;
-}
-
-Instance *AbstractPanel::parentInstance() const
-{
-    return m_parentModule->parentInstance();
 }
