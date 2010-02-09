@@ -35,12 +35,14 @@
 namespace Inspector {
 namespace Internal {
 
+class NokiaQtFramework;
+
 class BlueprintModule : public IFrameworkModule
 {
     Q_OBJECT
 
 public:
-    BlueprintModule(Instance *, QObject *parent = 0);
+    BlueprintModule(NokiaQtFramework *, QObject *parent = 0);
 
     // ::IFrameworkModule
     enum { Uid = 0x04 };

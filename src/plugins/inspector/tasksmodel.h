@@ -36,7 +36,7 @@
 namespace Inspector {
 namespace Internal {
 
-class IInspectorFramework;
+class IFramework;
 class TaskItem;
 
 class TasksModel : public AbstractEasyModel
@@ -56,7 +56,7 @@ public:
     bool requestStopTask(quint32 tid);
 
 private:
-    friend class IInspectorFramework;
+    friend class IFramework;
     bool addTask(quint32 tid, const QString &name, const QString &description);
     bool startTask(quint32 tid);
     bool stopTask(quint32 tid);

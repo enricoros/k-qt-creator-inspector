@@ -35,8 +35,8 @@
 namespace Inspector {
 namespace Internal {
 
+class IFramework;
 class IFrameworkModule;
-class Instance;
 
 /**
   \brief A QWidget subclass created by IFrameworkModules
@@ -48,8 +48,8 @@ class AbstractPanel : public QWidget
 public:
     AbstractPanel(IFrameworkModule *parentModule);
 
+    IFramework *parentFramework() const;
     IFrameworkModule *parentModule() const;
-    Instance *parentInstance() const;
 
 private:
     AbstractPanel();

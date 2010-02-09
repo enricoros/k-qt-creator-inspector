@@ -35,7 +35,7 @@ using namespace Inspector::Internal;
 // NvidiaCudaFramework
 //
 NvidiaCudaFramework::NvidiaCudaFramework(Instance *instance, QObject *parent)
-  : IInspectorFramework(instance, parent)
+  : IFramework(instance, parent)
 {
     //addModule(0);
 }

@@ -27,8 +27,8 @@
 **
 **************************************************************************/
 
-#ifndef IINSPECTORFRAMEWORK_H
-#define IINSPECTORFRAMEWORK_H
+#ifndef IFRAMEWORK_H
+#define IFRAMEWORK_H
 
 #include <QtCore/QList>
 #include <QtCore/QObject>
@@ -40,16 +40,19 @@ class QStandardItem;
 namespace Inspector {
 namespace Internal {
 
+class Instance;
+class InstanceModel;
+
 /**
   \brief Handles everything within a framework
 */
-class IInspectorFramework : public QObject
+class IFramework : public QObject
 {
     Q_OBJECT
 
 public:
-    IInspectorFramework(Instance *instance, QObject *parent = 0);
-    virtual ~IInspectorFramework();
+    IFramework(Instance *instance, QObject *parent = 0);
+    virtual ~IFramework();
 
     // operate on modules
     ModuleMenuEntries menuEntries() const;
@@ -59,8 +62,16 @@ public:
     // to be reimplemented by subclasses
     virtual int infoModuleUid() const = 0;
 
+    // ### is it ok to put this here?
+    InstanceModel *instanceModel() const;
+
+    // specialize the framework.. - don't like this at all!
+    //template<class T>
+    //inline T F() const { return static_cast<T>(this); }
+
 signals:
     void modulesChanged();
+    void requestPanelDisplay(int moduleUid, int panelId);
 
 protected:
     void addModule(IFrameworkModule *);
@@ -72,6 +83,7 @@ protected:
     QList<IFrameworkModule *> m_activeModules;
 
 private slots:
+    void slotModulePanelDisplayRequested(int panelId);
     void slotModuleActivationRequested(const QString &text);
     void slotModuleDeactivated();
     void slotModuleDestroyed();
@@ -82,17 +94,17 @@ private slots:
 /**
   \brief Describe, create (eventually restore) frameworks
  */
-class IInspectorFrameworkFactory : public QObject
+class IFrameworkFactory : public QObject
 {
     Q_OBJECT
 
 public:
-    IInspectorFrameworkFactory()
+    IFrameworkFactory()
     { }
-    virtual ~IInspectorFrameworkFactory()
+    virtual ~IFrameworkFactory()
     { }
 
-    //IInspectorFramework *create(Instance *instance) const = 0;
+    //IFramework *createFramework(Instance *instance) const = 0;
 
     virtual QString displayName() const = 0;
     virtual QIcon icon() const = 0;
@@ -105,4 +117,4 @@ public slots:
 } // namespace Internal
 } // namespace Inspector
 
-#endif // IINSPECTORFRAMEWORK_H
+#endif // IFRAMEWORK_H

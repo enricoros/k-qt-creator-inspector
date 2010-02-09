@@ -35,6 +35,7 @@
 namespace Inspector {
 namespace Internal {
 
+class NokiaQtFramework;
 class PaintingModel;
 
 class PaintingModule : public IFrameworkModule
@@ -42,7 +43,7 @@ class PaintingModule : public IFrameworkModule
     Q_OBJECT
 
 public:
-    PaintingModule(Instance *, QObject *parent = 0);
+    PaintingModule(NokiaQtFramework *, QObject *parent = 0);
     ~PaintingModule();
 
     PaintingModel *model() const;

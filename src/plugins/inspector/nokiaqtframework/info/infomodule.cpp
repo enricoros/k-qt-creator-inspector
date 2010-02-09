@@ -29,11 +29,12 @@
 
 #include "infomodule.h"
 #include "infopanel.h"
+#include "../nokiaqtframework.h"
 
 using namespace Inspector::Internal;
 
-InfoModule::InfoModule(Instance *instance, QObject *parent)
-  : IFrameworkModule(instance, parent)
+InfoModule::InfoModule(NokiaQtFramework *framework, QObject *parent)
+  : IFrameworkModule(framework, parent)
 {
 }
 

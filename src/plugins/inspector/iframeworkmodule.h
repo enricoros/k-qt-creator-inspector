@@ -38,8 +38,7 @@ namespace Inspector {
 namespace Internal {
 
 class AbstractPanel;
-class Instance;
-class IInspectorFramework;
+class IFramework;
 
 /**
   \brief Describes the items to put in the menus by one module
@@ -67,7 +66,7 @@ class IFrameworkModule : public QObject
     Q_OBJECT
 
 public:
-    IFrameworkModule(Instance *, QObject *parent = 0);
+    IFrameworkModule(IFramework *, QObject *parent = 0);
     virtual ~IFrameworkModule();
 
     // describe the module
@@ -79,13 +78,15 @@ public:
     //virtual * createCommSession(int cmdClass) = 0;
 
     // useful references
-    Instance *parentInstance() const;
+    IFramework *parentFramework() const;
 
 signals:
-    // requests IInspectorFramework to activate this module
+    // requests IFramework to activate this module
     void requestActivation(const QString &text);
-    // tells IInspectorFramework that this module is idle again
+    // tells IFramework that this module is idle again
     void deactivated();
+    // requests display of a panesl
+    void requestPanelDisplay(int panelId);
 
 protected slots:
     // reimplement to be notified when the state changes
@@ -95,8 +96,8 @@ protected slots:
     virtual void slotUnlock();
 
 private:
-    // used by IInspectorFramework for state transitions
-    friend class IInspectorFramework;
+    // used by IFramework for state transitions
+    friend class IFramework;
     void controlActivate();
     void controlDeactivate();
     void controlRefuse();

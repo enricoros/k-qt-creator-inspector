@@ -28,7 +28,7 @@
 **************************************************************************/
 
 #include "inspectorwindow.h"
-#include "iinspectorframework.h"
+#include "iframework.h"
 #include "inspectorplugin.h"
 #include "instance.h"
 #include <extensionsystem/pluginmanager.h>
@@ -174,9 +174,9 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         grid->setSpacing(0);
         grid->setColumnMinimumWidth(0, LEFT_MARGIN);
 
-        QList<IInspectorFrameworkFactory *> factories =
-            ExtensionSystem::PluginManager::instance()->getObjects<IInspectorFrameworkFactory>();
-        foreach (IInspectorFrameworkFactory *factory, factories) {
+        QList<IFrameworkFactory *> factories =
+            ExtensionSystem::PluginManager::instance()->getObjects<IFrameworkFactory>();
+        foreach (IFrameworkFactory *factory, factories) {
             QWidget *rowWidget = new QWidget;
             QHBoxLayout *rowLay = new QHBoxLayout(rowWidget);
             rowLay->setMargin(0);
@@ -460,19 +460,19 @@ FrameworksComboBox::FrameworksComboBox(QWidget *parent)
   : QComboBox(parent)
 {
     setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
-    QList<IInspectorFrameworkFactory *> factories =
-        ExtensionSystem::PluginManager::instance()->getObjects<IInspectorFrameworkFactory>();
-    foreach (IInspectorFrameworkFactory *factory, factories)
+    QList<IFrameworkFactory *> factories =
+        ExtensionSystem::PluginManager::instance()->getObjects<IFrameworkFactory>();
+    foreach (IFrameworkFactory *factory, factories)
         addItem(factory->displayName());
     connect(this, SIGNAL(currentIndexChanged(int)),
             this, SIGNAL(currentFrameworkChanged()));
 }
 
-IInspectorFrameworkFactory *FrameworksComboBox::currentFactory() const
+IFrameworkFactory *FrameworksComboBox::currentFactory() const
 {
     int index = currentIndex();
-    QList<IInspectorFrameworkFactory *> factories =
-        ExtensionSystem::PluginManager::instance()->getObjects<IInspectorFrameworkFactory>();
+    QList<IFrameworkFactory *> factories =
+        ExtensionSystem::PluginManager::instance()->getObjects<IFrameworkFactory>();
     if (index < 0 || index >= factories.size())
         return 0;
     return factories.at(index);

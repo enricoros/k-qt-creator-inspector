@@ -28,9 +28,9 @@
 **************************************************************************/
 
 #include "infopanel.h"
+#include "iframework.h"
 #include "iframeworkmodule.h"
-#include "instance.h"
-#include "iinspectorframework.h"
+#include "instancemodel.h"
 #include <QFont>
 
 using namespace Inspector;
@@ -47,11 +47,11 @@ InfoPanel::InfoPanel(IFrameworkModule *parentModule)
     connName->setFont(smallFont);
 
     // update Plugin data
-    modLabel->setText(parentInstance()->framework()->moduleNames().join(", "));
+    modLabel->setText(parentFramework()->moduleNames().join(", "));
 
     // update Instance data
-    connect(parentInstance()->instanceModel(), SIGNAL(itemChanged(QStandardItem*)), this, SLOT(slotRefreshInstanceData()));
-    connect(parentInstance()->instanceModel(), SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(slotRowsInserted(QModelIndex,int,int)));
+    connect(parentFramework()->instanceModel(), SIGNAL(itemChanged(QStandardItem*)), this, SLOT(slotRefreshInstanceData()));
+    connect(parentFramework()->instanceModel(), SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(slotRowsInserted(QModelIndex,int,int)));
     // NOTE: THIS IS PAINFULLY SLOW ###
 #if 0
     if (QStandardItem *item = parentInstance()->model()->item(InstanceModel::CommServer_Row, 8)) {
@@ -63,13 +63,13 @@ InfoPanel::InfoPanel(IFrameworkModule *parentModule)
     slotRefreshInstanceData();
 
     // link controls to the model
-    connect(enaButton, SIGNAL(toggled(bool)), parentInstance()->instanceModel(), SLOT(setInstanceEnabled(bool)));
-    connect(paintBox, SIGNAL(toggled(bool)), parentInstance()->instanceModel(), SLOT(setDebugPaint(bool)));
+    connect(enaButton, SIGNAL(toggled(bool)), parentFramework()->instanceModel(), SLOT(setInstanceEnabled(bool)));
+    connect(paintBox, SIGNAL(toggled(bool)), parentFramework()->instanceModel(), SLOT(setDebugPaint(bool)));
 }
 
 void InfoPanel::slotRefreshInstanceData()
 {
-    InstanceModel *model = parentInstance()->instanceModel();
+    InstanceModel *model = parentFramework()->instanceModel();
 
     setFieldState(enaButton,        model->instanceEnabled());
     setFieldState(paintBox,         model->debugPaint());
@@ -96,7 +96,7 @@ void InfoPanel::slotRefreshInstanceData()
 
 void InfoPanel::slotRowsInserted(const QModelIndex &parent, int start, int end)
 {
-    InstanceModel *model = parentInstance()->instanceModel();
+    InstanceModel *model = parentFramework()->instanceModel();
     QStandardItem *parentItem = model->itemFromIndex(parent);
 
     // log all incoming packets
