@@ -52,6 +52,7 @@ signals:
     void availableChanged(bool);
 
 private:
+    void setAvailable(bool);
     void syncStateWithManager();
     bool m_available;
 };

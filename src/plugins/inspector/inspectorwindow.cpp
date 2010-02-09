@@ -216,7 +216,7 @@ void InspectorWindow::newTarget(ProjectExplorer::RunConfiguration *rc, IFramewor
         return;
     }
 
-    Instance *instance = new Instance(factory);
+    Instance *instance = new Instance(rc->displayName(), factory);
     //instance->configure...
   //  addInstance(instance);
 //    instance->start() ?
