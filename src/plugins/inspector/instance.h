@@ -30,9 +30,10 @@
 #ifndef INSTANCE_H
 #define INSTANCE_H
 
-#include <QObject>
-#include <QList>
-#include <QVariantList>
+#include <QtCore/QObject>
+#include <QtCore/QList>
+#include <QtCore/QVariantList>
+#include <QtCore/QString>
 #include "instancemodel.h"
 #include "tasksmodel.h"
 
@@ -47,7 +48,7 @@ class Instance : public QObject
     Q_OBJECT
 
 public:
-    Instance(IFrameworkFactory *, QObject *parent = 0);
+    Instance(const QString &targetName, IFrameworkFactory *, QObject *parent = 0);
     ~Instance();
 
     // data models

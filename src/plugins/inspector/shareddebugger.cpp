@@ -43,8 +43,16 @@ bool SharedDebugger::available() const
     return m_available;
 }
 
+void SharedDebugger::setAvailable(bool available)
+{
+    if (available != m_available) {
+        m_available = available;
+        emit availableChanged(m_available);
+    }
+}
+
 void SharedDebugger::syncStateWithManager()
 {
     // ###
-    m_available = true;
+    setAvailable(true);
 }

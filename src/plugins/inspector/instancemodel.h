@@ -31,7 +31,8 @@
 #define INSTANCEMODEL_H
 
 #include "abstracteasymodel.h"
-#include <QVariantList>
+#include <QtCore/QString>
+#include <QtCore/QVariantList>
 
 namespace Inspector {
 namespace Internal {
@@ -41,7 +42,7 @@ class InstanceModel : public AbstractEasyModel
     Q_OBJECT
 
 public:
-    InstanceModel(QObject *parent = 0);
+    InstanceModel(const QString &targetName, const QString &frameworkName, QObject *parent = 0);
 
     enum { InstanceStatus_Row = 0, ProbeStatus_Row = 1, CommServer_Row = 2 };
 

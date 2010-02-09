@@ -32,11 +32,11 @@
 
 using namespace Inspector::Internal;
 
-Instance::Instance(IFrameworkFactory *factory, QObject *parent)
+Instance::Instance(const QString &targetName, IFrameworkFactory *factory, QObject *parent)
   : QObject(parent)
-  , m_instanceModel(new InstanceModel)
-  , m_tasksModel(new TasksModel)
 {
+    m_instanceModel = new InstanceModel(targetName, factory->displayName());
+    m_tasksModel = new TasksModel;
     m_framework = factory->createFramework(this);
 }
 

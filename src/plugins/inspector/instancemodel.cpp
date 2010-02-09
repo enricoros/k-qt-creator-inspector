@@ -35,9 +35,9 @@ using namespace Inspector::Internal;
 
 /* == InstanceModel Usage ==
 Row 'InstanceStatus_Row': Instance Status
-  0: prettyName             string
-  1: targetName             string
-  2: frameworkName          string
+  0: targetName             string
+  1: frameworkName          string
+  2: unused
   3: enabled                ###remove?
   4: af: debug paint        ###move?
 
@@ -63,13 +63,12 @@ Row 'CommServer_Row': Communication Server
   8: communication log parent (1 row per string)
 */
 
-InstanceModel::InstanceModel(QObject *parent)
+InstanceModel::InstanceModel(const QString &targetName, const QString &frameworkName, QObject *parent)
   : Internal::AbstractEasyModel(3, 0, parent)
 {
     // init model
-    setItemValue(InstanceStatus_Row, 0, QString());
-    setItemValue(InstanceStatus_Row, 1, QString("targetName"));
-    setItemValue(InstanceStatus_Row, 2, QString("Qt"));
+    setItemValue(InstanceStatus_Row, 0, targetName);
+    setItemValue(InstanceStatus_Row, 1, frameworkName);
     setItemValue(InstanceStatus_Row, 3, true);
     setItemValue(InstanceStatus_Row, 4, false);
     setItemValue(ProbeStatus_Row, 0, QString());
@@ -84,18 +83,17 @@ InstanceModel::InstanceModel(QObject *parent)
 
 QString InstanceModel::prettyName() const
 {
-    qWarning("InstanceModel::prettyName: semantics undefined");
-    return itemValue(InstanceStatus_Row, 0).toString();
+    return tr("%1 [%2 framework]").arg(targetName()).arg(frameworkName());
 }
 
 QString InstanceModel::targetName() const
 {
-    return itemValue(InstanceStatus_Row, 1).toString();
+    return itemValue(InstanceStatus_Row, 0).toString();
 }
 
 QString InstanceModel::frameworkName() const
 {
-    return itemValue(InstanceStatus_Row, 2).toString();
+    return itemValue(InstanceStatus_Row, 1).toString();
 }
 
 bool InstanceModel::debugPaint() const
