@@ -104,11 +104,12 @@ public:
     virtual ~IFrameworkFactory()
     { }
 
-    //IFramework *createFramework(Instance *instance) const = 0;
-
     virtual QString displayName() const = 0;
     virtual QIcon icon() const = 0;
     virtual bool isConfigurable() const { return false; }
+
+    virtual bool available() const { return true; }
+    virtual IFramework *createFramework(Instance *) = 0;
 
 public slots:
     virtual void configure() { }

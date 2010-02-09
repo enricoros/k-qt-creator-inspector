@@ -27,59 +27,36 @@
 **
 **************************************************************************/
 
-#ifndef INSPECTORPLUGIN_H
-#define INSPECTORPLUGIN_H
+#ifndef SHAREDDEBUGGER_H
+#define SHAREDDEBUGGER_H
 
-#include <extensionsystem/iplugin.h>
-
-class QAction;
+#include <QtCore/QObject>
 
 namespace Inspector {
 namespace Internal {
 
-class InspectorContainer;
-class Instance;
-class SharedDebugger;
-
-// constants
-const char * const MODE_INSPECTOR   = "Probe";
-const int          P_MODE_INSPECTOR = 5;
-
 /**
-    \brief QtCreator plugin that exposes a framework for runtime probing
+  \brief Controls Creator's Debugger Manager (single instanced by default)
 */
-class InspectorPlugin : public ExtensionSystem::IPlugin
+class SharedDebugger : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool available READ available NOTIFY availableChanged)
 
 public:
-    InspectorPlugin();
-    ~InspectorPlugin();
+    SharedDebugger(QObject *parent = 0);
 
-    static InspectorPlugin *pluginInstance();
-    SharedDebugger *sharedDebugger() const;
+    bool available() const;
 
-    void addInstance(Instance *);
-    //void removeInstance(Instance *);
-
-    // ::ExtensionSystem::IPlugin
-    bool initialize(const QStringList &arguments, QString *error_message);
-    void extensionsInitialized();
-
-private slots:
-    void slotSetPluginEnabled(bool enabled);
-    void slotDisplayWindow();
+signals:
+    void availableChanged(bool);
 
 private:
-    void parseArguments(const QStringList & arguments);
-    static InspectorPlugin *s_pluginInstance;
-    SharedDebugger *m_sharedDebugger;
-    Internal::InspectorContainer *m_container;
-    QList<Instance *> m_instances;
-    bool m_pluginEnabled;
+    void syncStateWithManager();
+    bool m_available;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // INSPECTORPLUGIN_H
+#endif // SHAREDDEBUGGER_H

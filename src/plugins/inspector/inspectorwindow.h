@@ -60,15 +60,17 @@ class InspectorWindow : public QScrollArea
 public:
     InspectorWindow(QWidget *parent = 0);
 
+    // start Inspector on a new Target
+    void newTarget(ProjectExplorer::RunConfiguration *, IFrameworkFactory *);
+
 signals:
     void requestDisplay();
 
 private slots:
-    void slotNewTarget();
+    void slotCreateTarget();
     void slotProjectChanged();
 
 private:
-    QWidget *newFrameworkCombo();
     QAbstractButton *newInspectButton(int id);
     void appendWrappedWidget(const QString &title, const QIcon &icon, QWidget *widget);
     void appendSubWidget(QGridLayout *layout, QWidget *widget,
@@ -134,7 +136,7 @@ private:
 };
 
 /**
-  \brief A QComboBox synced with the current InspectorFrameworks
+  \brief A QComboBox synced with the current IFrameworkFactories
 */
 class FrameworksComboBox : public QComboBox
 {
@@ -144,6 +146,7 @@ public:
     FrameworksComboBox(QWidget *parent = 0);
 
     IFrameworkFactory *currentFactory() const;
+    static QList<IFrameworkFactory *> allFactories();
 
 signals:
     void currentFrameworkChanged();

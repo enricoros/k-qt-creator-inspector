@@ -37,6 +37,8 @@ namespace Inspector {
 namespace Internal {
 
 class LocalCommServer;
+class NokiaQtFrameworkFactory;
+class SharedDebugger;
 
 
 class NokiaQtFramework : public IFramework
@@ -44,7 +46,6 @@ class NokiaQtFramework : public IFramework
     Q_OBJECT
 
 public:
-    NokiaQtFramework(Instance *instance, QObject *parent = 0);
     ~NokiaQtFramework();
 
     // probe communication server
@@ -53,11 +54,14 @@ public:
     // ### move this
     void callProbeFunction(const QString &name, const QVariantList &args);
 
-    // ::InspectorFramework
+    // ::IFramework
     int infoModuleUid() const;
 
 private:
+    friend class NokiaQtFrameworkFactory;
+    NokiaQtFramework(Instance *, SharedDebugger *, QObject *parent = 0);
     LocalCommServer *m_commServer;
+    SharedDebugger *m_sharedDebugger;
 };
 
 
@@ -66,12 +70,13 @@ class NokiaQtFrameworkFactory : public IFrameworkFactory
     Q_OBJECT
 
 public:
-    NokiaQtFrameworkFactory();
-
+    // ::IFrameworkFactory
     QString displayName() const;
     QIcon icon() const;
     bool isConfigurable() const;
     void configure();
+    bool available() const;
+    IFramework *createFramework(Instance *);
 };
 
 } // namespace Internal

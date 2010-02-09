@@ -30,6 +30,7 @@
 #include "inspectorplugin.h"
 #include "inspectorcontainer.h"
 #include "instance.h"
+#include "shareddebugger.h"
 #include "nokiaqtframework/nokiaqtframework.h"
 #include "nvidiacudaframework/nvidiacudaframework.h"
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -53,6 +54,7 @@ InspectorPlugin *Inspector::Internal::InspectorPlugin::s_pluginInstance = 0;
 
 InspectorPlugin::InspectorPlugin()
   : ExtensionSystem::IPlugin()
+  , m_sharedDebugger(0)
   , m_container(0)
   , m_pluginEnabled(true)
 {
@@ -69,9 +71,22 @@ InspectorPlugin::~InspectorPlugin()
     qDeleteAll(m_instances);
     m_instances.clear();
 
+    // delete the debugger
+    delete m_sharedDebugger;
+
     // objects registered with 'addAutoReleasedObject' will be removed automatically, like:
     // m_window is deleted by the plugin system
     m_container = 0;
+}
+
+InspectorPlugin *InspectorPlugin::pluginInstance()
+{
+    return s_pluginInstance;
+}
+
+SharedDebugger *InspectorPlugin::sharedDebugger() const
+{
+    return m_sharedDebugger;
 }
 
 void InspectorPlugin::addInstance(Instance * instance)
@@ -85,7 +100,12 @@ void InspectorPlugin::addInstance(Instance * instance)
     m_instances.append(instance);
     m_container->addInstance(instance);
 }
-
+/*
+void InspectorPlugin::removeInstance(Instance * instance)
+{
+    ...
+}
+*/
 bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_message)
 {
     Q_UNUSED(error_message)
@@ -102,6 +122,8 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     addAutoReleasedObject(new NokiaQtFrameworkFactory());
     addAutoReleasedObject(new NvidiaCudaFrameworkFactory());
 
+    m_sharedDebugger = new SharedDebugger;
+
     m_container = new InspectorContainer;
     connect(m_container, SIGNAL(requestWindowDisplay()), this, SLOT(slotDisplayWindow()));
 
@@ -116,24 +138,24 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     addAutoReleasedObject(inspectorMode);
 
     // create the Menu and add it to the Debug menu
-    Core::ActionManager *actionManager = core->actionManager();
-    Core::ActionContainer *inspContainer = actionManager->createMenu("Inspector.Container");
+    Core::ActionManager *am = core->actionManager();
+    Core::ActionContainer *inspContainer = am->createMenu("Inspector.Container");
     QMenu *inspMenu = inspContainer->menu();
     inspMenu->setTitle(tr("&Inspector"));
     inspMenu->setIcon(QIcon(":/inspector/images/menu-display.png"));
-    Core::ActionContainer *debugContainer = actionManager->actionContainer(ProjectExplorer::Constants::M_DEBUG);
+    Core::ActionContainer *debugContainer = am->actionContainer(ProjectExplorer::Constants::M_DEBUG);
     debugContainer->addMenu(inspContainer);
 
     QAction *enableAction = new QAction(tr("Enable"), this);
     enableAction->setCheckable(true);
     enableAction->setChecked(m_pluginEnabled);
     connect(enableAction, SIGNAL(toggled(bool)), this, SLOT(slotSetPluginEnabled(bool)));
-    Core::Command *command = actionManager->registerAction(enableAction, "Inspector.Enable", ourContext);
+    Core::Command *command = am->registerAction(enableAction, "Inspector.Enable", ourContext);
     inspContainer->addAction(command);
 
     QAction *workBenchAction = new QAction(tr("Current Instance"), this);
     connect(workBenchAction, SIGNAL(triggered()), this, SLOT(slotDisplayWindow()));
-    command = actionManager->registerAction(workBenchAction, "Inspector.ShowInstance", ourContext);
+    command = am->registerAction(workBenchAction, "Inspector.ShowInstance", ourContext);
     inspContainer->addAction(command);
 
     return true;

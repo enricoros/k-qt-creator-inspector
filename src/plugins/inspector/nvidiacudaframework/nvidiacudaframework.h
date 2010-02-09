@@ -35,13 +35,20 @@
 namespace Inspector {
 namespace Internal {
 
+class NvidiaCudaFrameworkFactory;
+
 
 class NvidiaCudaFramework : public IFramework
 {
     Q_OBJECT
 
 public:
-    NvidiaCudaFramework(Instance *instance, QObject *parent = 0);
+    // ::IFramework
+    int infoModuleUid() const { return 0; }
+
+private:
+    friend class NvidiaCudaFrameworkFactory;
+    NvidiaCudaFramework(Instance *, QObject *parent = 0);
 };
 
 
@@ -50,10 +57,10 @@ class NvidiaCudaFrameworkFactory : public IFrameworkFactory
     Q_OBJECT
 
 public:
-    NvidiaCudaFrameworkFactory();
-
+    // ::IFrameworkFactory
     QString displayName() const;
     QIcon icon() const;
+    IFramework *createFramework(Instance *);
 };
 
 } // namespace Internal

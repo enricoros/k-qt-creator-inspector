@@ -43,10 +43,6 @@ NvidiaCudaFramework::NvidiaCudaFramework(Instance *instance, QObject *parent)
 //
 // NvidiaCudaFrameworkFactory
 //
-NvidiaCudaFrameworkFactory::NvidiaCudaFrameworkFactory()
-{
-}
-
 QString NvidiaCudaFrameworkFactory::displayName() const
 {
     return tr("NVIDIA CUDA");
@@ -55,4 +51,9 @@ QString NvidiaCudaFrameworkFactory::displayName() const
 QIcon NvidiaCudaFrameworkFactory::icon() const
 {
     return QIcon(/*FIXME*/);
+}
+
+IFramework *NvidiaCudaFrameworkFactory::createFramework(Instance *instance)
+{
+    return new NvidiaCudaFramework(instance);
 }

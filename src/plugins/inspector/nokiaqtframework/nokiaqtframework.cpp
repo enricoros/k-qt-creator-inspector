@@ -28,7 +28,9 @@
 **************************************************************************/
 
 #include "nokiaqtframework.h"
+#include "inspectorplugin.h"
 #include "localcommserver.h"
+#include "shareddebugger.h"
 #include "blueprint/blueprintmodule.h"
 #include "info/infomodule.h"
 #include "painting/paintingmodule.h"
@@ -40,8 +42,9 @@ using namespace Inspector::Internal;
 //
 // NokiaQtFramework
 //
-NokiaQtFramework::NokiaQtFramework(Instance *instance, QObject *parent)
+NokiaQtFramework::NokiaQtFramework(Instance *instance, SharedDebugger *sd, QObject *parent)
   : IFramework(instance, parent)
+  , m_sharedDebugger(sd)
 {
     m_commServer = new LocalCommServer(instanceModel());
 
@@ -63,7 +66,8 @@ LocalCommServer *NokiaQtFramework::commServer() const
 
 void NokiaQtFramework::callProbeFunction(const QString &name, const QVariantList &args)
 {
-    qWarning("NokiaQtFramework::callProbeFunction: not implemented");
+    Q_UNUSED(args);
+    qWarning("NokiaQtFramework::callProbeFunction: not implemented '%s'", qPrintable(name));
 }
 
 int NokiaQtFramework::infoModuleUid() const
@@ -74,10 +78,6 @@ int NokiaQtFramework::infoModuleUid() const
 //
 // NokiaQtFrameworkFactory
 //
-NokiaQtFrameworkFactory::NokiaQtFrameworkFactory()
-{
-}
-
 QString NokiaQtFrameworkFactory::displayName() const
 {
     return tr("Qt by Nokia");
@@ -97,4 +97,16 @@ void NokiaQtFrameworkFactory::configure()
 {
     QMessageBox::information(0, tr("Configure Nokia Qt Framework"),
         tr("Configuration not implemented, please try again later."));
+}
+
+bool NokiaQtFrameworkFactory::available() const
+{
+    SharedDebugger *sharedDebugger = InspectorPlugin::pluginInstance()->sharedDebugger();
+    return sharedDebugger && sharedDebugger->available();
+}
+
+IFramework *NokiaQtFrameworkFactory::createFramework(Instance *instance)
+{
+    SharedDebugger *sharedDebugger = InspectorPlugin::pluginInstance()->sharedDebugger();
+    return new NokiaQtFramework(instance, sharedDebugger);
 }

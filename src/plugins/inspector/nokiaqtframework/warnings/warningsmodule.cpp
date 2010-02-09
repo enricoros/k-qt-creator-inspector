@@ -42,7 +42,7 @@ WarningsModule::WarningsModule(NokiaQtFramework *framework, QObject *parent)
   , m_framework(framework)
 {
     // create the NotificationWidget and add it to CORE (do it now, to stay on top later)
-    m_notification = new Internal::NotificationWidget;
+    m_notification = new NotificationWidget;
     connect(m_notification, SIGNAL(clicked()), this, SLOT(slotNotificationClicked()));
     m_notification->hide();
     Core::ICore::instance()->modeManager()->addWidget(m_notification);
