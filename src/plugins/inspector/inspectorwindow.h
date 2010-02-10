@@ -40,6 +40,7 @@ class QLabel;
 namespace ProjectExplorer {
 class Project;
 class RunConfiguration;
+class Target;
 }
 
 namespace Inspector {
@@ -49,6 +50,7 @@ class IFrameworkFactory;
 class FrameworksComboBox;
 class ProjectsComboBox;
 class RunconfComboBox;
+class TargetsComboBox;
 
 /**
   \brief The Main Window of Inspector. Can start Instances
@@ -68,7 +70,10 @@ signals:
 
 private slots:
     void slotCreateTarget();
+
     void slotProjectChanged();
+    void slotTargetChanged();
+    void slotRunconfChanged();
 
 private:
     QAbstractButton *newInspectButton(int id);
@@ -81,7 +86,8 @@ private:
 
     ProjectsComboBox *m_projectsCombo;
     QLabel *m_runconfLabel;
-    RunconfComboBox *m_runconfCombo;
+    TargetsComboBox *m_targetsCombo;
+    RunconfComboBox *m_runconfsCombo;
     FrameworksComboBox *m_frameworksCombo;
     QAbstractButton *m_newRunButton;
 };
@@ -112,7 +118,33 @@ private:
 };
 
 /**
-  \brief A QComboBox synced with the RunConfigurations of a Project
+  \brif A QComboBox synced with Targets of a Project
+*/
+class TargetsComboBox : public QComboBox
+{
+    Q_OBJECT
+
+public:
+    TargetsComboBox(QWidget *parent = 0);
+
+    void setProject(ProjectExplorer::Project *);
+    ProjectExplorer::Target *currentTarget() const;
+
+signals:
+    void currentTargetChanged();
+
+private slots:
+    void add(ProjectExplorer::Target *);
+    void remove(ProjectExplorer::Target *);
+    void activeChanged(ProjectExplorer::Target *);
+    void updateDisplayName();
+
+private:
+    ProjectExplorer::Project *m_project;
+};
+
+/**
+  \brief A QComboBox synced with the RunConfigurations of a Target
 */
 class RunconfComboBox : public QComboBox
 {
@@ -121,18 +153,20 @@ class RunconfComboBox : public QComboBox
 public:
     RunconfComboBox(QWidget *parent = 0);
 
-    void setProject(ProjectExplorer::Project *);
-    ProjectExplorer::Project *currentProject() const;
+    void setTarget(ProjectExplorer::Target *);
     ProjectExplorer::RunConfiguration *currentRunConfiguration() const;
+
+signals:
+    void currentRunconfChanged();
 
 private slots:
     void add(ProjectExplorer::RunConfiguration *);
     void remove(ProjectExplorer::RunConfiguration *);
+    void activeChanged(ProjectExplorer::RunConfiguration *);
     void updateDisplayName();
-    void activeChanged();
 
 private:
-    ProjectExplorer::Project *m_project;
+    ProjectExplorer::Target *m_target;
 };
 
 /**

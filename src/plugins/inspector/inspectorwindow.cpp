@@ -112,10 +112,12 @@ InspectorWindow::InspectorWindow(QWidget *parent)
          runLayout->addWidget(new QLabel(tr("Inspect")));
         m_projectsCombo = new ProjectsComboBox;
          runLayout->addWidget(m_projectsCombo);
+        m_targetsCombo = new TargetsComboBox;
+         runLayout->addWidget(m_targetsCombo);
         m_runconfLabel = new QLabel(tr("running"));
          runLayout->addWidget(m_runconfLabel);
-        m_runconfCombo = new RunconfComboBox;
-         runLayout->addWidget(m_runconfCombo);
+        m_runconfsCombo = new RunconfComboBox;
+         runLayout->addWidget(m_runconfsCombo);
          runLayout->addWidget(new QLabel(tr("with")));
         m_frameworksCombo = new FrameworksComboBox;
          runLayout->addWidget(m_frameworksCombo);
@@ -129,6 +131,10 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         slotProjectChanged();
         connect(m_projectsCombo, SIGNAL(currentProjectChanged()),
                 this, SLOT(slotProjectChanged()));
+        connect(m_targetsCombo, SIGNAL(currentTargetChanged()),
+                this, SLOT(slotTargetChanged()));
+        connect(m_runconfsCombo, SIGNAL(currentRunconfChanged()),
+                this, SLOT(slotRunconfChanged()));
 
         // TODO - attach to an existing run
         QWidget *instWidget = new QLabel("running opts - *WIP*");
@@ -237,7 +243,7 @@ void InspectorWindow::slotCreateTarget()
     int id = static_cast<QToolButton *>(sender())->property("id").toInt();
     switch (id) {
     case BUTTON_INSPECT_RUN:
-        if (ProjectExplorer::RunConfiguration *rc = m_runconfCombo->currentRunConfiguration()) {
+        if (ProjectExplorer::RunConfiguration *rc = m_runconfsCombo->currentRunConfiguration()) {
             if (IFrameworkFactory *factory = m_frameworksCombo->currentFactory()) {
                 newTarget(rc, factory);
             }
@@ -253,13 +259,24 @@ void InspectorWindow::slotCreateTarget()
 void InspectorWindow::slotProjectChanged()
 {
     ProjectExplorer::Project *project = m_projectsCombo->currentProject();
+    m_targetsCombo->setProject(project);
+    m_targetsCombo->setVisible(m_targetsCombo->count() > 1);
     m_projectsCombo->setEnabled(project);
-    m_runconfCombo->setProject(project);
-    m_runconfLabel->setVisible(m_runconfCombo->count() > 1);
-    m_runconfCombo->setVisible(m_runconfCombo->count() > 1);
-    m_runconfCombo->setEnabled(project);
-    m_frameworksCombo->setEnabled(project);
-    m_newRunButton->setEnabled(project);
+}
+
+void InspectorWindow::slotTargetChanged()
+{
+    ProjectExplorer::Target *target = m_targetsCombo->currentTarget();
+    m_runconfsCombo->setTarget(target);
+    m_runconfsCombo->setVisible(m_runconfsCombo->count() > 1);
+    m_runconfLabel->setVisible(m_runconfsCombo->count() > 1);
+}
+
+void InspectorWindow::slotRunconfChanged()
+{
+    ProjectExplorer::RunConfiguration *runconf = m_runconfsCombo->currentRunConfiguration();
+    m_frameworksCombo->setEnabled(runconf);
+    m_newRunButton->setEnabled(runconf);
 }
 
 QAbstractButton *InspectorWindow::newInspectButton(int id)
@@ -360,6 +377,9 @@ ProjectsComboBox::ProjectsComboBox(QWidget *parent)
   : QComboBox(parent)
 {
     setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
+    connect(this, SIGNAL(currentIndexChanged(int)),
+            this, SIGNAL(currentProjectChanged()));
+
     ProjectExplorer::SessionManager *session = ProjectExplorer::ProjectExplorerPlugin::instance()->session();
     foreach(ProjectExplorer::Project *project, session->projects())
         add(project);
@@ -369,8 +389,6 @@ ProjectsComboBox::ProjectsComboBox(QWidget *parent)
             this, SLOT(remove(ProjectExplorer::Project*)));
     connect(session, SIGNAL(startupProjectChanged(ProjectExplorer::Project*)),
             this, SLOT(activeChanged(ProjectExplorer::Project*)));
-    connect(this, SIGNAL(currentIndexChanged(int)),
-            this, SIGNAL(currentProjectChanged()));
 }
 
 bool ProjectsComboBox::isEmpty() const
@@ -408,16 +426,18 @@ void ProjectsComboBox::activeChanged(ProjectExplorer::Project *project)
 }
 
 //
-// RunconfComboBox
+// TargetComboBox
 //
-RunconfComboBox::RunconfComboBox(QWidget *parent)
+TargetsComboBox::TargetsComboBox(QWidget *parent)
   : QComboBox(parent)
   , m_project(0)
 {
     setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
+    connect(this, SIGNAL(currentIndexChanged(int)),
+            this, SIGNAL(currentTargetChanged()));
 }
 
-void RunconfComboBox::setProject(ProjectExplorer::Project *project)
+void TargetsComboBox::setProject(ProjectExplorer::Project *project)
 {
     if (m_project == project)
         return;
@@ -426,27 +446,94 @@ void RunconfComboBox::setProject(ProjectExplorer::Project *project)
     if (m_project) {
         disconnect(m_project, 0, this, 0);
         while (count())
-            remove(itemData(0).value<ProjectExplorer::RunConfiguration *>());
+            remove(itemData(0).value<ProjectExplorer::Target *>());
     }
 
     m_project = project;
 
     // link this project
     if (m_project) {
-        foreach(ProjectExplorer::RunConfiguration *rc, m_project->runConfigurations())
-            add(rc);
-        connect(m_project, SIGNAL(addedRunConfiguration(ProjectExplorer::RunConfiguration*)),
-                this, SLOT(add(ProjectExplorer::RunConfiguration*)));
-        connect(m_project, SIGNAL(removedRunConfiguration(ProjectExplorer::RunConfiguration*)),
-                this, SLOT(remove(ProjectExplorer::RunConfiguration*)));
-        connect(m_project, SIGNAL(activeRunConfigurationChanged()),
-                this, SLOT(activeChanged()));
+        foreach(ProjectExplorer::Target *target, m_project->targets())
+            add(target);
+        connect(m_project, SIGNAL(addedTarget(ProjectExplorer::Target*)),
+                this, SLOT(add(ProjectExplorer::Target*)));
+        connect(m_project, SIGNAL(removedTarget(ProjectExplorer::Target*)),
+                this, SLOT(remove(ProjectExplorer::Target*)));
+        connect(m_project, SIGNAL(activeTargetChanged(ProjectExplorer::Target*)),
+                this, SLOT(activeChanged(ProjectExplorer::Target*)));
     }
 }
 
-ProjectExplorer::Project *RunconfComboBox::currentProject() const
+ProjectExplorer::Target *TargetsComboBox::currentTarget() const
 {
-    return m_project;
+    if (currentIndex() < 0)
+        return 0;
+    return itemData(currentIndex()).value<ProjectExplorer::Target *>();
+}
+
+void TargetsComboBox::add(ProjectExplorer::Target *target)
+{
+    connect(target, SIGNAL(displayNameChanged()),
+            this, SLOT(updateDisplayName()));
+    addItem(target->displayName(), QVariant::fromValue(target));
+    if (m_project->activeTarget() == target)
+        setCurrentIndex(count() - 1);
+}
+
+void TargetsComboBox::remove(ProjectExplorer::Target *target)
+{
+    disconnect(target, 0, this, 0);
+    removeItem(findData(QVariant::fromValue(target)));
+}
+
+void TargetsComboBox::activeChanged(ProjectExplorer::Target *target)
+{
+    setCurrentIndex(findData(QVariant::fromValue(target)));
+}
+
+void TargetsComboBox::updateDisplayName()
+{
+    ProjectExplorer::Target *target = static_cast<ProjectExplorer::Target *>(sender());
+    setItemText(findData(QVariant::fromValue(target)), target->displayName());
+}
+
+//
+// RunconfComboBox
+//
+RunconfComboBox::RunconfComboBox(QWidget *parent)
+  : QComboBox(parent)
+  , m_target(0)
+{
+    setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
+    connect(this, SIGNAL(currentIndexChanged(int)),
+            this, SIGNAL(currentRunconfChanged()));
+}
+
+void RunconfComboBox::setTarget(ProjectExplorer::Target *target)
+{
+    if (m_target == target)
+        return;
+
+    // remove links to previous target
+    if (m_target) {
+        disconnect(m_target, 0, this, 0);
+        while (count())
+            remove(itemData(0).value<ProjectExplorer::RunConfiguration *>());
+    }
+
+    m_target = target;
+
+    // link this project
+    if (m_target) {
+        foreach(ProjectExplorer::RunConfiguration *rc, m_target->runConfigurations())
+            add(rc);
+        connect(m_target, SIGNAL(addedRunConfiguration(ProjectExplorer::RunConfiguration*)),
+                this, SLOT(add(ProjectExplorer::RunConfiguration*)));
+        connect(m_target, SIGNAL(removedRunConfiguration(ProjectExplorer::RunConfiguration*)),
+                this, SLOT(remove(ProjectExplorer::RunConfiguration*)));
+        connect(m_target, SIGNAL(activeRunConfigurationChanged(ProjectExplorer::RunConfiguration*)),
+                this, SLOT(activeChanged(ProjectExplorer::RunConfiguration*)));
+    }
 }
 
 ProjectExplorer::RunConfiguration *RunconfComboBox::currentRunConfiguration() const
@@ -458,9 +545,10 @@ ProjectExplorer::RunConfiguration *RunconfComboBox::currentRunConfiguration() co
 
 void RunconfComboBox::add(ProjectExplorer::RunConfiguration *rc)
 {
-    connect(rc, SIGNAL(displayNameChanged()), SLOT(updateDisplayName()));
+    connect(rc, SIGNAL(displayNameChanged()),
+            this, SLOT(updateDisplayName()));
     addItem(rc->displayName(), QVariant::fromValue(rc));
-    if (m_project->activeRunConfiguration() == rc)
+    if (m_target->activeRunConfiguration() == rc)
         setCurrentIndex(count() - 1);
 }
 
@@ -470,15 +558,15 @@ void RunconfComboBox::remove(ProjectExplorer::RunConfiguration *rc)
     removeItem(findData(QVariant::fromValue(rc)));
 }
 
+void RunconfComboBox::activeChanged(ProjectExplorer::RunConfiguration *rc)
+{
+    setCurrentIndex(findData(QVariant::fromValue(rc)));
+}
+
 void RunconfComboBox::updateDisplayName()
 {
     ProjectExplorer::RunConfiguration *rc = static_cast<ProjectExplorer::RunConfiguration*>(sender());
     setItemText(findData(QVariant::fromValue(rc)), rc->displayName());
-}
-
-void RunconfComboBox::activeChanged()
-{
-    setCurrentIndex(findData(QVariant::fromValue(m_project->activeRunConfiguration())));
 }
 
 //
