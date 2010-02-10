@@ -28,19 +28,60 @@
 **************************************************************************/
 
 #include "shareddebugger.h"
+#include <debugger/debuggermanager.h>
 
 using namespace Inspector::Internal;
+using namespace Debugger;
 
 SharedDebugger::SharedDebugger(QObject *parent)
   : QObject(parent)
   , m_available(false)
+  , m_debuggerManager(0)
 {
-    syncStateWithManager();
+    m_debuggerManager = DebuggerManager::instance();
+    connect(m_debuggerManager, SIGNAL(stateChanged(int)), this, SLOT(slotDmStateChanged(int)));
+
+    // sync inital state
+    slotDmStateChanged(m_debuggerManager->state());
 }
 
 bool SharedDebugger::available() const
 {
     return m_available;
+}
+
+void SharedDebugger::callProbeFunction(const QString &name, const QVariantList &args)
+{
+    m_debuggerManager->callFunction(name, args);
+}
+
+void SharedDebugger::slotDmStateChanged(int state)
+{
+    switch ((DebuggerState)state) {
+    case DebuggerNotReady:
+        setAvailable(true);
+        break;
+    case EngineStarting:
+    case AdapterStarting:
+    case AdapterStarted:
+    case AdapterStartFailed:
+    case InferiorUnrunnable:
+    case InferiorStarting:
+    case InferiorStartFailed:
+    case InferiorRunningRequested:
+    case InferiorRunningRequested_Kill:
+    case InferiorRunning:
+    case InferiorStopping:
+    case InferiorStopping_Kill:
+    case InferiorStopped:
+    case InferiorStopFailed:
+    case InferiorShuttingDown:
+    case InferiorShutDown:
+    case InferiorShutdownFailed:
+    case EngineShuttingDown:
+        setAvailable(false);
+        break;
+    }
 }
 
 void SharedDebugger::setAvailable(bool available)
@@ -49,10 +90,4 @@ void SharedDebugger::setAvailable(bool available)
         m_available = available;
         emit availableChanged(m_available);
     }
-}
-
-void SharedDebugger::syncStateWithManager()
-{
-    // ###
-    setAvailable(true);
 }

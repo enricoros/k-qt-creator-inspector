@@ -31,6 +31,11 @@
 #define SHAREDDEBUGGER_H
 
 #include <QtCore/QObject>
+#include <QtCore/QVariantList>
+
+namespace Debugger {
+class DebuggerManager;
+}
 
 namespace Inspector {
 namespace Internal {
@@ -47,14 +52,18 @@ public:
     SharedDebugger(QObject *parent = 0);
 
     bool available() const;
+    void callProbeFunction(const QString &name, const QVariantList &args);
 
 signals:
     void availableChanged(bool);
 
+private slots:
+    void slotDmStateChanged(int);
+
 private:
     void setAvailable(bool);
-    void syncStateWithManager();
     bool m_available;
+    Debugger::DebuggerManager *m_debuggerManager;
 };
 
 } // namespace Internal
