@@ -35,6 +35,8 @@
 #include "info/infomodule.h"
 #include "painting/paintingmodule.h"
 #include "warnings/warningsmodule.h"
+#include <projectexplorer/projectexplorer.h>
+#include <projectexplorer/projectexplorerconstants.h>
 #include <QtGui/QMessageBox>
 
 using namespace Inspector::Internal;
@@ -66,14 +68,22 @@ LocalCommServer *NokiaQtFramework::commServer() const
 
 void NokiaQtFramework::callProbeFunction(const QString &name, const QVariantList &args)
 {
-    Q_UNUSED(args);
-    qWarning("NokiaQtFramework::callProbeFunction: not implemented '%s'", qPrintable(name));
+    qWarning("NokiaQtFramework::callProbeFunction: %s(...)", qPrintable(name));
+    m_sharedDebugger->callProbeFunction(name, args);
 }
 
 int NokiaQtFramework::infoModuleUid() const
 {
     return InfoModule::Uid;
 }
+
+bool NokiaQtFramework::startRunConfiguration(ProjectExplorer::RunConfiguration *rc)
+{
+    ProjectExplorer::ProjectExplorerPlugin::instance()->
+       inspectorExecuteRunConfiguration(rc, ProjectExplorer::Constants::DEBUGMODE);
+    return true;
+}
+
 
 //
 // NokiaQtFrameworkFactory

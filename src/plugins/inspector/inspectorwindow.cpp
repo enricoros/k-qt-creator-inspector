@@ -31,6 +31,7 @@
 #include "iframework.h"
 #include "inspectorplugin.h"
 #include "instance.h"
+#include "shareddebugger.h"
 #include <extensionsystem/pluginmanager.h>
 #include <projectexplorer/projectexplorerconstants.h>
 #include <projectexplorer/projectexplorer.h>
@@ -94,8 +95,8 @@ InspectorWindow::InspectorWindow(QWidget *parent)
 
     // create the New Local Target widget
     {
-        QWidget *widget = new QWidget;
-        QGridLayout *grid = new QGridLayout(widget);
+        QWidget *panel = new QWidget;
+        QGridLayout *grid = new QGridLayout(panel);
         grid->setMargin(0);
         grid->setSpacing(0);
         grid->setColumnMinimumWidth(0, LEFT_MARGIN);
@@ -141,7 +142,12 @@ InspectorWindow::InspectorWindow(QWidget *parent)
 
         appendWrappedWidget(tr("New Local Target"),
                             QIcon(":/inspector/images/inspector-icon-32.png"),
-                            widget);
+                            panel);
+
+        // disable the panel while the debugger is running (should be done per-runconf)
+        SharedDebugger *sharedDebugger = InspectorPlugin::pluginInstance()->sharedDebugger();
+        connect(sharedDebugger, SIGNAL(availableChanged(bool)), panel, SLOT(setEnabled(bool)));
+        panel->setEnabled(sharedDebugger->available());
     }
 
     // create the Active Targets widget
@@ -217,12 +223,11 @@ void InspectorWindow::newTarget(ProjectExplorer::RunConfiguration *rc, IFramewor
     }
 
     Instance *instance = new Instance(rc->displayName(), factory);
-    //instance->configure...
-  //  addInstance(instance);
-//    instance->start() ?
-
-    //ProjectExplorer::ProjectExplorerPlugin::instance()->
-    //   inspectorExecuteRunConfiguration(rc, ProjectExplorer::Constants::DEBUGMODE);
+    if (!instance->framework()->startRunConfiguration(rc)) {
+        qWarning("InspectorPlugin::newTarget: can't start the run configuration. skipping");
+        delete instance;
+        return;
+    }
 
     InspectorPlugin::pluginInstance()->addInstance(instance);
 }

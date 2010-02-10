@@ -37,6 +37,10 @@
 #include "iframeworkmodule.h"
 class QStandardItem;
 
+namespace ProjectExplorer {
+class RunConfiguration;
+}
+
 namespace Inspector {
 namespace Internal {
 
@@ -61,13 +65,10 @@ public:
 
     // to be reimplemented by subclasses
     virtual int infoModuleUid() const = 0;
+    virtual bool startRunConfiguration(ProjectExplorer::RunConfiguration *) { return false; }
 
     // ### is it ok to put this here?
     InstanceModel *instanceModel() const;
-
-    // specialize the framework.. - don't like this at all!
-    //template<class T>
-    //inline T F() const { return static_cast<T>(this); }
 
 signals:
     void modulesChanged();

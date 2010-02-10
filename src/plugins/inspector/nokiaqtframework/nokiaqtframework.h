@@ -56,6 +56,7 @@ public:
 
     // ::IFramework
     int infoModuleUid() const;
+    bool startRunConfiguration(ProjectExplorer::RunConfiguration *rc);
 
 private:
     friend class NokiaQtFrameworkFactory;
