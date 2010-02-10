@@ -40,30 +40,33 @@ class DebuggerManager;
 namespace Inspector {
 namespace Internal {
 
+class Instance;
+
 /**
   \brief Controls Creator's Debugger Manager (single instanced by default)
 */
 class SharedDebugger : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(bool available READ available NOTIFY availableChanged)
 
 public:
     SharedDebugger(QObject *parent = 0);
 
-    bool available() const;
+    bool acquirable() const;
+    void setInstance(Instance *);
     void callProbeFunction(const QString &name, const QVariantList &args);
 
 signals:
-    void availableChanged(bool);
+    void acquirableChanged(bool);
 
 private slots:
     void slotDmStateChanged(int);
 
 private:
-    void setAvailable(bool);
-    bool m_available;
+    void setRunning(bool);
     Debugger::DebuggerManager *m_debuggerManager;
+    Instance *m_instance;
+    bool m_running;
 };
 
 } // namespace Internal

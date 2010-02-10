@@ -32,8 +32,6 @@
 
 #include <extensionsystem/iplugin.h>
 
-class QAction;
-
 namespace Inspector {
 namespace Internal {
 
@@ -46,7 +44,8 @@ const char * const MODE_INSPECTOR   = "Probe";
 const int          P_MODE_INSPECTOR = 5;
 
 /**
-    \brief QtCreator plugin that exposes a framework for runtime probing
+    \brief QtCreator plugin for Runtime Inspection
+    See "Intuitive Modern Software Metrics: design and implementation" by Enrico Ros
 */
 class InspectorPlugin : public ExtensionSystem::IPlugin
 {
@@ -57,7 +56,11 @@ public:
     ~InspectorPlugin();
 
     static InspectorPlugin *pluginInstance();
-    SharedDebugger *sharedDebugger() const;
+
+    // shared debugger
+    bool debuggerAcquirable() const;
+    SharedDebugger *acquireDebugger(Instance *);
+    bool releaseDebugger();
 
     void addInstance(Instance *);
     //void removeInstance(Instance *);
@@ -65,6 +68,9 @@ public:
     // ::ExtensionSystem::IPlugin
     bool initialize(const QStringList &arguments, QString *error_message);
     void extensionsInitialized();
+
+signals:
+    void debuggerAcquirableChanged(bool);
 
 private slots:
     void slotSetPluginEnabled(bool enabled);

@@ -35,8 +35,9 @@ using namespace Debugger;
 
 SharedDebugger::SharedDebugger(QObject *parent)
   : QObject(parent)
-  , m_available(false)
   , m_debuggerManager(0)
+  , m_instance(0)
+  , m_running(false)
 {
     m_debuggerManager = DebuggerManager::instance();
     connect(m_debuggerManager, SIGNAL(stateChanged(int)), this, SLOT(slotDmStateChanged(int)));
@@ -45,9 +46,9 @@ SharedDebugger::SharedDebugger(QObject *parent)
     slotDmStateChanged(m_debuggerManager->state());
 }
 
-bool SharedDebugger::available() const
+bool SharedDebugger::acquirable() const
 {
-    return m_available;
+    return !m_running && !m_instance;
 }
 
 void SharedDebugger::callProbeFunction(const QString &name, const QVariantList &args)
@@ -59,7 +60,7 @@ void SharedDebugger::slotDmStateChanged(int state)
 {
     switch ((DebuggerState)state) {
     case DebuggerNotReady:
-        setAvailable(true);
+        setRunning(false);
         break;
     case EngineStarting:
     case AdapterStarting:
@@ -79,15 +80,29 @@ void SharedDebugger::slotDmStateChanged(int state)
     case InferiorShutDown:
     case InferiorShutdownFailed:
     case EngineShuttingDown:
-        setAvailable(false);
+        setRunning(true);
         break;
     }
 }
 
-void SharedDebugger::setAvailable(bool available)
+void SharedDebugger::setRunning(bool running)
 {
-    if (available != m_available) {
-        m_available = available;
-        emit availableChanged(m_available);
+    if (running != m_running) {
+        bool prev = acquirable();
+        m_running = running;
+        bool current = acquirable();
+        if (prev != current)
+            emit acquirableChanged(current);
+    }
+}
+
+void SharedDebugger::setInstance(Instance *instance)
+{
+    if (m_instance != instance) {
+        bool prev = acquirable();
+        m_instance = instance;
+        bool current = acquirable();
+        if (prev != current)
+            emit acquirableChanged(current);
     }
 }
