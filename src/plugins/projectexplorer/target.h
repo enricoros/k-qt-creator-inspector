@@ -159,4 +159,7 @@ signals:
 
 } // namespace ProjectExplorer
 
+// Allow a Target to be stored in a QVariant
+Q_DECLARE_METATYPE(ProjectExplorer::Target *)
+
 #endif // TARGET_H
