@@ -64,12 +64,12 @@ InspectorPlugin::InspectorPlugin()
 
 InspectorPlugin::~InspectorPlugin()
 {
-    // goodbye plugin
-    s_pluginInstance = 0;
-
     // delete instances
     qDeleteAll(m_instances);
     m_instances.clear();
+
+    // goodbye plugin
+    s_pluginInstance = 0;
 
     // delete the debugger
     delete m_sharedDebugger;
@@ -84,9 +84,25 @@ InspectorPlugin *InspectorPlugin::pluginInstance()
     return s_pluginInstance;
 }
 
-SharedDebugger *InspectorPlugin::sharedDebugger() const
+bool InspectorPlugin::debuggerAcquirable() const
 {
+    return m_sharedDebugger->acquirable();
+}
+
+SharedDebugger *InspectorPlugin::acquireDebugger(Instance *instance)
+{
+    if (!m_sharedDebugger->acquirable()) {
+        qWarning("InspectorPlugin::acquireDebugger: acquiring while taken or unavailable");
+        return 0;
+    }
+    m_sharedDebugger->setInstance(instance);
     return m_sharedDebugger;
+}
+
+bool InspectorPlugin::releaseDebugger()
+{
+    m_sharedDebugger->setInstance(0);
+    return true;
 }
 
 void InspectorPlugin::addInstance(Instance * instance)
@@ -123,9 +139,12 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     addAutoReleasedObject(new NvidiaCudaFrameworkFactory());
 
     m_sharedDebugger = new SharedDebugger;
+    connect(m_sharedDebugger, SIGNAL(acquirableChanged(bool)),
+            this, SIGNAL(debuggerAcquirableChanged(bool)));
 
     m_container = new InspectorContainer;
-    connect(m_container, SIGNAL(requestWindowDisplay()), this, SLOT(slotDisplayWindow()));
+    connect(m_container, SIGNAL(requestWindowDisplay()),
+            this, SLOT(slotDisplayWindow()));
 
     // create the Mode, that registers the widget too
     Core::BaseMode * inspectorMode = new Core::BaseMode;

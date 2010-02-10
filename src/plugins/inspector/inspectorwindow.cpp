@@ -151,9 +151,9 @@ InspectorWindow::InspectorWindow(QWidget *parent)
                             panel);
 
         // disable the panel while the debugger is running (should be done per-runconf)
-        SharedDebugger *sharedDebugger = InspectorPlugin::pluginInstance()->sharedDebugger();
-        connect(sharedDebugger, SIGNAL(availableChanged(bool)), panel, SLOT(setEnabled(bool)));
-        panel->setEnabled(sharedDebugger->available());
+        InspectorPlugin *ip = InspectorPlugin::pluginInstance();
+        connect(ip, SIGNAL(debuggerAcquirableChanged(bool)), panel, SLOT(setEnabled(bool)));
+        panel->setEnabled(ip->debuggerAcquirable());
     }
 
     // create the Active Targets widget
@@ -229,12 +229,16 @@ void InspectorWindow::newTarget(ProjectExplorer::RunConfiguration *rc, IFramewor
     }
 
     Instance *instance = new Instance(rc->displayName(), factory);
+    if (!instance->framework()) {
+        qWarning("InspectorPlugin::newTarget: no available framework. skipping");
+        delete instance;
+        return;
+    }
     if (!instance->framework()->startRunConfiguration(rc)) {
         qWarning("InspectorPlugin::newTarget: can't start the run configuration. skipping");
         delete instance;
         return;
     }
-
     InspectorPlugin::pluginInstance()->addInstance(instance);
 }
 

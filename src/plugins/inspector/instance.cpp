@@ -38,6 +38,8 @@ Instance::Instance(const QString &targetName, IFrameworkFactory *factory, QObjec
     m_instanceModel = new InstanceModel(targetName, factory->displayName());
     m_tasksModel = new TasksModel;
     m_framework = factory->createFramework(this);
+    if (!m_framework)
+        qWarning("Instance::Instance: framework not created, things will break now");
 }
 
 Instance::~Instance()

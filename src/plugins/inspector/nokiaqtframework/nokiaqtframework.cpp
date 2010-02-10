@@ -58,6 +58,7 @@ NokiaQtFramework::NokiaQtFramework(Instance *instance, SharedDebugger *sd, QObje
 
 NokiaQtFramework::~NokiaQtFramework()
 {
+    InspectorPlugin::pluginInstance()->releaseDebugger();
     delete m_commServer;
 }
 
@@ -111,12 +112,12 @@ void NokiaQtFrameworkFactory::configure()
 
 bool NokiaQtFrameworkFactory::available() const
 {
-    SharedDebugger *sharedDebugger = InspectorPlugin::pluginInstance()->sharedDebugger();
-    return sharedDebugger && sharedDebugger->available();
+    return InspectorPlugin::pluginInstance()->debuggerAcquirable();
 }
 
 IFramework *NokiaQtFrameworkFactory::createFramework(Instance *instance)
 {
-    SharedDebugger *sharedDebugger = InspectorPlugin::pluginInstance()->sharedDebugger();
-    return new NokiaQtFramework(instance, sharedDebugger);
+    if (SharedDebugger *sd = InspectorPlugin::pluginInstance()->acquireDebugger(instance))
+        return new NokiaQtFramework(instance, sd);
+    return 0;
 }
