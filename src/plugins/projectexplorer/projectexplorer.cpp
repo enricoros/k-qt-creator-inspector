@@ -1279,6 +1279,8 @@ void ProjectExplorerPlugin::executeRunConfiguration(RunConfiguration *runConfigu
 
 void ProjectExplorerPlugin::startRunControl(RunControl *runControl, const QString &runMode)
 {
+    emit aboutToStartRunControl(runControl);
+
     d->m_outputPane->createNewOutputWindow(runControl);
     if (runMode == ProjectExplorer::Constants::RUNMODE)
         d->m_outputPane->popup(false);

@@ -153,6 +153,8 @@ signals:
 
     void settingsChanged();
 
+    void aboutToStartRunControl(ProjectExplorer::RunControl *runControl);
+
 public slots:
     void setStartupProject(ProjectExplorer::Project *project = 0);
 

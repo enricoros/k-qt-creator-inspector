@@ -41,6 +41,7 @@ class QVBoxLayout;
 namespace ProjectExplorer {
 class Project;
 class RunConfiguration;
+class RunControl;
 class Target;
 }
 
@@ -71,8 +72,6 @@ signals:
     void requestDisplay();
 
 private slots:
-    void slotCreateTarget();
-
     void slotProjectChanged();
     void slotTargetChanged();
     void slotRunconfChanged();
@@ -81,6 +80,9 @@ private slots:
     void slotInstanceRemoved(Instance *);
 
     void slotCloseInstance(Instance*);
+
+    void slotLaunchTarget();
+    void slotAttachToRunControl(ProjectExplorer::RunControl *);
 
 private:
     QAbstractButton *newInspectButton(int id);
