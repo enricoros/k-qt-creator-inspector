@@ -32,6 +32,7 @@
 #include "inspectorplugin.h"
 #include "instance.h"
 #include "shareddebugger.h"
+#include "runcontrolwatcher.h"
 #include <extensionsystem/pluginmanager.h>
 #include <projectexplorer/projectexplorerconstants.h>
 #include <projectexplorer/projectexplorer.h>
@@ -57,8 +58,6 @@ const int ABOVE_HEADING_MARGIN(10);
 const int ABOVE_CONTENTS_MARGIN(4);
 const int BELOW_CONTENTS_MARGIN(16);
 const int LEFT_MARGIN(16);
-
-const int BUTTON_INSPECT_RUN = 0x0001;
 
 class OnePixelBlackLine : public QWidget
 {
@@ -95,6 +94,24 @@ InspectorWindow::InspectorWindow(QWidget *parent)
 
     InspectorPlugin *plugin = InspectorPlugin::pluginInstance();
 
+    // create the Active Targets widget
+    {
+        QWidget *widget = new QWidget;
+
+        m_instancesLayout = new QVBoxLayout;
+        m_instancesLayout->setContentsMargins(LEFT_MARGIN, ABOVE_CONTENTS_MARGIN, 0, 0);
+        m_instancesLayout->setSpacing(0);
+        widget->setLayout(m_instancesLayout);
+
+        m_noInstancesLabel = new QLabel;
+        m_noInstancesLabel->setText(tr("No Inspection"));
+        m_instancesLayout->addWidget(m_noInstancesLabel);
+
+        appendWrappedWidget(tr("Active Targets"),
+                            QIcon(":/inspector/images/inspector-icon-32.png"),
+                            widget);
+    }
+
     // create the New Local Target widget
     {
         QWidget *panel = new QWidget;
@@ -126,10 +143,15 @@ InspectorWindow::InspectorWindow(QWidget *parent)
          runLayout->addWidget(m_frameworksCombo);
          runLayout->addWidget(new QLabel(tr("framework")));
          runLayout->addStretch();
-        m_newRunButton = newInspectButton(BUTTON_INSPECT_RUN);
+        m_newRunButton = new QPushButton;
+        m_newRunButton->setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
+        m_newRunButton->setText(tr("Start"));
+        m_newRunButton->setIcon(QIcon(":/projectexplorer/images/run_small.png"));
+        connect(m_newRunButton, SIGNAL(clicked()),
+                this, SLOT(slotLaunchTarget()));
          runLayout->addWidget(m_newRunButton);
-        appendSubWidget(grid, runWidget, tr("Start"),
-                        tr("Start a new instance of the selected project."));
+        appendSubWidget(grid, runWidget, tr("Launch")/*,
+                        tr("Start a new instance of the selected project.")*/);
 
         slotProjectChanged();
         connect(m_projectsCombo, SIGNAL(currentProjectChanged()),
@@ -139,41 +161,22 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         connect(m_runconfsCombo, SIGNAL(currentRunconfChanged()),
                 this, SLOT(slotRunconfChanged()));
 
-        // TODO - attach to an existing run
-        QWidget *instWidget = new QLabel("running opts - *WIP*");
-        appendSubWidget(grid, instWidget, tr("Attach to Running"),
-                        tr("Attach to an existing process."));
-
-        // TODO - use an existing debugging session
-        QWidget *debugWidget = new QLabel("debugging opts - *WIP*");
-        appendSubWidget(grid, debugWidget, tr("Attach to Debugging"),
-                        tr("Use an existing debugging session."));
+        RunControlList *rcList = new RunControlList;
+        connect(rcList, SIGNAL(attachToRunControl(ProjectExplorer::RunControl*)),
+                this, SLOT(slotAttachToRunControl(ProjectExplorer::RunControl*)));
+        appendSubWidget(grid, rcList, tr("Connect to Running"));
 
         appendWrappedWidget(tr("New Local Target"),
-                            QIcon(":/inspector/images/inspector-icon-32.png"),
+                            QIcon(":/projectexplorer/images/session.png"),
                             panel);
 
-        // disable the panel while the debugger is running (should be done per-runconf)
-        connect(plugin, SIGNAL(debuggerAcquirableChanged(bool)), panel, SLOT(setEnabled(bool)));
-        panel->setEnabled(plugin->debuggerAcquirable());
-    }
-
-    // create the Active Targets widget
-    {
-        QWidget *widget = new QWidget;
-
-        m_instancesLayout = new QVBoxLayout;
-        m_instancesLayout->setContentsMargins(LEFT_MARGIN, ABOVE_CONTENTS_MARGIN, 0, 0);
-        m_instancesLayout->setSpacing(0);
-        widget->setLayout(m_instancesLayout);
-
-        m_noInstancesLabel = new QLabel;
-        m_noInstancesLabel->setText(tr("No Running Inspections"));
-        m_instancesLayout->addWidget(m_noInstancesLabel);
-
-        appendWrappedWidget(tr("Active Targets"),
-                            QIcon(":/projectexplorer/images/session.png"),
-                            widget);
+        // disable widgets while the debugger is running (should be done per-runconf)
+        connect(plugin, SIGNAL(debuggerAcquirableChanged(bool)),
+                runWidget, SLOT(setEnabled(bool)));
+        runWidget->setEnabled(plugin->debuggerAcquirable());
+        connect(plugin, SIGNAL(debuggerAcquirableChanged(bool)),
+                rcList, SLOT(setButtonsEnabled(bool)));
+        rcList->setButtonsEnabled(plugin->debuggerAcquirable());
     }
 
     // create the Configure Frameworks widget
@@ -249,23 +252,6 @@ void InspectorWindow::newTarget(ProjectExplorer::RunConfiguration *rc, IFramewor
     InspectorPlugin::pluginInstance()->addInstance(instance);
 }
 
-void InspectorWindow::slotCreateTarget()
-{
-    int id = static_cast<QToolButton *>(sender())->property("id").toInt();
-    switch (id) {
-    case BUTTON_INSPECT_RUN:
-        if (ProjectExplorer::RunConfiguration *rc = m_runconfsCombo->currentRunConfiguration()) {
-            if (IFrameworkFactory *factory = m_frameworksCombo->currentFactory()) {
-                newTarget(rc, factory);
-            }
-        }
-        break;
-    default:
-        qWarning("InspectorWindow::slotNewTarget: unhandled button %d", id);
-        return;
-    }
-}
-
 void InspectorWindow::slotProjectChanged()
 {
     ProjectExplorer::Project *project = m_projectsCombo->currentProject();
@@ -328,15 +314,19 @@ void InspectorWindow::slotCloseInstance(Instance *instance)
     InspectorPlugin::pluginInstance()->deleteInstance(instance);
 }
 
-QAbstractButton *InspectorWindow::newInspectButton(int id)
+void InspectorWindow::slotLaunchTarget()
 {
-    QPushButton *b = new QPushButton;
-    b->setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
-    b->setText(tr("Start"));
-    b->setIcon(QIcon(":/projectexplorer/images/run_small.png"));
-    b->setProperty("id", id);
-    connect(b, SIGNAL(clicked()), this, SLOT(slotCreateTarget()));
-    return b;
+    if (ProjectExplorer::RunConfiguration *rc = m_runconfsCombo->currentRunConfiguration()) {
+        if (IFrameworkFactory *factory = m_frameworksCombo->currentFactory()) {
+            newTarget(rc, factory);
+        }
+    }
+}
+
+void InspectorWindow::slotAttachToRunControl(ProjectExplorer::RunControl *rc)
+{
+    Q_UNUSED(rc);
+    qWarning("InspectorWindow::slotAttachToRunControl: TODO - NOT IMPLEMENTED");
 }
 
 // keep this in sync with PanelsWidget::addPropertiesPanel in projectwindow.cpp

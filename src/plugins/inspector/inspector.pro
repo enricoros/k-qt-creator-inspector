@@ -21,6 +21,7 @@ HEADERS += \
     inspectorwindow.h \
     panelcontainerwidget.h \
     plotgrid.h \
+    runcontrolwatcher.h \
     shareddebugger.h \
     singletabwidget.h \
     statusbarwidget.h \
@@ -42,6 +43,7 @@ SOURCES += \
     inspectorwindow.cpp \
     panelcontainerwidget.cpp \
     plotgrid.cpp \
+    runcontrolwatcher.cpp \
     shareddebugger.cpp \
     singletabwidget.cpp \
     statusbarwidget.cpp \
