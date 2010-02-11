@@ -67,4 +67,7 @@ private:
 } // namespace Internal
 } // namespace Inspector
 
+// Allow a Target to be stored in a QVariant
+Q_DECLARE_METATYPE(Inspector::Internal::Instance *)
+
 #endif // INSTANCE_H

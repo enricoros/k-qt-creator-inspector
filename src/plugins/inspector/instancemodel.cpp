@@ -37,7 +37,7 @@ using namespace Inspector::Internal;
 Row 'InstanceStatus_Row': Instance Status
   0: targetName             string
   1: frameworkName          string
-  2: unused
+  2: monotonicId            int
   3: enabled                ###remove?
   4: af: debug paint        ###move?
 
@@ -69,6 +69,8 @@ InstanceModel::InstanceModel(const QString &targetName, const QString &framework
     // init model
     setItemValue(InstanceStatus_Row, 0, targetName);
     setItemValue(InstanceStatus_Row, 1, frameworkName);
+    static int s_monotonicId = 0;
+    setItemValue(InstanceStatus_Row, 2, (++s_monotonicId));
     setItemValue(InstanceStatus_Row, 3, true);
     setItemValue(InstanceStatus_Row, 4, false);
     setItemValue(ProbeStatus_Row, 0, QString());
@@ -81,7 +83,7 @@ InstanceModel::InstanceModel(const QString &targetName, const QString &framework
     setItemValue(ProbeStatus_Row, 7, -1);
 }
 
-QString InstanceModel::prettyName() const
+QString InstanceModel::displayName() const
 {
     return tr("%1 [%2 framework]").arg(targetName()).arg(frameworkName());
 }
@@ -94,6 +96,11 @@ QString InstanceModel::targetName() const
 QString InstanceModel::frameworkName() const
 {
     return itemValue(InstanceStatus_Row, 1).toString();
+}
+
+int InstanceModel::monotonicId() const
+{
+    return itemValue(InstanceStatus_Row, 2).toInt();
 }
 
 bool InstanceModel::debugPaint() const

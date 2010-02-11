@@ -57,23 +57,18 @@ QSize SingleTabWidget::minimumSizeHint() const
 void SingleTabWidget::addTab(const QString &name)
 {
     m_tabs.append(name);
-    if (m_currentIndex == -1) {
-        m_currentIndex = m_tabs.size()-1;
-        emit currentIndexChanged(m_currentIndex);
-    }
+    if (m_currentIndex == -1)
+        setCurrentIndex(m_tabs.size() - 1);
     update();
 }
 
 void SingleTabWidget::insertTab(int index, const QString &name)
 {
     m_tabs.insert(index, name);
-    if (m_currentIndex == -1) {
-        m_currentIndex = m_tabs.size()-1;
-        emit currentIndexChanged(m_currentIndex);
-    } else if (m_currentIndex >= index) {
-        ++m_currentIndex;
-        emit currentIndexChanged(m_currentIndex);
-    }
+    if (m_currentIndex == -1)
+        setCurrentIndex(m_tabs.size() - 1);
+    else if (m_currentIndex >= index)
+        setCurrentIndex(m_currentIndex + 1);
     update();
 }
 
@@ -84,11 +79,10 @@ void SingleTabWidget::removeTab(int index)
         --m_currentIndex;
         if (m_currentIndex < 0 && m_tabs.size() > 0)
             m_currentIndex = 0;
-        if (m_currentIndex < 0) {
+        if (m_currentIndex < 0)
             emit currentIndexChanged(-1);
-        } else {
+        else
             emit currentIndexChanged(m_currentIndex);
-        }
     }
     update();
 }
@@ -96,6 +90,15 @@ void SingleTabWidget::removeTab(int index)
 int SingleTabWidget::tabCount() const
 {
     return m_tabs.size();
+}
+
+void SingleTabWidget::setCurrentIndex(int newIndex)
+{
+    if (newIndex != m_currentIndex) {
+        m_currentIndex = newIndex;
+        update();
+        emit currentIndexChanged(m_currentIndex);
+    }
 }
 
 void SingleTabWidget::mousePressEvent(QMouseEvent *event)
@@ -115,11 +118,8 @@ void SingleTabWidget::mousePressEvent(QMouseEvent *event)
         x = otherX;
     }
     if (i <= m_lastVisibleIndex) {
-        if (m_currentIndex != m_currentTabIndices.at(i)) {
-            m_currentIndex = m_currentTabIndices.at(i);
-            update();
-            emit currentIndexChanged(m_currentIndex);
-        }
+        if (m_currentIndex != m_currentTabIndices.at(i))
+            setCurrentIndex(m_currentTabIndices.at(i));
         event->accept();
         return;
     } else if (m_lastVisibleIndex < m_tabs.size() - 1) {
@@ -132,11 +132,7 @@ void SingleTabWidget::mousePressEvent(QMouseEvent *event)
             }
             if (QAction *action = overflowMenu.exec(mapToGlobal(QPoint(x+1, 1)))) {
                 int index = m_currentTabIndices.at(actions.indexOf(action) + m_lastVisibleIndex + 1);
-                if (m_currentIndex != index) {
-                    m_currentIndex = index;
-                    update();
-                    emit currentIndexChanged(m_currentIndex);
-                }
+                setCurrentIndex(index);
             }
         }
     }

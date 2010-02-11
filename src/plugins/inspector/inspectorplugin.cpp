@@ -65,8 +65,8 @@ InspectorPlugin::InspectorPlugin()
 InspectorPlugin::~InspectorPlugin()
 {
     // delete instances
-    qDeleteAll(m_instances);
-    m_instances.clear();
+    while (!m_instances.isEmpty())
+        deleteInstance(m_instances.last());
 
     // goodbye plugin
     s_pluginInstance = 0;
@@ -105,6 +105,11 @@ bool InspectorPlugin::releaseDebugger()
     return true;
 }
 
+QList<Instance *> InspectorPlugin::instances() const
+{
+    return m_instances;
+}
+
 void InspectorPlugin::addInstance(Instance * instance)
 {
     if (m_instances.contains(instance)) {
@@ -114,14 +119,21 @@ void InspectorPlugin::addInstance(Instance * instance)
 
     instance->instanceModel()->setInstanceEnabled(m_pluginEnabled);
     m_instances.append(instance);
-    m_container->addInstance(instance);
+    emit instanceAdded(instance);
 }
-/*
-void InspectorPlugin::removeInstance(Instance * instance)
+
+void InspectorPlugin::deleteInstance(Instance * instance)
 {
-    ...
+    if (!m_instances.contains(instance)) {
+        qWarning("InspectorPlugin::deleteInstance: instance is not present");
+        return;
+    }
+
+    m_instances.removeAll(instance);
+    emit instanceRemoved(instance);
+    instance->deleteLater();
 }
-*/
+
 bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_message)
 {
     Q_UNUSED(error_message)

@@ -36,6 +36,7 @@
 class QAbstractButton;
 class QGridLayout;
 class QLabel;
+class QVBoxLayout;
 
 namespace ProjectExplorer {
 class Project;
@@ -47,6 +48,7 @@ namespace Inspector {
 namespace Internal {
 
 class IFrameworkFactory;
+class Instance;
 class FrameworksComboBox;
 class ProjectsComboBox;
 class RunconfComboBox;
@@ -75,6 +77,11 @@ private slots:
     void slotTargetChanged();
     void slotRunconfChanged();
 
+    void slotInstanceAdded(Instance *);
+    void slotInstanceRemoved(Instance *);
+
+    void slotCloseInstance(Instance*);
+
 private:
     QAbstractButton *newInspectButton(int id);
     void appendWrappedWidget(const QString &title, const QIcon &icon, QWidget *widget);
@@ -84,12 +91,19 @@ private:
     QWidget *m_root;
     QGridLayout *m_layout;
 
+    // new run
     ProjectsComboBox *m_projectsCombo;
     QLabel *m_runconfLabel;
     TargetsComboBox *m_targetsCombo;
     RunconfComboBox *m_runconfsCombo;
     FrameworksComboBox *m_frameworksCombo;
     QAbstractButton *m_newRunButton;
+
+    // running Instances
+    QLabel *m_noInstancesLabel;
+    QVBoxLayout *m_instancesLayout;
+    QList<Instance *> m_instances;
+    QList<QWidget *> m_instanceWidgets;
 };
 
 /**
@@ -184,6 +198,26 @@ public:
 
 signals:
     void currentFrameworkChanged();
+};
+
+/**
+  \brief Shows compact information about an Instance
+*/
+class RunningInstanceWidget : public QWidget
+{
+    Q_OBJECT
+
+public:
+    RunningInstanceWidget(Instance *, QWidget *parent = 0);
+
+signals:
+    void closeInstance(Instance *);
+
+private slots:
+    void slotRemoveClicked();
+
+private:
+    Instance *m_instance;
 };
 
 } // namespace Internal

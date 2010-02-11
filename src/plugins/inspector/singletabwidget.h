@@ -21,6 +21,8 @@ public:
     void removeTab(int index);
     int tabCount() const;
 
+    void setCurrentIndex(int index);
+
 signals:
     void currentIndexChanged(int index);
 

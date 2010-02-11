@@ -30,6 +30,7 @@
 #ifndef INSPECTORPLUGIN_H
 #define INSPECTORPLUGIN_H
 
+#include <QtCore/QList>
 #include <extensionsystem/iplugin.h>
 
 namespace Inspector {
@@ -62,8 +63,9 @@ public:
     SharedDebugger *acquireDebugger(Instance *);
     bool releaseDebugger();
 
+    QList<Instance *> instances() const;
     void addInstance(Instance *);
-    //void removeInstance(Instance *);
+    void deleteInstance(Instance *);
 
     // ::ExtensionSystem::IPlugin
     bool initialize(const QStringList &arguments, QString *error_message);
@@ -71,6 +73,8 @@ public:
 
 signals:
     void debuggerAcquirableChanged(bool);
+    void instanceAdded(Instance *);
+    void instanceRemoved(Instance *);
 
 private slots:
     void slotSetPluginEnabled(bool enabled);
