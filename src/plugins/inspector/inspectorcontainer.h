@@ -49,12 +49,13 @@ class InspectorContainer : public QWidget
 public:
     InspectorContainer(QWidget *parent = 0);
 
-    void addInstance(Instance *instance);
-
 signals:
     void requestWindowDisplay();
 
 private slots:
+    void slotInstanceAdded(Instance *);
+    void slotInstanceRemoved(Instance *);
+
     void slotDisplayInspectorWindow();
     void slotDisplayTargetWindow();
 

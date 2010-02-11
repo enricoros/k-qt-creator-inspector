@@ -45,6 +45,7 @@ class NvidiaCudaFramework : public IFramework
 public:
     // ::IFramework
     int infoModuleUid() const { return 0; }
+    bool startRunConfiguration(ProjectExplorer::RunConfiguration *rc);
 
 private:
     friend class NvidiaCudaFrameworkFactory;

@@ -47,9 +47,10 @@ public:
     enum { InstanceStatus_Row = 0, ProbeStatus_Row = 1, CommServer_Row = 2 };
 
     // instance status
-    QString prettyName() const;
+    QString displayName() const;
     QString targetName() const;
     QString frameworkName() const;
+    int monotonicId() const;
     bool debugPaint() const;
     bool instanceEnabled() const;
 

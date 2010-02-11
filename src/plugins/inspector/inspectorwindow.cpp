@@ -1,4 +1,4 @@
-/**************************************************************************
+/*************************************************************************
 **
 ** This file is part of Qt Creator
 **
@@ -93,6 +93,8 @@ InspectorWindow::InspectorWindow(QWidget *parent)
     setFrameStyle(QFrame::NoFrame);
     setWidgetResizable(true);
 
+    InspectorPlugin *plugin = InspectorPlugin::pluginInstance();
+
     // create the New Local Target widget
     {
         QWidget *panel = new QWidget;
@@ -109,6 +111,7 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         // run a new Instance (TODO: turn this into a parser of "Inspect %1 running %2 with %3")
         QWidget *runWidget = new QWidget;
         QHBoxLayout *runLayout = new QHBoxLayout(runWidget);
+         runLayout->setMargin(0);
          runLayout->addWidget(new QLabel(tr("Inspect")));
         m_projectsCombo = new ProjectsComboBox;
          runLayout->addWidget(m_projectsCombo);
@@ -125,7 +128,7 @@ InspectorWindow::InspectorWindow(QWidget *parent)
          runLayout->addStretch();
         m_newRunButton = newInspectButton(BUTTON_INSPECT_RUN);
          runLayout->addWidget(m_newRunButton);
-        appendSubWidget(grid, runWidget, tr("Run"),
+        appendSubWidget(grid, runWidget, tr("Start"),
                         tr("Start a new instance of the selected project."));
 
         slotProjectChanged();
@@ -138,12 +141,12 @@ InspectorWindow::InspectorWindow(QWidget *parent)
 
         // TODO - attach to an existing run
         QWidget *instWidget = new QLabel("running opts - *WIP*");
-        appendSubWidget(grid, instWidget, tr("Running Instances"),
+        appendSubWidget(grid, instWidget, tr("Attach to Running"),
                         tr("Attach to an existing process."));
 
         // TODO - use an existing debugging session
         QWidget *debugWidget = new QLabel("debugging opts - *WIP*");
-        appendSubWidget(grid, debugWidget, tr("Debugging Instances"),
+        appendSubWidget(grid, debugWidget, tr("Attach to Debugging"),
                         tr("Use an existing debugging session."));
 
         appendWrappedWidget(tr("New Local Target"),
@@ -151,30 +154,25 @@ InspectorWindow::InspectorWindow(QWidget *parent)
                             panel);
 
         // disable the panel while the debugger is running (should be done per-runconf)
-        InspectorPlugin *ip = InspectorPlugin::pluginInstance();
-        connect(ip, SIGNAL(debuggerAcquirableChanged(bool)), panel, SLOT(setEnabled(bool)));
-        panel->setEnabled(ip->debuggerAcquirable());
+        connect(plugin, SIGNAL(debuggerAcquirableChanged(bool)), panel, SLOT(setEnabled(bool)));
+        panel->setEnabled(plugin->debuggerAcquirable());
     }
 
     // create the Active Targets widget
     {
         QWidget *widget = new QWidget;
-        QGridLayout *grid = new QGridLayout(widget);
-        grid->setMargin(0);
-        grid->setSpacing(0);
-        grid->setColumnMinimumWidth(0, LEFT_MARGIN);
 
-        // TODO
-        QTableWidget *tw = new QTableWidget;
-        tw->setRowCount(1);
-        tw->setColumnCount(4);
-        tw->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
-        tw->setFrameStyle(QFrame::NoFrame);
-        tw->setFixedHeight(50);
-        appendSubWidget(grid, tw);
+        m_instancesLayout = new QVBoxLayout;
+        m_instancesLayout->setContentsMargins(LEFT_MARGIN, ABOVE_CONTENTS_MARGIN, 0, 0);
+        m_instancesLayout->setSpacing(0);
+        widget->setLayout(m_instancesLayout);
+
+        m_noInstancesLabel = new QLabel;
+        m_noInstancesLabel->setText(tr("No Running Inspections"));
+        m_instancesLayout->addWidget(m_noInstancesLabel);
 
         appendWrappedWidget(tr("Active Targets"),
-                            QIcon(":/projectexplorer/images/rebuild.png"),
+                            QIcon(":/projectexplorer/images/session.png"),
                             widget);
     }
 
@@ -206,7 +204,7 @@ InspectorWindow::InspectorWindow(QWidget *parent)
             rowLay->addWidget(modulesLabel);
 
             QToolButton *btn = new QToolButton;
-            btn->setIcon(QIcon(":/projectexplorer/images/rebuild.png"));
+            btn->setIcon(QIcon(":/projectexplorer/images/rebuild_small.png"));
             if (factory->isConfigurable())
                 connect(btn, SIGNAL(clicked()), factory, SLOT(configure()));
             else
@@ -216,8 +214,17 @@ InspectorWindow::InspectorWindow(QWidget *parent)
             appendSubWidget(grid, rowWidget, factory->displayName());
         }
 
-        appendWrappedWidget(tr("Configure Frameworks"), QIcon(), widget);
+        appendWrappedWidget(tr("Configure Frameworks"),
+                            QIcon(":/projectexplorer/images/rebuild_small.png"),
+                            widget);
     }
+
+    foreach (Instance *instance, plugin->instances())
+        slotInstanceAdded(instance);
+    connect(plugin, SIGNAL(instanceAdded(Instance*)),
+            this, SLOT(slotInstanceAdded(Instance*)));
+    connect(plugin, SIGNAL(instanceRemoved(Instance*)),
+            this, SLOT(slotInstanceRemoved(Instance*)));
 }
 
 void InspectorWindow::newTarget(ProjectExplorer::RunConfiguration *rc, IFrameworkFactory *factory)
@@ -257,7 +264,6 @@ void InspectorWindow::slotCreateTarget()
         qWarning("InspectorWindow::slotNewTarget: unhandled button %d", id);
         return;
     }
-    emit requestDisplay();
 }
 
 void InspectorWindow::slotProjectChanged()
@@ -283,12 +289,51 @@ void InspectorWindow::slotRunconfChanged()
     m_newRunButton->setEnabled(runconf);
 }
 
+void InspectorWindow::slotInstanceAdded(Instance *instance)
+{
+    // create the RunningInstanceWidget
+    m_instances.append(instance);
+    RunningInstanceWidget *r = new RunningInstanceWidget(instance);
+    connect(r, SIGNAL(closeInstance(Instance*)),
+            this, SLOT(slotCloseInstance(Instance*)));
+    m_instanceWidgets.append(r);
+    m_instancesLayout->addWidget(r);
+
+    // hide a label if have instances
+    if (!m_instances.isEmpty())
+        m_noInstancesLabel->hide();
+}
+
+void InspectorWindow::slotInstanceRemoved(Instance *removedInstance)
+{
+    // remove the RunningInstanceWidget
+    int index = 0;
+    foreach (Instance *instance, m_instances) {
+        if (instance == removedInstance) {
+            m_instances.removeAt(index);
+            QWidget *iWidget = m_instanceWidgets.takeAt(index);
+            m_instancesLayout->removeWidget(iWidget);
+            iWidget->deleteLater();
+            break;
+        }
+    }
+
+    // show a label if no instances
+    if (m_instances.isEmpty())
+        m_noInstancesLabel->show();
+}
+
+void InspectorWindow::slotCloseInstance(Instance *instance)
+{
+    InspectorPlugin::pluginInstance()->deleteInstance(instance);
+}
+
 QAbstractButton *InspectorWindow::newInspectButton(int id)
 {
     QPushButton *b = new QPushButton;
     b->setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
     b->setText(tr("Start"));
-    b->setIcon(QIcon(":/projectexplorer/images/run.png"));
+    b->setIcon(QIcon(":/projectexplorer/images/run_small.png"));
     b->setProperty("id", id);
     connect(b, SIGNAL(clicked()), this, SLOT(slotCreateTarget()));
     return b;
@@ -333,7 +378,7 @@ void InspectorWindow::appendWrappedWidget(const QString &title, const QIcon &ico
 
     // stretch:
     const int stretchRow(widgetRow + 1);
-    m_layout->setRowStretch(stretchRow, 10);
+    m_layout->setRowStretch(stretchRow, ABOVE_HEADING_MARGIN);
 }
 
 void InspectorWindow::appendSubWidget(QGridLayout *layout, QWidget *widget,
@@ -347,7 +392,7 @@ void InspectorWindow::appendSubWidget(QGridLayout *layout, QWidget *widget,
         f.setBold(true);
         f.setPointSizeF(f.pointSizeF() * 1.2);
         label->setFont(f);
-        label->setContentsMargins(0, 10, 0, 0);
+        label->setContentsMargins(0, ABOVE_HEADING_MARGIN, 0, 0);
 
         layout->addWidget(label, insertionRow, 0, 1, 2);
         layout->setRowStretch(insertionRow, 0);
@@ -367,7 +412,7 @@ void InspectorWindow::appendSubWidget(QGridLayout *layout, QWidget *widget,
         }
 
         if (widget) {
-            widget->setContentsMargins(0, 10, 0, 0);
+            widget->setContentsMargins(0, ABOVE_HEADING_MARGIN, 0, 0);
             layout->addWidget(widget, insertionRow, 1, 1, 1);
         }
     } else if (widget)
@@ -598,6 +643,41 @@ IFrameworkFactory *FrameworksComboBox::currentFactory() const
 QList<IFrameworkFactory *> FrameworksComboBox::allFactories()
 {
     return ExtensionSystem::PluginManager::instance()->getObjects<IFrameworkFactory>();
+}
+
+//
+// RunningInstanceWidget
+//
+RunningInstanceWidget::RunningInstanceWidget(Instance *instance, QWidget *parent)
+  : QWidget(parent)
+  , m_instance(instance)
+{
+    QHBoxLayout *lay = new QHBoxLayout(this);
+    lay->setMargin(0);
+
+    QLabel *label1 = new QLabel;
+    label1->setText(instance->instanceModel()->displayName());
+    lay->addWidget(label1);
+
+    lay->addStretch(10);
+
+    QLabel *label2 = new QLabel;
+    label2->setText(tr("#%1").arg(instance->instanceModel()->monotonicId()));
+    lay->addWidget(label2);
+
+    lay->addStretch(100);
+
+    QPushButton *b = new QPushButton;
+    b->setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
+    b->setText(tr("Stop"));
+    b->setIcon(QIcon(":/projectexplorer/images/stop.png"));
+    connect(b, SIGNAL(clicked()), this, SLOT(slotRemoveClicked()));
+    lay->addWidget(b);
+}
+
+void RunningInstanceWidget::slotRemoveClicked()
+{
+    emit closeInstance(m_instance);
 }
 
 } // namespace Internal

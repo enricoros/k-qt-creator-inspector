@@ -29,6 +29,7 @@
 
 #include "inspectorcontainer.h"
 #include "instance.h"
+#include "inspectorplugin.h"
 #include "inspectorwindow.h"
 #include "singletabwidget.h"
 #include "targetwindow.h"
@@ -61,9 +62,17 @@ InspectorContainer::InspectorContainer(QWidget *parent)
 
     connect(m_inspectorWindow, SIGNAL(requestDisplay()),
             this, SLOT(slotDisplayInspectorWindow()));
+
+    InspectorPlugin *plugin = InspectorPlugin::pluginInstance();
+    foreach (Instance *instance, plugin->instances())
+        slotInstanceAdded(instance);
+    connect(plugin, SIGNAL(instanceAdded(Instance*)),
+            this, SLOT(slotInstanceAdded(Instance*)));
+    connect(plugin, SIGNAL(instanceRemoved(Instance*)),
+            this, SLOT(slotInstanceRemoved(Instance*)));
 }
 
-void InspectorContainer::addInstance(Instance *instance)
+void InspectorContainer::slotInstanceAdded(Instance *instance)
 {
     // if already present, just show it
     foreach (TargetWindow *target, m_targets) {
@@ -73,18 +82,41 @@ void InspectorContainer::addInstance(Instance *instance)
         }
     }
 
-    // create a new widget
+    // create a new TargetWindow
     TargetWindow *targetWindow = new TargetWindow(instance);
-    connect(targetWindow, SIGNAL(requestTargetDisplay()), this, SLOT(slotDisplayTargetWindow()));
-    m_topbarWidget->addTab(instance->instanceModel()->prettyName());
+    connect(targetWindow, SIGNAL(requestTargetDisplay()),
+            this, SLOT(slotDisplayTargetWindow()));
     m_centralWidget->addWidget(targetWindow);
+    m_topbarWidget->addTab(instance->instanceModel()->displayName());
+    m_targets.append(targetWindow);
+
+    // switch to that
+    m_topbarWidget->setCurrentIndex(m_topbarWidget->tabCount() - 1);
+
+    // enforce re-display because the debugger window steals
+    // the focus here
+    slotDisplayTargetWindow();
+}
+
+void InspectorContainer::slotInstanceRemoved(Instance *instance)
+{
+    // remove all the widgetry associated to the instance
+    int tabIndex = 1;   // 0 is the 'Workbench' label
+    foreach (TargetWindow *targetWindow, m_targets) {
+        if (targetWindow->targetInstance() == instance) {
+            m_targets.removeAll(targetWindow);
+            disconnect(targetWindow, 0, this, 0);
+            m_centralWidget->removeWidget(targetWindow);
+            targetWindow->deleteLater();
+            m_topbarWidget->removeTab(tabIndex);
+            return;
+        }
+        ++tabIndex;
+    }
 }
 
 void InspectorContainer::slotDisplayInspectorWindow()
 {
-    // switch to the inspector window
-    m_centralWidget->setCurrentWidget(m_inspectorWindow);
-
     // show myself
     emit requestWindowDisplay();
 }

@@ -40,6 +40,13 @@ NvidiaCudaFramework::NvidiaCudaFramework(Instance *instance, QObject *parent)
     //addModule(0);
 }
 
+bool NvidiaCudaFramework::startRunConfiguration(ProjectExplorer::RunConfiguration *rc)
+{
+    Q_UNUSED(rc);
+    qWarning("NvidiaCudaFramework::startRunConfiguration: TODO");
+    return true;
+}
+
 //
 // NvidiaCudaFrameworkFactory
 //

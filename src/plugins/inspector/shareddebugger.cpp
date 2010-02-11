@@ -105,4 +105,8 @@ void SharedDebugger::setInstance(Instance *instance)
         if (prev != current)
             emit acquirableChanged(current);
     }
+
+    // shut down debugger when released
+    if (!instance && m_running)
+        m_debuggerManager->exitDebugger();
 }
