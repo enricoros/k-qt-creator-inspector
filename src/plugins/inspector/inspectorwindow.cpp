@@ -112,7 +112,7 @@ InspectorWindow::InspectorWindow(QWidget *parent)
                             widget);
     }
 
-    // 2. create the New Local Target widget
+    // 2. create the New Target widget
     {
         QWidget *panel = new QWidget;
         QGridLayout *grid = new QGridLayout(panel);
@@ -193,7 +193,7 @@ InspectorWindow::InspectorWindow(QWidget *parent)
 
         appendSubWidget(grid, attWidget, tr("Connect to Running"));
 
-        appendWrappedWidget(tr("New Local Target"),
+        appendWrappedWidget(tr("New Target"),
                             QIcon(":/projectexplorer/images/session.png"),
                             panel);
 
@@ -247,6 +247,15 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         appendWrappedWidget(tr("Configure Frameworks"),
                             QIcon(":/projectexplorer/images/rebuild_small.png"),
                             widget);
+    }
+
+    // temp strings
+    {
+        QLabel *tempLabel = new QLabel;
+        tempLabel->setText(tr("Setup  >  Data collection  >  Data preparation  >  Data mining  >  Interpretation  >  Application  >  Institutional decision"));
+        appendWrappedWidget(tr("Profiling Process Workflow"),
+                            QIcon(),
+                            tempLabel);
     }
 
     foreach (Instance *instance, plugin->instances())
