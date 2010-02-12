@@ -82,6 +82,8 @@ private slots:
     void slotCloseInstance(Instance*);
 
     void slotLaunchTarget();
+    void slotLaunchAttach();
+
     void slotAttachPidSelected(quint64 pid);
     void slotRunControlSelected(ProjectExplorer::RunControl *);
 
@@ -101,6 +103,11 @@ private:
     RunconfComboBox *m_runconfsCombo;
     FrameworksComboBox *m_frameworksCombo;
     QAbstractButton *m_newRunButton;
+
+    // attach to running
+    QWidget *m_attContainer;
+    FrameworksComboBox *m_attFrameworks;
+    QAbstractButton *m_attButton;
 
     // running Instances
     QLabel *m_noInstancesLabel;
