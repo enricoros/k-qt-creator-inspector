@@ -94,7 +94,7 @@ InspectorWindow::InspectorWindow(QWidget *parent)
 
     InspectorPlugin *plugin = InspectorPlugin::pluginInstance();
 
-    // create the Active Targets widget
+    // 1. create the Active Targets widget
     {
         QWidget *widget = new QWidget;
 
@@ -112,7 +112,7 @@ InspectorWindow::InspectorWindow(QWidget *parent)
                             widget);
     }
 
-    // create the New Local Target widget
+    // 2. create the New Local Target widget
     {
         QWidget *panel = new QWidget;
         QGridLayout *grid = new QGridLayout(panel);
@@ -125,7 +125,7 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         desc->setWordWrap(true);
         appendSubWidget(grid, desc);*/
 
-        // run a new Instance (TODO: turn this into a parser of "Inspect %1 running %2 with %3")
+        // 2.1 run a new Instance (TODO: turn this into a parser of "Inspect %1 running %2 with %3")
         QWidget *runWidget = new QWidget;
         QHBoxLayout *runLayout = new QHBoxLayout(runWidget);
          runLayout->setMargin(0);
@@ -161,12 +161,37 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         connect(m_runconfsCombo, SIGNAL(currentRunconfChanged()),
                 this, SLOT(slotRunconfChanged()));
 
+        // 2.2 attach to an existing instance
+        QWidget *attWidget = new QWidget;
+        QVBoxLayout *attLayout = new QVBoxLayout(attWidget);
+         attLayout->setMargin(0);
+
         RunControlList *rcList = new RunControlList;
         connect(rcList, SIGNAL(runControlSelected(ProjectExplorer::RunControl*)),
                 this, SLOT(slotRunControlSelected(ProjectExplorer::RunControl*)));
         connect(rcList, SIGNAL(attachPidSelected(quint64)),
                 this, SLOT(slotAttachPidSelected(quint64)));
-        appendSubWidget(grid, rcList, tr("Connect to Running"));
+         attLayout->addWidget(rcList);
+
+        m_attContainer = new QWidget;
+        m_attContainer->setEnabled(false);
+        QHBoxLayout *acLayout = new QHBoxLayout(m_attContainer);
+         acLayout->setMargin(0);
+         acLayout->addWidget(new QLabel(tr("Inspect with")));
+        m_attFrameworks = new FrameworksComboBox;
+         acLayout->addWidget(m_attFrameworks);
+         acLayout->addWidget(new QLabel(tr("framework")));
+         acLayout->addStretch();
+        m_attButton = new QPushButton;
+        m_attButton->setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
+        m_attButton->setText(tr("Start"));
+        m_attButton->setIcon(QIcon(":/projectexplorer/images/run_small.png"));
+        connect(m_attButton, SIGNAL(clicked()),
+                 this, SLOT(slotLaunchAttach()));
+         acLayout->addWidget(m_attButton);
+         attLayout->addWidget(m_attContainer);
+
+        appendSubWidget(grid, attWidget, tr("Connect to Running"));
 
         appendWrappedWidget(tr("New Local Target"),
                             QIcon(":/projectexplorer/images/session.png"),
@@ -176,6 +201,9 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         connect(plugin, SIGNAL(debuggerAcquirableChanged(bool)),
                 runWidget, SLOT(setEnabled(bool)));
         runWidget->setEnabled(plugin->debuggerAcquirable());
+        connect(plugin, SIGNAL(debuggerAcquirableChanged(bool)),
+                rcList, SLOT(setEnabled(bool)));
+        rcList->setEnabled(plugin->debuggerAcquirable());
     }
 
     // create the Configure Frameworks widget
@@ -344,15 +372,20 @@ void InspectorWindow::slotLaunchTarget()
     }
 }
 
+void InspectorWindow::slotLaunchAttach()
+{
+    qWarning("InspectorWindow::slotLaunchAttach: TODO - NOT IMPLEMENTED");
+}
+
 void InspectorWindow::slotAttachPidSelected(quint64 pid)
 {
-    // ###
+    m_attContainer->setEnabled(true);
 }
 
 void InspectorWindow::slotRunControlSelected(ProjectExplorer::RunControl *rc)
 {
     Q_UNUSED(rc);
-    qWarning("InspectorWindow::slotAttachToRunControl: TODO - NOT IMPLEMENTED");
+    m_attContainer->setEnabled(false);
 }
 
 // keep this in sync with PanelsWidget::addPropertiesPanel in projectwindow.cpp
