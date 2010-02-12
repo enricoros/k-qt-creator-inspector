@@ -162,8 +162,10 @@ InspectorWindow::InspectorWindow(QWidget *parent)
                 this, SLOT(slotRunconfChanged()));
 
         RunControlList *rcList = new RunControlList;
-        connect(rcList, SIGNAL(attachToRunControl(ProjectExplorer::RunControl*)),
-                this, SLOT(slotAttachToRunControl(ProjectExplorer::RunControl*)));
+        connect(rcList, SIGNAL(runControlSelected(ProjectExplorer::RunControl*)),
+                this, SLOT(slotRunControlSelected(ProjectExplorer::RunControl*)));
+        connect(rcList, SIGNAL(attachPidSelected(quint64)),
+                this, SLOT(slotAttachPidSelected(quint64)));
         appendSubWidget(grid, rcList, tr("Connect to Running"));
 
         appendWrappedWidget(tr("New Local Target"),
@@ -174,9 +176,6 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         connect(plugin, SIGNAL(debuggerAcquirableChanged(bool)),
                 runWidget, SLOT(setEnabled(bool)));
         runWidget->setEnabled(plugin->debuggerAcquirable());
-        connect(plugin, SIGNAL(debuggerAcquirableChanged(bool)),
-                rcList, SLOT(setButtonsEnabled(bool)));
-        rcList->setButtonsEnabled(plugin->debuggerAcquirable());
     }
 
     // create the Configure Frameworks widget
@@ -228,6 +227,28 @@ InspectorWindow::InspectorWindow(QWidget *parent)
             this, SLOT(slotInstanceAdded(Instance*)));
     connect(plugin, SIGNAL(instanceRemoved(Instance*)),
             this, SLOT(slotInstanceRemoved(Instance*)));
+}
+
+void InspectorWindow::newTarget(quint64 pid, IFrameworkFactory *factory)
+{
+    // sanity check
+    if (!factory->available()) {
+        qWarning("InspectorPlugin::newTarget: can't start more instances of creator's debugger");
+        return;
+    }
+
+    Instance *instance = new Instance("FIXME-NAME", factory);
+    if (!instance->framework()) {
+        qWarning("InspectorPlugin::newTarget: no available framework. skipping");
+        delete instance;
+        return;
+    }
+    /*if (!instance->framework()->startRunConfiguration(rc)) {
+        qWarning("InspectorPlugin::newTarget: can't start the run configuration. skipping");
+        delete instance;
+        return;
+    }*/
+    InspectorPlugin::pluginInstance()->addInstance(instance);
 }
 
 void InspectorWindow::newTarget(ProjectExplorer::RunConfiguration *rc, IFrameworkFactory *factory)
@@ -323,7 +344,12 @@ void InspectorWindow::slotLaunchTarget()
     }
 }
 
-void InspectorWindow::slotAttachToRunControl(ProjectExplorer::RunControl *rc)
+void InspectorWindow::slotAttachPidSelected(quint64 pid)
+{
+    // ###
+}
+
+void InspectorWindow::slotRunControlSelected(ProjectExplorer::RunControl *rc)
 {
     Q_UNUSED(rc);
     qWarning("InspectorWindow::slotAttachToRunControl: TODO - NOT IMPLEMENTED");

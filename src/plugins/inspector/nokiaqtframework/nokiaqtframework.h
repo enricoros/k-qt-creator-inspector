@@ -56,6 +56,7 @@ public:
 
     // ::IFramework
     int infoModuleUid() const;
+    bool startAttachToPid(quint64 pid);
     bool startRunConfiguration(ProjectExplorer::RunConfiguration *rc);
 
 private:

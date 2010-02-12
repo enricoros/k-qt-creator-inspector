@@ -35,6 +35,7 @@
 #include "info/infomodule.h"
 #include "painting/paintingmodule.h"
 #include "warnings/warningsmodule.h"
+#include <debugger/debuggermanager.h>
 #include <projectexplorer/projectexplorer.h>
 #include <projectexplorer/projectexplorerconstants.h>
 #include <QtGui/QMessageBox>
@@ -76,6 +77,16 @@ void NokiaQtFramework::callProbeFunction(const QString &name, const QVariantList
 int NokiaQtFramework::infoModuleUid() const
 {
     return InfoModule::Uid;
+}
+
+bool NokiaQtFramework::startAttachToPid(quint64 pid)
+{
+    const Debugger::DebuggerStartParametersPtr sp(new Debugger::DebuggerStartParameters);
+    sp->attachPID = pid;
+    sp->startMode = Debugger::AttachExternal;
+    qWarning("SAPT");
+    //if (RunControl *runControl = m_debuggerRunControlFactory->create(sp))
+    //    ProjectExplorerPlugin::instance()->startRunControl(runControl, ProjectExplorer::Constants::DEBUGMODE);
 }
 
 bool NokiaQtFramework::startRunConfiguration(ProjectExplorer::RunConfiguration *rc)

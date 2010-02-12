@@ -32,8 +32,10 @@
 
 #include <QtCore/QList>
 #include <QtGui/QWidget>
+class QButtonGroup;
 class QLabel;
 class QPushButton;
+class QRadioButton;
 class QVBoxLayout;
 
 namespace ProjectExplorer {
@@ -58,21 +60,19 @@ public:
     //void setRunControlAttached(ProjectExplorer::RunControl *rc, bool attached);
     //bool runControlAttached(ProjectExplorer::RunControl *rc) const;
 
-public slots:
-    void setButtonsEnabled(bool enabled);
-
 signals:
-    void attachToRunControl(ProjectExplorer::RunControl *rc);
+    void attachPidSelected(quint64 pid);
+    void runControlSelected(ProjectExplorer::RunControl *rc);
 
 private slots:
     void slotRunControlAdded(ProjectExplorer::RunControl *);
     void slotRunControlDestroyed();
 
 private:
+    QButtonGroup *m_buttonGroup;
     QVBoxLayout *m_layout;
-    QLabel *m_noRunningLabel;
+    //QRadioButton *m_noRunningLabel;
     QList<RunControlWidget *> m_runWidgets;
-    bool m_buttonsEnabled;
 };
 
 /**
@@ -83,14 +83,14 @@ class RunControlWidget : public QWidget
     Q_OBJECT
 
 public:
-    RunControlWidget(ProjectExplorer::RunControl *, QWidget *parent = 0);
+    RunControlWidget(QButtonGroup *, ProjectExplorer::RunControl *, QWidget *parent = 0);
 
     ProjectExplorer::RunControl *runControl() const;
 
     void setAttachEnabled(bool enabled);
 
 signals:
-    void attachToRunControl(ProjectExplorer::RunControl *rc);
+    void runControlSelected(ProjectExplorer::RunControl *rc);
 
 private slots:
     void slotRunControlStarted();
@@ -98,7 +98,7 @@ private slots:
 
     void slotStartClicked();
     void slotStopClicked();
-    void slotAttachClicked();
+    void slotToggled(bool checked);
 
 private:
     void updateActions();
@@ -110,7 +110,29 @@ private:
     QLabel *m_statusLabel;
     QLabel *m_startLabel;
     QLabel *m_stopLabel;
-    QPushButton *m_attachButton;
+};
+
+/**
+  \brief A simple widget to ask for a PID
+*/
+class AttachToPidWidget : public QWidget
+{
+    Q_OBJECT
+
+public:
+    AttachToPidWidget(QButtonGroup *, QWidget *parent = 0);
+
+signals:
+    void attachPidSelected(quint64 pid);
+
+private slots:
+    void slotSelectPidClicked();
+    void slotToggled(bool checked);
+
+private:
+    quint64 m_pid;
+    QRadioButton *m_radio;
+    QLabel *m_pidSelectLabel;
 };
 
 } // namespace Internal

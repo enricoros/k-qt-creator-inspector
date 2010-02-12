@@ -28,12 +28,15 @@
 **************************************************************************/
 
 #include "runcontrolwatcher.h"
+#include <debugger/debuggerdialogs.h>
 #include <projectexplorer/projectexplorer.h>
 #include <projectexplorer/runconfiguration.h>
 #include <utils/stylehelper.h>
+#include <QtGui/QButtonGroup>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QLabel>
 #include <QtGui/QPushButton>
+#include <QtGui/QRadioButton>
 #include <QtGui/QVBoxLayout>
 
 using namespace Inspector::Internal;
@@ -43,21 +46,21 @@ using namespace Inspector::Internal;
 //
 RunControlList::RunControlList(QWidget *parent)
   : QWidget(parent)
-  , m_buttonsEnabled(true)
 {
+    m_buttonGroup = new QButtonGroup(this);
+
     m_layout = new QVBoxLayout(this);
     m_layout->setMargin(0);
-    m_layout->setSpacing(0);
 
-    m_noRunningLabel = new QLabel;
+    /*m_noRunningLabel = new QRadioButton;
     m_noRunningLabel->setText(tr("No Application"));
-    m_layout->addWidget(m_noRunningLabel);
+    m_noRunningLabel->setEnabled(false);
+    m_layout->addWidget(m_noRunningLabel);*/
 
-    QLabel *epLabel = new QLabel;
-    epLabel->setText("<a href='extproc'>" + tr("Attach to Running External Application...") + "</a>");
-    epLabel->setContentsMargins(0, 10, 0, 0);
-    epLabel->setEnabled(false);
-    m_layout->addWidget(epLabel);
+    AttachToPidWidget *ap = new AttachToPidWidget(m_buttonGroup);
+    connect(ap, SIGNAL(attachPidSelected(quint64)),
+            this, SIGNAL(attachPidSelected(quint64)));
+    m_layout->addWidget(ap);
 
     ProjectExplorer::ProjectExplorerPlugin *pep = ProjectExplorer::ProjectExplorerPlugin::instance();
     //foreach (ProjectExplorer::RunControl *rc, pep->runControls())
@@ -66,28 +69,20 @@ RunControlList::RunControlList(QWidget *parent)
             this, SLOT(slotRunControlAdded(ProjectExplorer::RunControl*)));
 }
 
-void RunControlList::setButtonsEnabled(bool enabled)
-{
-    m_buttonsEnabled = enabled;
-    foreach (RunControlWidget *widget, m_runWidgets)
-        widget->setAttachEnabled(m_buttonsEnabled);
-}
-
 void RunControlList::slotRunControlAdded(ProjectExplorer::RunControl *rc)
 {
     // listen for RunControl removal
     connect(rc, SIGNAL(destroyed()), this, SLOT(slotRunControlDestroyed()));
 
     // add a new RunControlWidget
-    RunControlWidget *widget = new RunControlWidget(rc);
-    widget->setAttachEnabled(m_buttonsEnabled);
+    RunControlWidget *widget = new RunControlWidget(m_buttonGroup, rc);
     m_layout->insertWidget(m_layout->count() - 1, widget);
     m_runWidgets.append(widget);
-    connect(widget, SIGNAL(attachToRunControl(ProjectExplorer::RunControl*)),
-            this, SIGNAL(attachToRunControl(ProjectExplorer::RunControl*)));
+    connect(widget, SIGNAL(runControlSelected(ProjectExplorer::RunControl*)),
+            this, SIGNAL(runControlSelected(ProjectExplorer::RunControl*)));
 
     // hide the no-label if have something
-    m_noRunningLabel->hide();
+    /*m_noRunningLabel->hide();*/
 }
 
 void RunControlList::slotRunControlDestroyed()
@@ -104,17 +99,16 @@ void RunControlList::slotRunControlDestroyed()
     }
 
     // show the no-label if empty
-    if (m_runWidgets.isEmpty())
-        m_noRunningLabel->show();
+    /*if (m_runWidgets.isEmpty())
+        m_noRunningLabel->show();*/
 }
 
 //
 // RunControlWidget
 //
-RunControlWidget::RunControlWidget(ProjectExplorer::RunControl *runControl, QWidget *parent)
+RunControlWidget::RunControlWidget(QButtonGroup *group, ProjectExplorer::RunControl *runControl, QWidget *parent)
   : QWidget(parent)
   , m_runControl(runControl)
-  , m_attachEnabled(true)
   , m_running(false)
   , m_viaDebugger(false)
 {
@@ -139,9 +133,13 @@ RunControlWidget::RunControlWidget(ProjectExplorer::RunControl *runControl, QWid
     QHBoxLayout *lay = new QHBoxLayout(this);
     lay->setMargin(0);
 
-    QLabel *label1 = new QLabel;
-    label1->setText(m_runControl->displayName());
-    lay->addWidget(label1);
+    QRadioButton *radio = new QRadioButton;
+    radio->setText(m_runControl->displayName());
+    connect(radio, SIGNAL(toggled(bool)),
+            this, SLOT(slotToggled(bool)));
+    radio->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+    group->addButton(radio);
+    lay->addWidget(radio);
 
     lay->addStretch(2);
 
@@ -175,25 +173,12 @@ RunControlWidget::RunControlWidget(ProjectExplorer::RunControl *runControl, QWid
 
     lay->addStretch(100);
 
-    m_attachButton = new QPushButton;
-    m_attachButton->setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
-    m_attachButton->setText(tr("Attach"));
-    m_attachButton->setIcon(QIcon(":/projectexplorer/images/debugger_start_small.png"));
-    connect(m_attachButton, SIGNAL(clicked()), this, SLOT(slotAttachClicked()));
-    lay->addWidget(m_attachButton);
-
     updateActions();
 }
 
 ProjectExplorer::RunControl *RunControlWidget::runControl() const
 {
     return m_runControl;
-}
-
-void RunControlWidget::setAttachEnabled(bool enabled)
-{
-    m_attachEnabled = enabled;
-    updateActions();
 }
 
 void RunControlWidget::slotRunControlStarted()
@@ -220,9 +205,10 @@ void RunControlWidget::slotStopClicked()
     m_runControl->stop();
 }
 
-void RunControlWidget::slotAttachClicked()
+void RunControlWidget::slotToggled(bool checked)
 {
-    emit attachToRunControl(m_runControl);
+    if (checked)
+        emit runControlSelected(m_runControl);
 }
 
 void RunControlWidget::updateActions()
@@ -230,5 +216,54 @@ void RunControlWidget::updateActions()
     m_debuggingLabel->setVisible(m_viaDebugger);
     m_startLabel->setVisible(!m_viaDebugger && !m_running);
     m_stopLabel->setVisible(m_running);
-    m_attachButton->setEnabled(m_attachEnabled && m_running);
+}
+
+//
+// AttachToPidWidget
+//
+AttachToPidWidget::AttachToPidWidget(QButtonGroup *group, QWidget *parent)
+  : QWidget(parent)
+  , m_pid(0)
+{
+    QHBoxLayout *lay = new QHBoxLayout(this);
+    lay->setMargin(0);
+    lay->setSpacing(0);
+
+    m_radio = new QRadioButton;
+    m_radio->setText(tr("Attach to Running External Application..."));
+    connect(m_radio, SIGNAL(toggled(bool)),
+            this, SLOT(slotToggled(bool)));
+    m_radio->setProperty("pid", (quint64)0);
+    group->addButton(m_radio);
+    lay->addWidget(m_radio);
+
+    m_pidSelectLabel = new QLabel;
+    m_pidSelectLabel->setText("<a href='extproc'>" + tr("select application") + "</a>");
+    connect(m_pidSelectLabel, SIGNAL(linkActivated(QString)),
+            this, SLOT(slotSelectPidClicked()));
+    lay->addWidget(m_pidSelectLabel);
+
+    lay->addStretch(100);
+}
+
+void AttachToPidWidget::slotSelectPidClicked()
+{
+    Debugger::Internal::AttachExternalDialog dlg(this);
+    if (dlg.exec() != QDialog::Accepted)
+        return;
+    m_pid = dlg.attachPID();
+    m_pidSelectLabel->setText(tr("[<a href='extproc'>%1</a>]").arg(m_pid));
+    m_radio->setProperty("pid", (quint64)m_pid);
+    if (m_pid)
+        m_radio->setChecked(true);
+}
+
+void AttachToPidWidget::slotToggled(bool checked)
+{
+    if (checked) {
+        if (!m_pid)
+            slotSelectPidClicked();
+        if (m_pid)
+            emit attachPidSelected(m_pid);
+    }
 }
