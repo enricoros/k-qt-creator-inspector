@@ -30,6 +30,8 @@
 #ifndef DEBUGGER_DIALOGS_H
 #define DEBUGGER_DIALOGS_H
 
+#include "debugger_global.h"
+
 #include <QtGui/QDialog>
 
 QT_BEGIN_NAMESPACE
@@ -80,7 +82,7 @@ private:
     Ui::AttachCoreDialog *m_ui;
 };
 
-class AttachExternalDialog : public QDialog
+class DEBUGGER_EXPORT AttachExternalDialog : public QDialog
 {
     Q_OBJECT
 
