@@ -65,6 +65,7 @@ public:
 
     // to be reimplemented by subclasses
     virtual int infoModuleUid() const = 0;
+    virtual bool startAttachToPid(quint64) { return false; }
     virtual bool startRunConfiguration(ProjectExplorer::RunConfiguration *) { return false; }
 
     // ### is it ok to put this here?

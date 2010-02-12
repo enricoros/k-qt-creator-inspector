@@ -65,7 +65,7 @@ class InspectorWindow : public QScrollArea
 public:
     InspectorWindow(QWidget *parent = 0);
 
-    // start Inspector on a new Target
+    void newTarget(quint64 pid, IFrameworkFactory *);
     void newTarget(ProjectExplorer::RunConfiguration *, IFrameworkFactory *);
 
 signals:
@@ -82,7 +82,8 @@ private slots:
     void slotCloseInstance(Instance*);
 
     void slotLaunchTarget();
-    void slotAttachToRunControl(ProjectExplorer::RunControl *);
+    void slotAttachPidSelected(quint64 pid);
+    void slotRunControlSelected(ProjectExplorer::RunControl *);
 
 private:
     QAbstractButton *newInspectButton(int id);
