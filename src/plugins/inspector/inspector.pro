@@ -20,6 +20,7 @@ HEADERS += \
     inspectionwindow.h \
     inspectorcontainer.h \
     inspectorplugin.h \
+    inspectorrunner.h \
     panelcontainerwidget.h \
     plotgrid.h \
     runcontrolwatcher.h \
@@ -42,6 +43,7 @@ SOURCES += \
     inspectionwindow.cpp \
     inspectorcontainer.cpp \
     inspectorplugin.cpp \
+    inspectorrunner.cpp \
     panelcontainerwidget.cpp \
     plotgrid.cpp \
     runcontrolwatcher.cpp \

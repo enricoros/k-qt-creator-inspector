@@ -28,10 +28,15 @@
 **************************************************************************/
 
 #include "shareddebugger.h"
+#include "inspectorrunner.h"
+
 #include <debugger/debuggermanager.h>
+#include <projectexplorer/applicationrunconfiguration.h>
+#include <projectexplorer/projectexplorer.h>
+#include <projectexplorer/projectexplorerconstants.h>
+#include <utils/qtcassert.h>
 
 using namespace Inspector::Internal;
-using namespace Debugger;
 
 SharedDebugger::SharedDebugger(QObject *parent)
   : QObject(parent)
@@ -39,7 +44,7 @@ SharedDebugger::SharedDebugger(QObject *parent)
   , m_acquired(false)
   , m_running(false)
 {
-    m_debuggerManager = DebuggerManager::instance();
+    m_debuggerManager = Debugger::DebuggerManager::instance();
     connect(m_debuggerManager, SIGNAL(stateChanged(int)), this, SLOT(slotDmStateChanged(int)));
 
     // sync inital state
@@ -71,6 +76,26 @@ void SharedDebugger::release()
         m_debuggerManager->exitDebugger();
 }
 
+bool SharedDebugger::startPidAttach(quint64 pid)
+{
+    const Debugger::DebuggerStartParametersPtr sp(new Debugger::DebuggerStartParameters);
+    sp->attachPID = pid;
+    sp->startMode = Debugger::AttachExternal;
+    ProjectExplorer::RunControl *runControl = new InspectorRunControl(m_debuggerManager, sp);
+    ProjectExplorer::ProjectExplorerPlugin::instance()->startRunControl(runControl, ProjectExplorer::Constants::DEBUGMODE);
+    return true;
+}
+
+bool SharedDebugger::startRunConfiguration(ProjectExplorer::RunConfiguration *runConfiguration)
+{
+    ProjectExplorer::LocalApplicationRunConfiguration *localAppRc =
+            qobject_cast<ProjectExplorer::LocalApplicationRunConfiguration *>(runConfiguration);
+    QTC_ASSERT(localAppRc, return false);
+    ProjectExplorer::RunControl *runControl = new InspectorRunControl(m_debuggerManager, localAppRc);
+    ProjectExplorer::ProjectExplorerPlugin::instance()->startRunControl(runControl, ProjectExplorer::Constants::DEBUGMODE);
+    return true;
+}
+
 void SharedDebugger::callProbeFunction(const QString &name, const QVariantList &args)
 {
     m_debuggerManager->callFunction(name, args);
@@ -78,28 +103,28 @@ void SharedDebugger::callProbeFunction(const QString &name, const QVariantList &
 
 void SharedDebugger::slotDmStateChanged(int state)
 {
-    switch ((DebuggerState)state) {
-    case DebuggerNotReady:
+    switch ((Debugger::DebuggerState)state) {
+    case Debugger::DebuggerNotReady:
         setRunning(false);
         break;
-    case EngineStarting:
-    case AdapterStarting:
-    case AdapterStarted:
-    case AdapterStartFailed:
-    case InferiorUnrunnable:
-    case InferiorStarting:
-    case InferiorStartFailed:
-    case InferiorRunningRequested:
-    case InferiorRunningRequested_Kill:
-    case InferiorRunning:
-    case InferiorStopping:
-    case InferiorStopping_Kill:
-    case InferiorStopped:
-    case InferiorStopFailed:
-    case InferiorShuttingDown:
-    case InferiorShutDown:
-    case InferiorShutdownFailed:
-    case EngineShuttingDown:
+    case Debugger::EngineStarting:
+    case Debugger::AdapterStarting:
+    case Debugger::AdapterStarted:
+    case Debugger::AdapterStartFailed:
+    case Debugger::InferiorUnrunnable:
+    case Debugger::InferiorStarting:
+    case Debugger::InferiorStartFailed:
+    case Debugger::InferiorRunningRequested:
+    case Debugger::InferiorRunningRequested_Kill:
+    case Debugger::InferiorRunning:
+    case Debugger::InferiorStopping:
+    case Debugger::InferiorStopping_Kill:
+    case Debugger::InferiorStopped:
+    case Debugger::InferiorStopFailed:
+    case Debugger::InferiorShuttingDown:
+    case Debugger::InferiorShutDown:
+    case Debugger::InferiorShutdownFailed:
+    case Debugger::EngineShuttingDown:
         setRunning(true);
         break;
     }

@@ -65,6 +65,32 @@ IInspectionModel *IFramework::inspectionModel() const
     return m_inspectionModel;
 }
 
+QStringList IFramework::moduleNames() const
+{
+    QStringList names;
+    foreach (IFrameworkModule *module, m_modules)
+        names.append(module->name());
+    return names;
+}
+
+ModuleMenuEntries IFramework::menuEntries() const
+{
+    ModuleMenuEntries entries;
+    foreach (IFrameworkModule *module, m_modules)
+        entries.append(module->menuEntries());
+    return entries;
+}
+
+AbstractPanel *IFramework::createPanel(int moduleUid, int panelId) const
+{
+    IFrameworkModule * module = moduleForUid(moduleUid);
+    if (!module) {
+        qWarning("IFramework::createPanel: unknown module Uid %d", moduleUid);
+        return 0;
+    }
+    return module->createPanel(panelId);
+}
+
 void IFramework::addModule(IFrameworkModule * module)
 {
     if (!module) {
@@ -98,32 +124,6 @@ void IFramework::removeModule(IFrameworkModule * module)
     m_modules.removeAll(module);
     m_activeModules.removeAll(module);
     emit modulesChanged();
-}
-
-QStringList IFramework::moduleNames() const
-{
-    QStringList names;
-    foreach (IFrameworkModule *module, m_modules)
-        names.append(module->name());
-    return names;
-}
-
-ModuleMenuEntries IFramework::menuEntries() const
-{
-    ModuleMenuEntries entries;
-    foreach (IFrameworkModule *module, m_modules)
-        entries.append(module->menuEntries());
-    return entries;
-}
-
-AbstractPanel *IFramework::createPanel(int moduleUid, int panelId) const
-{
-    IFrameworkModule * module = moduleForUid(moduleUid);
-    if (!module) {
-        qWarning("IFramework::createPanel: unknown module Uid %d", moduleUid);
-        return 0;
-    }
-    return module->createPanel(panelId);
 }
 
 IFrameworkModule *IFramework::moduleForUid(int moduleUid) const

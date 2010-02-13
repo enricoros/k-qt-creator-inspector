@@ -81,14 +81,13 @@ private slots:
 
     void slotCloseInspection(Inspection *);
 
-    void slotNewRun();
+    void slotStartClicked();
     void slotNewAttach();
 
     void slotAttachPidSelected(quint64 pid);
     void slotRunControlSelected(ProjectExplorer::RunControl *);
 
 private:
-    QAbstractButton *newInspectButton(int id);
     void appendWrappedWidget(const QString &title, const QIcon &icon, QWidget *widget);
     void appendSubWidget(QGridLayout *layout, QWidget *widget,
                          const QString &title = QString(),
