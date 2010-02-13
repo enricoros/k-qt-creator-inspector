@@ -44,12 +44,13 @@ class NvidiaCudaFramework : public IFramework
 
 public:
     // ::IFramework
-    int infoModuleUid() const { return 0; }
+    IInspectionModel *inspectionModel() const;
     bool startRunConfiguration(ProjectExplorer::RunConfiguration *rc);
 
 private:
     friend class NvidiaCudaFrameworkFactory;
-    NvidiaCudaFramework(Inspection *, QObject *parent = 0);
+    NvidiaCudaFramework(QObject *parent = 0);
+    IInspectionModel *m_model;
 };
 
 
@@ -61,7 +62,7 @@ public:
     // ::IFrameworkFactory
     QString displayName() const;
     QIcon icon() const;
-    IFramework *createFramework(Inspection *);
+    IFramework *createFramework();
 };
 
 } // namespace Internal

@@ -40,8 +40,6 @@ class DebuggerManager;
 namespace Inspector {
 namespace Internal {
 
-class Inspection;
-
 /**
   \brief Controls Creator's Debugger Manager (single instanced by default)
 */
@@ -53,7 +51,8 @@ public:
     SharedDebugger(QObject *parent = 0);
 
     bool acquirable() const;
-    void setInspection(Inspection *);
+    bool acquire();
+    void release();
     void callProbeFunction(const QString &name, const QVariantList &args);
 
 signals:
@@ -65,7 +64,7 @@ private slots:
 private:
     void setRunning(bool);
     Debugger::DebuggerManager *m_debuggerManager;
-    Inspection *m_inspecton;
+    bool m_acquired;
     bool m_running;
 };
 

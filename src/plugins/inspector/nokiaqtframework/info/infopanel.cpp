@@ -30,7 +30,7 @@
 #include "infopanel.h"
 #include "iframework.h"
 #include "iframeworkmodule.h"
-#include "inspectionmodel.h"
+#include "../nokiaqtinspectionmodel.h"
 #include <QFont>
 
 using namespace Inspector;
@@ -69,26 +69,26 @@ InfoPanel::InfoPanel(IFrameworkModule *parentModule)
 
 void InfoPanel::slotRefreshInspectionData()
 {
-    InspectionModel *model = parentFramework()->inspectionModel();
+    NokiaQtInspectionModel *model = static_cast<NokiaQtInspectionModel *>(parentFramework()->inspectionModel());
 
     setFieldState(enaButton,        model->inspectionEnabled());
     setFieldState(paintBox,         model->debugPaint());
 
-    int _debugEnabled = model->itemValue(InspectionModel::ProbeStatus_Row, 1).toInt();
+    int _debugEnabled = model->itemValue(NokiaQtInspectionModel::ProbeStatus_Row, 1).toInt();
     setFieldState(debugEnabled,     _debugEnabled);
-    setFieldState(debugStopped,     model->itemValue(InspectionModel::ProbeStatus_Row, 2).toInt());
-    setFieldState(probePresent,     model->itemValue(InspectionModel::ProbeStatus_Row, 4).toInt());
-    probeCaps->setText(             model->itemValue(InspectionModel::ProbeStatus_Row, 6).toString());
-    setFieldState(probeInjected,    model->itemValue(InspectionModel::ProbeStatus_Row, 5).toInt());
-    setFieldState(probeActive,      model->itemValue(InspectionModel::ProbeStatus_Row, 7).toInt());
+    setFieldState(debugStopped,     model->itemValue(NokiaQtInspectionModel::ProbeStatus_Row, 2).toInt());
+    setFieldState(probePresent,     model->itemValue(NokiaQtInspectionModel::ProbeStatus_Row, 4).toInt());
+    probeCaps->setText(             model->itemValue(NokiaQtInspectionModel::ProbeStatus_Row, 6).toString());
+    setFieldState(probeInjected,    model->itemValue(NokiaQtInspectionModel::ProbeStatus_Row, 5).toInt());
+    setFieldState(probeActive,      model->itemValue(NokiaQtInspectionModel::ProbeStatus_Row, 7).toInt());
 
-    bool _connEnabled = model->itemValue(InspectionModel::CommServer_Row, 0).toBool();
+    bool _connEnabled = model->itemValue(NokiaQtInspectionModel::CommServer_Row, 0).toBool();
     setFieldState(connEnabled,      _connEnabled);
-    connName->setText(              model->itemValue(InspectionModel::CommServer_Row, 1).toString());
-    setFieldState(serverListening,  model->itemValue(InspectionModel::CommServer_Row, 2).toBool());
-    bool _probeConnected = model->itemValue(InspectionModel::CommServer_Row, 3).toBool();
+    connName->setText(              model->itemValue(NokiaQtInspectionModel::CommServer_Row, 1).toString());
+    setFieldState(serverListening,  model->itemValue(NokiaQtInspectionModel::CommServer_Row, 2).toBool());
+    bool _probeConnected = model->itemValue(NokiaQtInspectionModel::CommServer_Row, 3).toBool();
     setFieldState(probeConnected,   _probeConnected);
-    clientInfo->setText(            model->itemValue(InspectionModel::CommServer_Row, 4).toString());
+    clientInfo->setText(            model->itemValue(NokiaQtInspectionModel::CommServer_Row, 4).toString());
 
     bool works = _debugEnabled == 1 && _connEnabled && _probeConnected;
     setFieldState(workLabel,        works);
@@ -96,11 +96,11 @@ void InfoPanel::slotRefreshInspectionData()
 
 void InfoPanel::slotRowsInserted(const QModelIndex &parent, int start, int end)
 {
-    InspectionModel *model = parentFramework()->inspectionModel();
+    IInspectionModel *model = parentFramework()->inspectionModel();
     QStandardItem *parentItem = model->itemFromIndex(parent);
 
     // log all incoming packets
-    if (parentItem && parentItem->row() == InspectionModel::CommServer_Row) {
+    if (parentItem && parentItem->row() == NokiaQtInspectionModel::CommServer_Row) {
         for (int row = start; row <= end; ++row) {
             if (parentItem->column() == 6 || parentItem->column() == 7)
                 messagesText->appendHtml("<font color='#800'>" + parentItem->child(row)->text() + "</font>");

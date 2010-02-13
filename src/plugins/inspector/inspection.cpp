@@ -32,34 +32,28 @@
 
 using namespace Inspector::Internal;
 
-Inspection::Inspection(const QString &targetName, IFrameworkFactory *factory, QObject *parent)
+Inspection::Inspection(IFramework *framework, QObject *parent)
   : QObject(parent)
+  , m_framework(framework)
 {
-    m_inspectionModel = new InspectionModel(targetName, factory->displayName());
-    m_tasksModel = new TasksModel;
-    m_framework = factory->createFramework(this);
-    if (!m_framework)
-        qWarning("Inspection::Inspection: framework not created, things will break now");
 }
 
 Inspection::~Inspection()
 {
     delete m_framework;
-    delete m_tasksModel;
-    delete m_inspectionModel;
-}
-
-InspectionModel *Inspection::inspectionModel() const
-{
-    return m_inspectionModel;
-}
-
-TasksModel *Inspection::tasksModel() const
-{
-    return m_tasksModel;
 }
 
 IFramework *Inspection::framework() const
 {
     return m_framework;
+}
+
+IInspectionModel *Inspection::inspectionModel() const
+{
+    return m_framework->inspectionModel();
+}
+
+TasksModel *Inspection::tasksModel() const
+{
+    return m_framework->tasksModel();
 }

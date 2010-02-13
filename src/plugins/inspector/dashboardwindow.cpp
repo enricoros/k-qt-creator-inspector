@@ -267,46 +267,26 @@ void DashboardWindow::newInspection(quint64 pid, IFrameworkFactory *factory)
 {
     // TODO
     Q_UNUSED(pid);
-
-    // sanity check
-    if (!factory->available()) {
-        qWarning("DashboardWindow::newInspection: factory is busy");
-        return;
-    }
-
-    Inspection *inspection = new Inspection("FIXME-NAME", factory);
-    if (!inspection->framework()) {
-        qWarning("DashboardWindow::newInspection: no available framework. skipping");
-        delete inspection;
-        return;
-    }
-    /*if (!inspection->framework()->startRunConfiguration(rc)) {
-        qWarning("DashboardWindow::newInspection: can't start the run configuration. skipping");
-        delete inspection;
-        return;
-    }*/
-    InspectorPlugin::instance()->addInspection(inspection);
+    Q_UNUSED(factory);
 }
 
 void DashboardWindow::newInspection(ProjectExplorer::RunConfiguration *rc, IFrameworkFactory *factory)
 {
-    // sanity check
-    if (!factory->available()) {
-        qWarning("DashboardWindow::newInspection: factory is busy");
+    IFramework *framework = factory->createFramework();
+    if (!framework) {
+        qWarning("DashboardWindow::newInspection: factory refusal");
         return;
     }
 
-    Inspection *inspection = new Inspection(rc->displayName(), factory);
-    if (!inspection->framework()) {
-        qWarning("DashboardWindow::newInspection: no available framework. skipping");
-        delete inspection;
-        return;
-    }
-    if (!inspection->framework()->startRunConfiguration(rc)) {
+    framework->inspectionModel()->setTargetName(rc->displayName());
+
+    if (!framework->startRunConfiguration(rc)) {
         qWarning("DashboardWindow::newInspection: can't start the run configuration. skipping");
-        delete inspection;
+        delete framework;
         return;
     }
+
+    Inspection *inspection = new Inspection(framework);
     InspectorPlugin::instance()->addInspection(inspection);
 }
 

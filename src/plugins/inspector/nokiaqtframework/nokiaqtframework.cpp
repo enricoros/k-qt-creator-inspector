@@ -30,6 +30,7 @@
 #include "nokiaqtframework.h"
 #include "inspectorplugin.h"
 #include "localcommserver.h"
+#include "nokiaqtinspectionmodel.h"
 #include "shareddebugger.h"
 #include "blueprint/blueprintmodule.h"
 #include "info/infomodule.h"
@@ -45,11 +46,13 @@ using namespace Inspector::Internal;
 //
 // NokiaQtFramework
 //
-NokiaQtFramework::NokiaQtFramework(Inspection *inspection, SharedDebugger *sd, QObject *parent)
-  : IFramework(inspection, parent)
+NokiaQtFramework::NokiaQtFramework(SharedDebugger *sd, QObject *parent)
+  : IFramework(parent)
   , m_sharedDebugger(sd)
 {
-    m_commServer = new LocalCommServer(inspectionModel());
+    m_model = new NokiaQtInspectionModel(this);
+
+    m_commServer = new LocalCommServer(m_model);
 
     addModule(new InfoModule(this));
     addModule(new PaintingModule(this));
@@ -68,15 +71,9 @@ LocalCommServer *NokiaQtFramework::commServer() const
     return m_commServer;
 }
 
-void NokiaQtFramework::callProbeFunction(const QString &name, const QVariantList &args)
+IInspectionModel *NokiaQtFramework::inspectionModel() const
 {
-    qWarning("NokiaQtFramework::callProbeFunction: %s(...)", qPrintable(name));
-    m_sharedDebugger->callProbeFunction(name, args);
-}
-
-int NokiaQtFramework::infoModuleUid() const
-{
-    return InfoModule::Uid;
+    return m_model;
 }
 
 bool NokiaQtFramework::startAttachToPid(quint64 pid)
@@ -95,6 +92,17 @@ bool NokiaQtFramework::startRunConfiguration(ProjectExplorer::RunConfiguration *
     ProjectExplorer::ProjectExplorerPlugin::instance()->
        inspectorExecuteRunConfiguration(rc, ProjectExplorer::Constants::DEBUGMODE);
     return true;
+}
+
+int NokiaQtFramework::infoModuleUid() const
+{
+    return InfoModule::Uid;
+}
+
+void NokiaQtFramework::callProbeFunction(const QString &name, const QVariantList &args)
+{
+    qWarning("NokiaQtFramework::callProbeFunction: %s(...)", qPrintable(name));
+    m_sharedDebugger->callProbeFunction(name, args);
 }
 
 
@@ -127,9 +135,10 @@ bool NokiaQtFrameworkFactory::available() const
     return InspectorPlugin::instance()->debuggerAcquirable();
 }
 
-IFramework *NokiaQtFrameworkFactory::createFramework(Inspection *inspection)
+IFramework *NokiaQtFrameworkFactory::createFramework()
 {
-    if (SharedDebugger *sd = InspectorPlugin::instance()->acquireDebugger(inspection))
-        return new NokiaQtFramework(inspection, sd);
-    return 0;
+    SharedDebugger *sharedDebugger = InspectorPlugin::instance()->acquireDebugger();
+    if (!sharedDebugger)
+        return 0;
+    return new NokiaQtFramework(sharedDebugger);
 }

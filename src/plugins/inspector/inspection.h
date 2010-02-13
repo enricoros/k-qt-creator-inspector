@@ -34,33 +34,33 @@
 #include <QtCore/QList>
 #include <QtCore/QVariantList>
 #include <QtCore/QString>
-#include "inspectionmodel.h"
+#include "iinspectionmodel.h"
 #include "tasksmodel.h"
 
 namespace Inspector {
 namespace Internal {
 
 class IFramework;
-class IFrameworkFactory;
 
+/**
+  \brief A thin wrapper over a configured Framework instance
+*/
 class Inspection : public QObject
 {
     Q_OBJECT
 
 public:
-    Inspection(const QString &targetName, IFrameworkFactory *, QObject *parent = 0);
+    Inspection(IFramework *, QObject *parent = 0);
     ~Inspection();
-
-    // data models
-    InspectionModel *inspectionModel() const;
-    TasksModel *tasksModel() const;
 
     // the framework
     IFramework *framework() const;
 
+    // (framework) data models
+    IInspectionModel *inspectionModel() const;
+    TasksModel *tasksModel() const;
+
 private:
-    InspectionModel *m_inspectionModel;
-    TasksModel *m_tasksModel;
     IFramework *m_framework;
 };
 

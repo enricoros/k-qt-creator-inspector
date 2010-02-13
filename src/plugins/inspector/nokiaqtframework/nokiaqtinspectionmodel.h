@@ -27,64 +27,41 @@
 **
 **************************************************************************/
 
-#ifndef NOKIAQTFRAMEWORK_H
-#define NOKIAQTFRAMEWORK_H
+#ifndef NOKIAQTINSPECTIONMODEL_H
+#define NOKIAQTINSPECTIONMODEL_H
 
-#include "iframework.h"
-#include <QtCore/QVariantList>
+#include "iinspectionmodel.h"
 
 namespace Inspector {
 namespace Internal {
 
-class LocalCommServer;
-class NokiaQtFrameworkFactory;
-class NokiaQtInspectionModel;
-class SharedDebugger;
-
-
-class NokiaQtFramework : public IFramework
+class NokiaQtInspectionModel : public IInspectionModel
 {
     Q_OBJECT
 
 public:
-    ~NokiaQtFramework();
+    NokiaQtInspectionModel(QObject *parent = 0);
 
-    // probe communication server
-    LocalCommServer *commServer() const;
+    enum {
+        ProbeStatus_Row = 1,
+        CommServer_Row = 2      // this is managed by the LocalCommServer
+    };
 
-    // ::IFramework
-    IInspectionModel *inspectionModel() const;
-    bool startAttachToPid(quint64 pid);
-    bool startRunConfiguration(ProjectExplorer::RunConfiguration *rc);
-    int infoModuleUid() const;
+    void setDebugEnabled(bool);
+    void setDebugStopped(bool);
+    void setProbePresent(bool);
+    void setProbeInjected(bool);
+    void setProbeActive(bool);
 
-    // ### move this
-    void callProbeFunction(const QString &name, const QVariantList &args);
+    QString localServerName() const;
+    int probeActivationFlags() const;
+    bool debugPaint() const;
 
-private:
-    friend class NokiaQtFrameworkFactory;
-    NokiaQtFramework(SharedDebugger *, QObject *parent = 0);
-    LocalCommServer *m_commServer;
-    SharedDebugger *m_sharedDebugger;
-    NokiaQtInspectionModel *m_model;
-};
-
-
-class NokiaQtFrameworkFactory : public IFrameworkFactory
-{
-    Q_OBJECT
-
-public:
-    // ::IFrameworkFactory
-    QString displayName() const;
-    QIcon icon() const;
-    bool isConfigurable() const;
-    void configure();
-    bool available() const;
-    IFramework *createFramework();
+public slots:
+    void setDebugPaint(bool);
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // NOKIAQTFRAMEWORK_H
+#endif // NOKIAQTINSPECTIONMODEL_H

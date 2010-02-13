@@ -1,6 +1,7 @@
 HEADERS += \
     $$PWD/localcommserver.h \
     $$PWD/nokiaqtframework.h \
+    $$PWD/nokiaqtinspectionmodel.h \
     $$PWD/blueprint/blueprintmodule.h \
     $$PWD/info/infomodule.h \
     $$PWD/info/infopanel.h \
@@ -13,6 +14,7 @@ HEADERS += \
 SOURCES += \
     $$PWD/localcommserver.cpp \
     $$PWD/nokiaqtframework.cpp \
+    $$PWD/nokiaqtinspectionmodel.cpp \
     $$PWD/blueprint/blueprintmodule.cpp \
     $$PWD/info/infomodule.cpp \
     $$PWD/info/infopanel.cpp \

@@ -28,16 +28,23 @@
 **************************************************************************/
 
 #include "nvidiacudaframework.h"
+#include "iinspectionmodel.h"
 
 using namespace Inspector::Internal;
 
 //
 // NvidiaCudaFramework
 //
-NvidiaCudaFramework::NvidiaCudaFramework(Inspection *inspection, QObject *parent)
-  : IFramework(inspection, parent)
+NvidiaCudaFramework::NvidiaCudaFramework(QObject *parent)
+  : IFramework(parent)
 {
+    m_model = new IInspectionModel(this);
     //addModule(0);
+}
+
+IInspectionModel *NvidiaCudaFramework::inspectionModel() const
+{
+    return m_model;
 }
 
 bool NvidiaCudaFramework::startRunConfiguration(ProjectExplorer::RunConfiguration *rc)
@@ -60,7 +67,7 @@ QIcon NvidiaCudaFrameworkFactory::icon() const
     return QIcon(/*FIXME*/);
 }
 
-IFramework *NvidiaCudaFrameworkFactory::createFramework(Inspection *inspection)
+IFramework *NvidiaCudaFrameworkFactory::createFramework()
 {
-    return new NvidiaCudaFramework(inspection);
+    return new NvidiaCudaFramework();
 }
