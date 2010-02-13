@@ -27,8 +27,8 @@
 **
 **************************************************************************/
 
-#ifndef INSPECTORWINDOW_H
-#define INSPECTORWINDOW_H
+#ifndef DASHBOARDWINDOW_H
+#define DASHBOARDWINDOW_H
 
 #include <QtCore/QList>
 #include <QtGui/QComboBox>
@@ -50,30 +50,30 @@ namespace Internal {
 
 class IFrameworkFactory;
 class Instance;
+class DevicesComboBox;
 class FrameworksComboBox;
 class ProjectsComboBox;
 class RunconfComboBox;
-class TargetsComboBox;
 
 /**
-  \brief The Main Window of Inspector. Can start Instances
+  \brief The Dashboard of Inspector. Can start Inspections
 */
-class InspectorWindow : public QScrollArea
+class DashboardWindow : public QScrollArea
 {
     Q_OBJECT
 
 public:
-    InspectorWindow(QWidget *parent = 0);
+    DashboardWindow(QWidget *parent = 0);
 
-    void newTarget(quint64 pid, IFrameworkFactory *);
-    void newTarget(ProjectExplorer::RunConfiguration *, IFrameworkFactory *);
+    void newInspection(quint64 pid, IFrameworkFactory *);
+    void newInspection(ProjectExplorer::RunConfiguration *, IFrameworkFactory *);
 
 signals:
     void requestDisplay();
 
 private slots:
     void slotProjectChanged();
-    void slotTargetChanged();
+    void slotDeviceChanged();
     void slotRunconfChanged();
 
     void slotInstanceAdded(Instance *);
@@ -81,8 +81,8 @@ private slots:
 
     void slotCloseInstance(Instance*);
 
-    void slotLaunchTarget();
-    void slotLaunchAttach();
+    void slotNewRun();
+    void slotNewAttach();
 
     void slotAttachPidSelected(quint64 pid);
     void slotRunControlSelected(ProjectExplorer::RunControl *);
@@ -99,13 +99,12 @@ private:
     // new run
     ProjectsComboBox *m_projectsCombo;
     QLabel *m_runconfLabel;
-    TargetsComboBox *m_targetsCombo;
+    DevicesComboBox *m_devicesCombo;
     RunconfComboBox *m_runconfsCombo;
     FrameworksComboBox *m_frameworksCombo;
     QAbstractButton *m_newRunButton;
 
     // attach to running
-    QWidget *m_attContainer;
     FrameworksComboBox *m_attFrameworks;
     QAbstractButton *m_attButton;
 
@@ -143,19 +142,21 @@ private:
 
 /**
   \brif A QComboBox synced with Targets of a Project
+  The Targets are called Devices here, to avoid clashing within
+  thig plugin.
 */
-class TargetsComboBox : public QComboBox
+class DevicesComboBox : public QComboBox
 {
     Q_OBJECT
 
 public:
-    TargetsComboBox(QWidget *parent = 0);
+    DevicesComboBox(QWidget *parent = 0);
 
     void setProject(ProjectExplorer::Project *);
-    ProjectExplorer::Target *currentTarget() const;
+    ProjectExplorer::Target *currentDevice() const;
 
 signals:
-    void currentTargetChanged();
+    void currentDeviceChanged();
 
 private slots:
     void add(ProjectExplorer::Target *);
@@ -177,7 +178,7 @@ class RunconfComboBox : public QComboBox
 public:
     RunconfComboBox(QWidget *parent = 0);
 
-    void setTarget(ProjectExplorer::Target *);
+    void setDevice(ProjectExplorer::Target *);
     ProjectExplorer::RunConfiguration *currentRunConfiguration() const;
 
 signals:
@@ -190,7 +191,7 @@ private slots:
     void updateDisplayName();
 
 private:
-    ProjectExplorer::Target *m_target;
+    ProjectExplorer::Target *m_device;
 };
 
 /**
@@ -233,4 +234,4 @@ private:
 } // namespace Internal
 } // namespace Inspector
 
-#endif // INSPECTORWINDOW_H
+#endif // DASHBOARDWINDOW_H

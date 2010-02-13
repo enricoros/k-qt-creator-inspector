@@ -27,7 +27,7 @@
 **
 **************************************************************************/
 
-#include "targetwindow.h"
+#include "inspectionwindow.h"
 #include "abstractpanel.h"
 #include "combotreewidget.h"
 #include "iframework.h"
@@ -38,7 +38,7 @@
 
 using namespace Inspector::Internal;
 
-TargetWindow::TargetWindow(Instance *instance, QWidget *parent)
+InspectionWindow::InspectionWindow(Instance *instance, QWidget *parent)
   : QWidget(parent)
   , m_instance(0)
 {
@@ -60,17 +60,17 @@ TargetWindow::TargetWindow(Instance *instance, QWidget *parent)
     setInstance(instance);
 }
 
-Instance *TargetWindow::targetInstance() const
+Instance *InspectionWindow::instance() const
 {
     return m_instance;
 }
 
-void TargetWindow::slotMenuChanged(const QStringList &/*path*/, const QVariant &data)
+void InspectionWindow::slotMenuChanged(const QStringList &/*path*/, const QVariant &data)
 {
     // sanity check on the menu code
     quint32 compoId = data.toInt();
     if (!compoId) {
-        qWarning("TargetWindow::slotMenuChanged: invalid module/panel ids, skipping panel creation");
+        qWarning("InspectionWindow::slotMenuChanged: invalid module/panel ids, skipping panel creation");
         return;
     }
 
@@ -80,18 +80,18 @@ void TargetWindow::slotMenuChanged(const QStringList &/*path*/, const QVariant &
     showPanel(moduleUid, panelId);
 }
 
-void TargetWindow::slotSetCurrentPanel(int moduleUid, int panelId)
+void InspectionWindow::slotSetCurrentPanel(int moduleUid, int panelId)
 {
     if ((moduleUid & 0xFF000000) || (panelId & 0xFFFFFF00)) {
-        qWarning("TargetWindow::slotSetCurrentMenu: moduleUid (%d) or panelId (%d) not valid", moduleUid, panelId);
+        qWarning("InspectionWindow::slotSetCurrentMenu: moduleUid (%d) or panelId (%d) not valid", moduleUid, panelId);
         return;
     }
     quint32 compoId = (moduleUid << 8) + panelId;
     m_menuWidget->setCurrentPath(compoId);
-    emit requestTargetDisplay();
+    emit requestInspectionDisplay();
 }
 
-void TargetWindow::setInstance(Instance *instance)
+void InspectionWindow::setInstance(Instance *instance)
 {
     // remove references to any previous instance
     if (m_instance) {
@@ -112,7 +112,7 @@ void TargetWindow::setInstance(Instance *instance)
         ModuleMenuEntries entries = m_instance->framework()->menuEntries();
         foreach (const ModuleMenuEntry &entry, entries) {
             if ((entry.moduleUid & 0xFF000000) || (entry.panelId & 0xFFFFFF00)) {
-                qWarning("TargetWindow::setInstance: moduleUid (%d) or panelId (%d) not valid", entry.moduleUid, entry.panelId);
+                qWarning("InspectionWindow::setInstance: moduleUid (%d) or panelId (%d) not valid", entry.moduleUid, entry.panelId);
                 continue;
             }
             quint32 compoId = (entry.moduleUid << 8) + entry.panelId;
@@ -127,10 +127,10 @@ void TargetWindow::setInstance(Instance *instance)
     }
 }
 
-void TargetWindow::showPanel(int moduleUid, int panelId)
+void InspectionWindow::showPanel(int moduleUid, int panelId)
 {
     if (!m_instance) {
-        qWarning("TargetWindow::showPanel: requested panel %d:%d with a null instance", moduleUid, panelId);
+        qWarning("InspectionWindow::showPanel: requested panel %d:%d with a null instance", moduleUid, panelId);
         m_panelContainer->setPanel(new QWidget);
         return;
     }
@@ -138,7 +138,7 @@ void TargetWindow::showPanel(int moduleUid, int panelId)
     // ask for panel creation
     AbstractPanel *panel = m_instance->framework()->createPanel(moduleUid, panelId);
     if (!panel) {
-        qWarning("TargetWindow::showPanel: can't create panel %d for module %d", panelId, moduleUid);
+        qWarning("InspectionWindow::showPanel: can't create panel %d for module %d", panelId, moduleUid);
         m_panelContainer->setPanel(new QWidget);
         return;
     }

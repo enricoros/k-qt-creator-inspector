@@ -12,20 +12,20 @@ HEADERS += \
     abstracteasymodel.h \
     abstractpanel.h \
     combotreewidget.h \
+    dashboardwindow.h \
     iframeworkmodule.h \
     iframework.h \
     instance.h \
     instancemodel.h \
+    inspectionwindow.h \
     inspectorcontainer.h \
     inspectorplugin.h \
-    inspectorwindow.h \
     panelcontainerwidget.h \
     plotgrid.h \
     runcontrolwatcher.h \
     shareddebugger.h \
     singletabwidget.h \
     statusbarwidget.h \
-    targetwindow.h \
     tasksmodel.h \
     tasksscroller.h \
     nvidiacudaframework/nvidiacudaframework.h
@@ -34,20 +34,20 @@ SOURCES += \
     abstracteasymodel.cpp \
     abstractpanel.cpp \
     combotreewidget.cpp \
+    dashboardwindow.cpp \
     iframeworkmodule.cpp \
     iframework.cpp \
     instance.cpp \
     instancemodel.cpp \
+    inspectionwindow.cpp \
     inspectorcontainer.cpp \
     inspectorplugin.cpp \
-    inspectorwindow.cpp \
     panelcontainerwidget.cpp \
     plotgrid.cpp \
     runcontrolwatcher.cpp \
     shareddebugger.cpp \
     singletabwidget.cpp \
     statusbarwidget.cpp \
-    targetwindow.cpp \
     tasksmodel.cpp \
     tasksscroller.cpp \
     nvidiacudaframework/nvidiacudaframework.cpp
