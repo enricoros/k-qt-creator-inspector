@@ -35,16 +35,10 @@ using namespace Inspector::Internal;
 //
 // NvidiaCudaFramework
 //
-NvidiaCudaFramework::NvidiaCudaFramework(QObject *parent)
-  : IFramework(parent)
+NvidiaCudaFramework::NvidiaCudaFramework(IInspectionModel *inspectionModel, QObject *parent)
+  : IFramework(inspectionModel, parent)
 {
-    m_model = new IInspectionModel(this);
     //addModule(0);
-}
-
-IInspectionModel *NvidiaCudaFramework::inspectionModel() const
-{
-    return m_model;
 }
 
 bool NvidiaCudaFramework::startRunConfiguration(ProjectExplorer::RunConfiguration *rc)
@@ -69,5 +63,8 @@ QIcon NvidiaCudaFrameworkFactory::icon() const
 
 IFramework *NvidiaCudaFrameworkFactory::createFramework()
 {
-    return new NvidiaCudaFramework();
+    IInspectionModel *model = new IInspectionModel;
+    model->setFrameworkName(displayName());
+
+    return new NvidiaCudaFramework(model);
 }

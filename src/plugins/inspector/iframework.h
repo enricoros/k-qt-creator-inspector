@@ -55,12 +55,12 @@ class IFramework : public QObject
     Q_OBJECT
 
 public:
-    IFramework(QObject *parent = 0);
+    IFramework(IInspectionModel *, QObject *parent = 0);
     virtual ~IFramework();
 
     // main objects
     TasksModel *tasksModel() const;
-    virtual IInspectionModel *inspectionModel() const = 0;
+    IInspectionModel *inspectionModel() const;
 
     // may be reimplemented by subclasses
     virtual bool startAttachToPid(quint64) { return false; }
@@ -79,8 +79,10 @@ signals:
 protected:
     void addModule(IFrameworkModule *);
     void removeModule(IFrameworkModule *);
-    IFrameworkModule * moduleForUid(int moduleUid) const;
+    IFrameworkModule *moduleForUid(int moduleUid) const;
 
+private:
+    IInspectionModel *m_inspectionModel;
     TasksModel *m_taskModel;
     QList<IFrameworkModule *> m_modules;
     QList<IFrameworkModule *> m_activeModules;

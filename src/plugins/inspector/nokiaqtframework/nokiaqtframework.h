@@ -53,7 +53,6 @@ public:
     LocalCommServer *commServer() const;
 
     // ::IFramework
-    IInspectionModel *inspectionModel() const;
     bool startAttachToPid(quint64 pid);
     bool startRunConfiguration(ProjectExplorer::RunConfiguration *rc);
     int infoModuleUid() const;
@@ -63,7 +62,7 @@ public:
 
 private:
     friend class NokiaQtFrameworkFactory;
-    NokiaQtFramework(SharedDebugger *, QObject *parent = 0);
+    NokiaQtFramework(NokiaQtInspectionModel *, SharedDebugger *, QObject *parent = 0);
     LocalCommServer *m_commServer;
     SharedDebugger *m_sharedDebugger;
     NokiaQtInspectionModel *m_model;

@@ -46,12 +46,11 @@ using namespace Inspector::Internal;
 //
 // NokiaQtFramework
 //
-NokiaQtFramework::NokiaQtFramework(SharedDebugger *sd, QObject *parent)
-  : IFramework(parent)
+NokiaQtFramework::NokiaQtFramework(NokiaQtInspectionModel *model, SharedDebugger *sd, QObject *parent)
+  : IFramework(model, parent)
   , m_sharedDebugger(sd)
+  , m_model(model)
 {
-    m_model = new NokiaQtInspectionModel(this);
-
     m_commServer = new LocalCommServer(m_model);
 
     addModule(new InfoModule(this));
@@ -69,11 +68,6 @@ NokiaQtFramework::~NokiaQtFramework()
 LocalCommServer *NokiaQtFramework::commServer() const
 {
     return m_commServer;
-}
-
-IInspectionModel *NokiaQtFramework::inspectionModel() const
-{
-    return m_model;
 }
 
 bool NokiaQtFramework::startAttachToPid(quint64 pid)
@@ -140,5 +134,9 @@ IFramework *NokiaQtFrameworkFactory::createFramework()
     SharedDebugger *sharedDebugger = InspectorPlugin::instance()->acquireDebugger();
     if (!sharedDebugger)
         return 0;
-    return new NokiaQtFramework(sharedDebugger);
+
+    NokiaQtInspectionModel *model = new NokiaQtInspectionModel;
+    model->setFrameworkName(displayName());
+
+    return new NokiaQtFramework(model, sharedDebugger);
 }

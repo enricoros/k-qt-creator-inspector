@@ -118,12 +118,12 @@ RunControlWidget::RunControlWidget(QButtonGroup *group, ProjectExplorer::RunCont
     // TODO: find out if it's tainted (or launched) by Inspector or not
 
     // TEMP - show that this row is 'special'
-    if (m_viaDebugger) {
+    /*if (m_viaDebugger) {
         QPalette pal;
         pal.setBrush(QPalette::Window, Qt::darkRed);
         setPalette(pal);
         setAutoFillBackground(true);
-    }
+    }*/
 
     connect(m_runControl, SIGNAL(started()),
             this, SLOT(slotRunControlStarted()));
@@ -132,6 +132,7 @@ RunControlWidget::RunControlWidget(QButtonGroup *group, ProjectExplorer::RunCont
 
     QHBoxLayout *lay = new QHBoxLayout(this);
     lay->setMargin(0);
+    lay->setSpacing(0);
 
     QRadioButton *radio = new QRadioButton;
     radio->setText(m_runControl->displayName());
@@ -265,5 +266,7 @@ void AttachToPidWidget::slotToggled(bool checked)
             slotSelectPidClicked();
         if (m_pid)
             emit attachPidSelected(m_pid);
+        //else
+        //    m_radio->setChecked(false);
     }
 }

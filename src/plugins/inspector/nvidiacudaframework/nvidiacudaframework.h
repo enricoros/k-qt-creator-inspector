@@ -44,13 +44,11 @@ class NvidiaCudaFramework : public IFramework
 
 public:
     // ::IFramework
-    IInspectionModel *inspectionModel() const;
     bool startRunConfiguration(ProjectExplorer::RunConfiguration *rc);
 
 private:
     friend class NvidiaCudaFrameworkFactory;
-    NvidiaCudaFramework(QObject *parent = 0);
-    IInspectionModel *m_model;
+    NvidiaCudaFramework(IInspectionModel *, QObject *parent = 0);
 };
 
 
