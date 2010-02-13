@@ -39,7 +39,7 @@ namespace Internal {
 
 class DashboardWindow;
 class InspectionWindow;
-class Instance;
+class Inspection;
 class SingleTabWidget;
 
 class InspectorContainer : public QWidget
@@ -53,8 +53,8 @@ signals:
     void requestWindowDisplay();
 
 private slots:
-    void slotInstanceAdded(Instance *);
-    void slotInstanceRemoved(Instance *);
+    void slotInspectionAdded(Inspection *);
+    void slotInspectionRemoved(Inspection *);
 
     void slotDisplayDashboardWindow();
     void slotDisplayInspectionWindow();

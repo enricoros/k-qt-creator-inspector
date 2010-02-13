@@ -44,7 +44,7 @@ public:
     InfoPanel(IFrameworkModule *parentModule);
 
 private slots:
-    void slotRefreshInstanceData();
+    void slotRefreshInspectionData();
     void slotRowsInserted(const QModelIndex &parent, int start, int end);
 
 private:

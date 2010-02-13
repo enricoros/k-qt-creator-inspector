@@ -34,8 +34,8 @@ using namespace Inspector::Internal;
 //
 // NvidiaCudaFramework
 //
-NvidiaCudaFramework::NvidiaCudaFramework(Instance *instance, QObject *parent)
-  : IFramework(instance, parent)
+NvidiaCudaFramework::NvidiaCudaFramework(Inspection *inspection, QObject *parent)
+  : IFramework(inspection, parent)
 {
     //addModule(0);
 }
@@ -60,7 +60,7 @@ QIcon NvidiaCudaFrameworkFactory::icon() const
     return QIcon(/*FIXME*/);
 }
 
-IFramework *NvidiaCudaFrameworkFactory::createFramework(Instance *instance)
+IFramework *NvidiaCudaFrameworkFactory::createFramework(Inspection *inspection)
 {
-    return new NvidiaCudaFramework(instance);
+    return new NvidiaCudaFramework(inspection);
 }

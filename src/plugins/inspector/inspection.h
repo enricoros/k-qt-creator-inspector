@@ -27,39 +27,44 @@
 **
 **************************************************************************/
 
-#include "instance.h"
-#include "iframework.h"
+#ifndef INSPECTION_H
+#define INSPECTION_H
 
-using namespace Inspector::Internal;
+#include <QtCore/QObject>
+#include <QtCore/QList>
+#include <QtCore/QVariantList>
+#include <QtCore/QString>
+#include "inspectionmodel.h"
+#include "tasksmodel.h"
 
-Instance::Instance(const QString &targetName, IFrameworkFactory *factory, QObject *parent)
-  : QObject(parent)
+namespace Inspector {
+namespace Internal {
+
+class IFramework;
+class IFrameworkFactory;
+
+class Inspection : public QObject
 {
-    m_instanceModel = new InstanceModel(targetName, factory->displayName());
-    m_tasksModel = new TasksModel;
-    m_framework = factory->createFramework(this);
-    if (!m_framework)
-        qWarning("Instance::Instance: framework not created, things will break now");
-}
+    Q_OBJECT
 
-Instance::~Instance()
-{
-    delete m_framework;
-    delete m_tasksModel;
-    delete m_instanceModel;
-}
+public:
+    Inspection(const QString &targetName, IFrameworkFactory *, QObject *parent = 0);
+    ~Inspection();
 
-InstanceModel *Instance::instanceModel() const
-{
-    return m_instanceModel;
-}
+    // data models
+    InspectionModel *inspectionModel() const;
+    TasksModel *tasksModel() const;
 
-TasksModel *Instance::tasksModel() const
-{
-    return m_tasksModel;
-}
+    // the framework
+    IFramework *framework() const;
 
-IFramework *Instance::framework() const
-{
-    return m_framework;
-}
+private:
+    InspectionModel *m_inspectionModel;
+    TasksModel *m_tasksModel;
+    IFramework *m_framework;
+};
+
+} // namespace Internal
+} // namespace Inspector
+
+#endif // INSPECTION_H

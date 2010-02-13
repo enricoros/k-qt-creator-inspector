@@ -27,8 +27,8 @@
 **
 **************************************************************************/
 
-#ifndef INSTANCEMODEL_H
-#define INSTANCEMODEL_H
+#ifndef INSPECTIONMODEL_H
+#define INSPECTIONMODEL_H
 
 #include "abstracteasymodel.h"
 #include <QtCore/QString>
@@ -37,22 +37,22 @@
 namespace Inspector {
 namespace Internal {
 
-class InstanceModel : public AbstractEasyModel
+class InspectionModel : public AbstractEasyModel
 {
     Q_OBJECT
 
 public:
-    InstanceModel(const QString &targetName, const QString &frameworkName, QObject *parent = 0);
+    InspectionModel(const QString &targetName, const QString &frameworkName, QObject *parent = 0);
 
-    enum { InstanceStatus_Row = 0, ProbeStatus_Row = 1, CommServer_Row = 2 };
+    enum { InspectionStatus_Row = 0, ProbeStatus_Row = 1, CommServer_Row = 2 };
 
-    // instance status
+    // inspection status
     QString displayName() const;
     QString targetName() const;
     QString frameworkName() const;
     int monotonicId() const;
     bool debugPaint() const;
-    bool instanceEnabled() const;
+    bool inspectionEnabled() const;
 
     // probe status (set by the Debugger plugin)
     void setDebugEnabled(bool);
@@ -66,10 +66,10 @@ public:
 
 public slots:
     void setDebugPaint(bool);
-    void setInstanceEnabled(bool);
+    void setInspectionEnabled(bool);
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // INSTANCEMODEL_H
+#endif // INSPECTIONMODEL_H

@@ -39,12 +39,12 @@ class QPixmap;
 namespace Inspector {
 namespace Internal {
 
-class Instance;
+class Inspection;
 class KillTaskButton;
 class TasksScroller;
 
 /**
-  \brief Shows Instance information, like running Tasks
+  \brief Shows Inspection information, like running Tasks
 */
 class StatusBarWidget : public QWidget
 {
@@ -53,8 +53,7 @@ class StatusBarWidget : public QWidget
 public:
     StatusBarWidget(QWidget *parent = 0);
 
-    /// sets the Instance handled by this Status
-    void setInstance(Instance *instance);
+    void setInspection(Inspection *inspection);
 
 signals:
     void stopTask(quint32 tid);

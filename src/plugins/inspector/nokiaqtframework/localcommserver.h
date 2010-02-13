@@ -39,14 +39,14 @@ class QLocalServer;
 namespace Inspector {
 namespace Internal {
 
-class InstanceModel;
+class InspectionModel;
 
 class LocalCommServer : public QObject
 {
     Q_OBJECT
 
 public:
-    LocalCommServer(InstanceModel *, QObject *parent = 0);
+    LocalCommServer(InspectionModel *, QObject *parent = 0);
     ~LocalCommServer();
 
 signals:
@@ -62,7 +62,7 @@ private:
     bool processIncomingData(quint32 channel, quint32 code1, QByteArray *data);
     void addMessageToModel(int column, const QString &message);
 
-    InstanceModel *m_model;
+    InspectionModel *m_model;
 
     QLocalServer *m_localServer;
     QLocalSocket *m_socket;
