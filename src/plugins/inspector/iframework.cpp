@@ -29,12 +29,14 @@
 
 #include "iframework.h"
 #include "abstractpanel.h"
+#include "iinspectionmodel.h"
 #include "tasksmodel.h"
 
 using namespace Inspector::Internal;
 
-IFramework::IFramework(QObject *parent)
+IFramework::IFramework(IInspectionModel *inspectionModel, QObject *parent)
   : QObject(parent)
+  , m_inspectionModel(inspectionModel)
 {
     m_taskModel = new TasksModel(this);
     connect(m_taskModel, SIGNAL(itemChanged(QStandardItem*)),
@@ -47,11 +49,20 @@ IFramework::~IFramework()
     QList<IFrameworkModule *> listCopy = m_modules;
     m_modules.clear();
     qDeleteAll(listCopy);
+
+    // delete the models
+    delete m_taskModel;
+    delete m_inspectionModel;
 }
 
 TasksModel *IFramework::tasksModel() const
 {
     return m_taskModel;
+}
+
+IInspectionModel *IFramework::inspectionModel() const
+{
+    return m_inspectionModel;
 }
 
 void IFramework::addModule(IFrameworkModule * module)
@@ -131,7 +142,7 @@ void IFramework::slotModulePanelDisplayRequested(int panelId)
 
 void IFramework::slotModuleActivationRequested(const QString &text)
 {
-    IFrameworkModule * module = static_cast<IFrameworkModule *>(sender());
+    IFrameworkModule *module = static_cast<IFrameworkModule *>(sender());
 
     // update the model
     QString name = text.isEmpty() ? module->name() : text;
