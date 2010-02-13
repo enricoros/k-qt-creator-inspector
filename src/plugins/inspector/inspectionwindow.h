@@ -27,8 +27,8 @@
 **
 **************************************************************************/
 
-#ifndef TARGETWINDOW_H
-#define TARGETWINDOW_H
+#ifndef INSPECTIONWINDOW_H
+#define INSPECTIONWINDOW_H
 
 #include <QtGui/QWidget>
 
@@ -40,17 +40,17 @@ class Instance;
 class PanelContainerWidget;
 class StatusBarWidget;
 
-class TargetWindow : public QWidget
+class InspectionWindow : public QWidget
 {
     Q_OBJECT
 
 public:
-    TargetWindow(Instance *instance, QWidget *parent = 0);
+    InspectionWindow(Instance *instance, QWidget *parent = 0);
 
-    Instance *targetInstance() const;
+    Instance *instance() const;
 
 signals:
-    void requestTargetDisplay();
+    void requestInspectionDisplay();
 
 private slots:
     void slotMenuChanged(const QStringList &path, const QVariant &data);
@@ -68,4 +68,4 @@ private:
 } // namespace Internal
 } // namespace Inspector
 
-#endif // TARGETWINDOW_H
+#endif // INSPECTIONWINDOW_H

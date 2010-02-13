@@ -37,10 +37,10 @@ class QStackedWidget;
 namespace Inspector {
 namespace Internal {
 
-class InspectorWindow;
+class DashboardWindow;
+class InspectionWindow;
 class Instance;
 class SingleTabWidget;
-class TargetWindow;
 
 class InspectorContainer : public QWidget
 {
@@ -56,14 +56,14 @@ private slots:
     void slotInstanceAdded(Instance *);
     void slotInstanceRemoved(Instance *);
 
-    void slotDisplayInspectorWindow();
-    void slotDisplayTargetWindow();
+    void slotDisplayDashboardWindow();
+    void slotDisplayInspectionWindow();
 
 private:
-    SingleTabWidget *       m_topbarWidget;
-    InspectorWindow *       m_inspectorWindow;
-    QStackedWidget *        m_centralWidget;
-    QList<TargetWindow *>   m_targets;
+    SingleTabWidget *           m_topbarWidget;
+    DashboardWindow *           m_dashboardWindow;
+    QStackedWidget *            m_centralWidget;
+    QList<InspectionWindow *>   m_inspections;
 };
 
 } // namespace Internal

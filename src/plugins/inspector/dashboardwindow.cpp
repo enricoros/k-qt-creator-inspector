@@ -27,7 +27,7 @@
 **
 **************************************************************************/
 
-#include "inspectorwindow.h"
+#include "dashboardwindow.h"
 #include "iframework.h"
 #include "inspectorplugin.h"
 #include "instance.h"
@@ -77,7 +77,7 @@ public:
 };
 
 
-InspectorWindow::InspectorWindow(QWidget *parent)
+DashboardWindow::DashboardWindow(QWidget *parent)
   : QScrollArea(parent)
   , m_root(new QWidget(this))
 {
@@ -94,7 +94,7 @@ InspectorWindow::InspectorWindow(QWidget *parent)
 
     InspectorPlugin *plugin = InspectorPlugin::pluginInstance();
 
-    // 1. create the Active Targets widget
+    // 1. create the Active Inspections widget
     {
         QWidget *widget = new QWidget;
 
@@ -104,26 +104,21 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         widget->setLayout(m_instancesLayout);
 
         m_noInstancesLabel = new QLabel;
-        m_noInstancesLabel->setText(tr("No Inspection"));
+        m_noInstancesLabel->setText(tr("No inspections running"));
         m_instancesLayout->addWidget(m_noInstancesLabel);
 
-        appendWrappedWidget(tr("Active Targets"),
+        appendWrappedWidget(tr("Active Inspections"),
                             QIcon(":/inspector/images/inspector-icon-32.png"),
                             widget);
     }
 
-    // 2. create the New Target widget
+    // 2. create the New Inspection widget
     {
         QWidget *panel = new QWidget;
         QGridLayout *grid = new QGridLayout(panel);
         grid->setMargin(0);
         grid->setSpacing(0);
         grid->setColumnMinimumWidth(0, LEFT_MARGIN);
-
-        /*QLabel *desc = new QLabel;
-        desc->setText(tr("Select the kind of local target you want to Inspect."));
-        desc->setWordWrap(true);
-        appendSubWidget(grid, desc);*/
 
         // 2.1 run a new Instance (TODO: turn this into a parser of "Inspect %1 running %2 with %3")
         QWidget *runWidget = new QWidget;
@@ -132,8 +127,8 @@ InspectorWindow::InspectorWindow(QWidget *parent)
          runLayout->addWidget(new QLabel(tr("Inspect")));
         m_projectsCombo = new ProjectsComboBox;
          runLayout->addWidget(m_projectsCombo);
-        m_targetsCombo = new TargetsComboBox;
-         runLayout->addWidget(m_targetsCombo);
+        m_devicesCombo = new DevicesComboBox;
+         runLayout->addWidget(m_devicesCombo);
         m_runconfLabel = new QLabel(tr("running"));
          runLayout->addWidget(m_runconfLabel);
         m_runconfsCombo = new RunconfComboBox;
@@ -148,18 +143,20 @@ InspectorWindow::InspectorWindow(QWidget *parent)
         m_newRunButton->setText(tr("Start"));
         m_newRunButton->setIcon(QIcon(":/projectexplorer/images/run_small.png"));
         connect(m_newRunButton, SIGNAL(clicked()),
-                this, SLOT(slotLaunchTarget()));
+                this, SLOT(slotNewRun()));
          runLayout->addWidget(m_newRunButton);
-        appendSubWidget(grid, runWidget, tr("Launch")/*,
+        appendSubWidget(grid, runWidget, tr("Inspect a New Target")/*,
                         tr("Start a new instance of the selected project.")*/);
 
-        slotProjectChanged();
         connect(m_projectsCombo, SIGNAL(currentProjectChanged()),
                 this, SLOT(slotProjectChanged()));
-        connect(m_targetsCombo, SIGNAL(currentTargetChanged()),
-                this, SLOT(slotTargetChanged()));
+        connect(m_devicesCombo, SIGNAL(currentDeviceChanged()),
+                this, SLOT(slotDeviceChanged()));
         connect(m_runconfsCombo, SIGNAL(currentRunconfChanged()),
                 this, SLOT(slotRunconfChanged()));
+        slotProjectChanged();
+        slotDeviceChanged();
+        slotRunconfChanged();
 
         // 2.2 attach to an existing instance
         QWidget *attWidget = new QWidget;
@@ -173,27 +170,27 @@ InspectorWindow::InspectorWindow(QWidget *parent)
                 this, SLOT(slotAttachPidSelected(quint64)));
          attLayout->addWidget(rcList);
 
-        m_attContainer = new QWidget;
-        m_attContainer->setEnabled(false);
-        QHBoxLayout *acLayout = new QHBoxLayout(m_attContainer);
+        QWidget *acPanel = new QWidget;
+        QHBoxLayout *acLayout = new QHBoxLayout(acPanel);
          acLayout->setMargin(0);
-         acLayout->addWidget(new QLabel(tr("Inspect with")));
+         acLayout->addWidget(new QLabel(tr("With")));
         m_attFrameworks = new FrameworksComboBox;
          acLayout->addWidget(m_attFrameworks);
          acLayout->addWidget(new QLabel(tr("framework")));
          acLayout->addStretch();
         m_attButton = new QPushButton;
         m_attButton->setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
-        m_attButton->setText(tr("Start"));
-        m_attButton->setIcon(QIcon(":/projectexplorer/images/run_small.png"));
+        m_attButton->setText(tr("Attach"));
+        m_attButton->setIcon(QIcon(":/projectexplorer/images/debugger_start_small.png"));
+        m_attButton->setEnabled(false);
         connect(m_attButton, SIGNAL(clicked()),
-                 this, SLOT(slotLaunchAttach()));
+                 this, SLOT(slotNewAttach()));
          acLayout->addWidget(m_attButton);
-         attLayout->addWidget(m_attContainer);
+         attLayout->addWidget(acPanel);
 
-        appendSubWidget(grid, attWidget, tr("Connect to Running"));
+        appendSubWidget(grid, attWidget, tr("Inspect a Running Target"));
 
-        appendWrappedWidget(tr("New Target"),
+        appendWrappedWidget(tr("Create a New Inspection"),
                             QIcon(":/projectexplorer/images/session.png"),
                             panel);
 
@@ -266,74 +263,74 @@ InspectorWindow::InspectorWindow(QWidget *parent)
             this, SLOT(slotInstanceRemoved(Instance*)));
 }
 
-void InspectorWindow::newTarget(quint64 pid, IFrameworkFactory *factory)
+void DashboardWindow::newInspection(quint64 pid, IFrameworkFactory *factory)
 {
     // sanity check
     if (!factory->available()) {
-        qWarning("InspectorPlugin::newTarget: can't start more instances of creator's debugger");
+        qWarning("InspectorPlugin::newInspection: can't start more instances of creator's debugger");
         return;
     }
 
     Instance *instance = new Instance("FIXME-NAME", factory);
     if (!instance->framework()) {
-        qWarning("InspectorPlugin::newTarget: no available framework. skipping");
+        qWarning("InspectorPlugin::newInspection: no available framework. skipping");
         delete instance;
         return;
     }
     /*if (!instance->framework()->startRunConfiguration(rc)) {
-        qWarning("InspectorPlugin::newTarget: can't start the run configuration. skipping");
+        qWarning("InspectorPlugin::newInspection: can't start the run configuration. skipping");
         delete instance;
         return;
     }*/
     InspectorPlugin::pluginInstance()->addInstance(instance);
 }
 
-void InspectorWindow::newTarget(ProjectExplorer::RunConfiguration *rc, IFrameworkFactory *factory)
+void DashboardWindow::newInspection(ProjectExplorer::RunConfiguration *rc, IFrameworkFactory *factory)
 {
     // sanity check
     if (!factory->available()) {
-        qWarning("InspectorPlugin::newTarget: can't start more instances of creator's debugger");
+        qWarning("InspectorPlugin::newInspection: can't start more instances of creator's debugger");
         return;
     }
 
     Instance *instance = new Instance(rc->displayName(), factory);
     if (!instance->framework()) {
-        qWarning("InspectorPlugin::newTarget: no available framework. skipping");
+        qWarning("InspectorPlugin::newInspection: no available framework. skipping");
         delete instance;
         return;
     }
     if (!instance->framework()->startRunConfiguration(rc)) {
-        qWarning("InspectorPlugin::newTarget: can't start the run configuration. skipping");
+        qWarning("InspectorPlugin::newInspection: can't start the run configuration. skipping");
         delete instance;
         return;
     }
     InspectorPlugin::pluginInstance()->addInstance(instance);
 }
 
-void InspectorWindow::slotProjectChanged()
+void DashboardWindow::slotProjectChanged()
 {
     ProjectExplorer::Project *project = m_projectsCombo->currentProject();
-    m_targetsCombo->setProject(project);
-    m_targetsCombo->setVisible(m_targetsCombo->count() > 1);
+    m_devicesCombo->setProject(project);
+    m_devicesCombo->setVisible(m_devicesCombo->count() > 1);
     m_projectsCombo->setEnabled(project);
 }
 
-void InspectorWindow::slotTargetChanged()
+void DashboardWindow::slotDeviceChanged()
 {
-    ProjectExplorer::Target *target = m_targetsCombo->currentTarget();
-    m_runconfsCombo->setTarget(target);
+    ProjectExplorer::Target *device = m_devicesCombo->currentDevice();
+    m_runconfsCombo->setDevice(device);
     m_runconfsCombo->setVisible(m_runconfsCombo->count() > 1);
     m_runconfLabel->setVisible(m_runconfsCombo->count() > 1);
 }
 
-void InspectorWindow::slotRunconfChanged()
+void DashboardWindow::slotRunconfChanged()
 {
     ProjectExplorer::RunConfiguration *runconf = m_runconfsCombo->currentRunConfiguration();
     m_frameworksCombo->setEnabled(runconf);
     m_newRunButton->setEnabled(runconf);
 }
 
-void InspectorWindow::slotInstanceAdded(Instance *instance)
+void DashboardWindow::slotInstanceAdded(Instance *instance)
 {
     // create the RunningInstanceWidget
     m_instances.append(instance);
@@ -348,7 +345,7 @@ void InspectorWindow::slotInstanceAdded(Instance *instance)
         m_noInstancesLabel->hide();
 }
 
-void InspectorWindow::slotInstanceRemoved(Instance *removedInstance)
+void DashboardWindow::slotInstanceRemoved(Instance *removedInstance)
 {
     // remove the RunningInstanceWidget
     int index = 0;
@@ -367,38 +364,38 @@ void InspectorWindow::slotInstanceRemoved(Instance *removedInstance)
         m_noInstancesLabel->show();
 }
 
-void InspectorWindow::slotCloseInstance(Instance *instance)
+void DashboardWindow::slotCloseInstance(Instance *instance)
 {
     InspectorPlugin::pluginInstance()->deleteInstance(instance);
 }
 
-void InspectorWindow::slotLaunchTarget()
+void DashboardWindow::slotNewRun()
 {
     if (ProjectExplorer::RunConfiguration *rc = m_runconfsCombo->currentRunConfiguration()) {
         if (IFrameworkFactory *factory = m_frameworksCombo->currentFactory()) {
-            newTarget(rc, factory);
+            newInspection(rc, factory);
         }
     }
 }
 
-void InspectorWindow::slotLaunchAttach()
+void DashboardWindow::slotNewAttach()
 {
-    qWarning("InspectorWindow::slotLaunchAttach: TODO - NOT IMPLEMENTED");
+    qWarning("DashboardWindow::slotLaunchAttach: TODO - NOT IMPLEMENTED");
 }
 
-void InspectorWindow::slotAttachPidSelected(quint64 pid)
+void DashboardWindow::slotAttachPidSelected(quint64 pid)
 {
-    m_attContainer->setEnabled(true);
+    m_attButton->setEnabled(true);
 }
 
-void InspectorWindow::slotRunControlSelected(ProjectExplorer::RunControl *rc)
+void DashboardWindow::slotRunControlSelected(ProjectExplorer::RunControl *rc)
 {
     Q_UNUSED(rc);
-    m_attContainer->setEnabled(false);
+    m_attButton->setEnabled(false);
 }
 
 // keep this in sync with PanelsWidget::addPropertiesPanel in projectwindow.cpp
-void InspectorWindow::appendWrappedWidget(const QString &title, const QIcon &icon,
+void DashboardWindow::appendWrappedWidget(const QString &title, const QIcon &icon,
                                           QWidget *widget)
 {
     // icon:
@@ -439,7 +436,7 @@ void InspectorWindow::appendWrappedWidget(const QString &title, const QIcon &ico
     m_layout->setRowStretch(stretchRow, ABOVE_HEADING_MARGIN);
 }
 
-void InspectorWindow::appendSubWidget(QGridLayout *layout, QWidget *widget,
+void DashboardWindow::appendSubWidget(QGridLayout *layout, QWidget *widget,
                                       const QString &title, const QString &subTitle)
 {
     int insertionRow = layout->rowCount();
@@ -533,18 +530,18 @@ void ProjectsComboBox::activeChanged(ProjectExplorer::Project *project)
 }
 
 //
-// TargetComboBox
+// DevicesComboBox
 //
-TargetsComboBox::TargetsComboBox(QWidget *parent)
+DevicesComboBox::DevicesComboBox(QWidget *parent)
   : QComboBox(parent)
   , m_project(0)
 {
     setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
     connect(this, SIGNAL(currentIndexChanged(int)),
-            this, SIGNAL(currentTargetChanged()));
+            this, SIGNAL(currentDeviceChanged()));
 }
 
-void TargetsComboBox::setProject(ProjectExplorer::Project *project)
+void DevicesComboBox::setProject(ProjectExplorer::Project *project)
 {
     if (m_project == project)
         return;
@@ -560,8 +557,8 @@ void TargetsComboBox::setProject(ProjectExplorer::Project *project)
 
     // link this project
     if (m_project) {
-        foreach(ProjectExplorer::Target *target, m_project->targets())
-            add(target);
+        foreach(ProjectExplorer::Target *device, m_project->targets())
+            add(device);
         connect(m_project, SIGNAL(addedTarget(ProjectExplorer::Target*)),
                 this, SLOT(add(ProjectExplorer::Target*)));
         connect(m_project, SIGNAL(removedTarget(ProjectExplorer::Target*)),
@@ -571,37 +568,37 @@ void TargetsComboBox::setProject(ProjectExplorer::Project *project)
     }
 }
 
-ProjectExplorer::Target *TargetsComboBox::currentTarget() const
+ProjectExplorer::Target *DevicesComboBox::currentDevice() const
 {
     if (currentIndex() < 0)
         return 0;
     return itemData(currentIndex()).value<ProjectExplorer::Target *>();
 }
 
-void TargetsComboBox::add(ProjectExplorer::Target *target)
+void DevicesComboBox::add(ProjectExplorer::Target *device)
 {
-    connect(target, SIGNAL(displayNameChanged()),
+    connect(device, SIGNAL(displayNameChanged()),
             this, SLOT(updateDisplayName()));
-    addItem(target->displayName(), QVariant::fromValue(target));
-    if (m_project->activeTarget() == target)
+    addItem(device->displayName(), QVariant::fromValue(device));
+    if (m_project->activeTarget() == device)
         setCurrentIndex(count() - 1);
 }
 
-void TargetsComboBox::remove(ProjectExplorer::Target *target)
+void DevicesComboBox::remove(ProjectExplorer::Target *device)
 {
-    disconnect(target, 0, this, 0);
-    removeItem(findData(QVariant::fromValue(target)));
+    disconnect(device, 0, this, 0);
+    removeItem(findData(QVariant::fromValue(device)));
 }
 
-void TargetsComboBox::activeChanged(ProjectExplorer::Target *target)
+void DevicesComboBox::activeChanged(ProjectExplorer::Target *device)
 {
-    setCurrentIndex(findData(QVariant::fromValue(target)));
+    setCurrentIndex(findData(QVariant::fromValue(device)));
 }
 
-void TargetsComboBox::updateDisplayName()
+void DevicesComboBox::updateDisplayName()
 {
-    ProjectExplorer::Target *target = static_cast<ProjectExplorer::Target *>(sender());
-    setItemText(findData(QVariant::fromValue(target)), target->displayName());
+    ProjectExplorer::Target *device = static_cast<ProjectExplorer::Target *>(sender());
+    setItemText(findData(QVariant::fromValue(device)), device->displayName());
 }
 
 //
@@ -609,36 +606,36 @@ void TargetsComboBox::updateDisplayName()
 //
 RunconfComboBox::RunconfComboBox(QWidget *parent)
   : QComboBox(parent)
-  , m_target(0)
+  , m_device(0)
 {
     setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
     connect(this, SIGNAL(currentIndexChanged(int)),
             this, SIGNAL(currentRunconfChanged()));
 }
 
-void RunconfComboBox::setTarget(ProjectExplorer::Target *target)
+void RunconfComboBox::setDevice(ProjectExplorer::Target *device)
 {
-    if (m_target == target)
+    if (m_device == device)
         return;
 
-    // remove links to previous target
-    if (m_target) {
-        disconnect(m_target, 0, this, 0);
+    // remove previous links
+    if (m_device) {
+        disconnect(m_device, 0, this, 0);
         while (count())
             remove(itemData(0).value<ProjectExplorer::RunConfiguration *>());
     }
 
-    m_target = target;
+    m_device = device;
 
-    // link this project
-    if (m_target) {
-        foreach(ProjectExplorer::RunConfiguration *rc, m_target->runConfigurations())
+    // link this
+    if (m_device) {
+        foreach(ProjectExplorer::RunConfiguration *rc, m_device->runConfigurations())
             add(rc);
-        connect(m_target, SIGNAL(addedRunConfiguration(ProjectExplorer::RunConfiguration*)),
+        connect(m_device, SIGNAL(addedRunConfiguration(ProjectExplorer::RunConfiguration*)),
                 this, SLOT(add(ProjectExplorer::RunConfiguration*)));
-        connect(m_target, SIGNAL(removedRunConfiguration(ProjectExplorer::RunConfiguration*)),
+        connect(m_device, SIGNAL(removedRunConfiguration(ProjectExplorer::RunConfiguration*)),
                 this, SLOT(remove(ProjectExplorer::RunConfiguration*)));
-        connect(m_target, SIGNAL(activeRunConfigurationChanged(ProjectExplorer::RunConfiguration*)),
+        connect(m_device, SIGNAL(activeRunConfigurationChanged(ProjectExplorer::RunConfiguration*)),
                 this, SLOT(activeChanged(ProjectExplorer::RunConfiguration*)));
     }
 }
@@ -655,7 +652,7 @@ void RunconfComboBox::add(ProjectExplorer::RunConfiguration *rc)
     connect(rc, SIGNAL(displayNameChanged()),
             this, SLOT(updateDisplayName()));
     addItem(rc->displayName(), QVariant::fromValue(rc));
-    if (m_target->activeRunConfiguration() == rc)
+    if (m_device->activeRunConfiguration() == rc)
         setCurrentIndex(count() - 1);
 }
 
