@@ -143,7 +143,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
         m_newRunButton->setText(tr("Start"));
         m_newRunButton->setIcon(QIcon(":/projectexplorer/images/run_small.png"));
         connect(m_newRunButton, SIGNAL(clicked()),
-                this, SLOT(slotNewRun()));
+                this, SLOT(slotStartClicked()));
          runLayout->addWidget(m_newRunButton);
         appendSubWidget(grid, runWidget, tr("Inspect a New Target")/*,
                         tr("Start a new Inspection on the selected project.")*/);
@@ -265,9 +265,22 @@ DashboardWindow::DashboardWindow(QWidget *parent)
 
 void DashboardWindow::newInspection(quint64 pid, IFrameworkFactory *factory)
 {
-    // TODO
-    Q_UNUSED(pid);
-    Q_UNUSED(factory);
+    IFramework *framework = factory->createFramework();
+    if (!framework) {
+        qWarning("DashboardWindow::newInspection: factory refusal");
+        return;
+    }
+
+    framework->inspectionModel()->setTargetName(tr("process %1").arg(pid));
+
+    if (!framework->startAttachToPid(pid)) {
+        qWarning("DashboardWindow::newInspection: can't attach to the process %lld. skipping", pid);
+        delete framework;
+        return;
+    }
+
+    Inspection *inspection = new Inspection(framework);
+    InspectorPlugin::instance()->addInspection(inspection);
 }
 
 void DashboardWindow::newInspection(ProjectExplorer::RunConfiguration *rc, IFrameworkFactory *factory)
@@ -352,7 +365,7 @@ void DashboardWindow::slotCloseInspection(Inspection *inspection)
     InspectorPlugin::instance()->deleteInspection(inspection);
 }
 
-void DashboardWindow::slotNewRun()
+void DashboardWindow::slotStartClicked()
 {
     if (ProjectExplorer::RunConfiguration *rc = m_runconfsCombo->currentRunConfiguration()) {
         if (IFrameworkFactory *factory = m_frameworksCombo->currentFactory()) {
@@ -371,6 +384,9 @@ void DashboardWindow::slotAttachPidSelected(quint64 pid)
     // TODO
     Q_UNUSED(pid);
     m_attButton->setEnabled(true);
+
+    if (IFrameworkFactory *factory = m_frameworksCombo->currentFactory())
+        newInspection(pid, factory);
 }
 
 void DashboardWindow::slotRunControlSelected(ProjectExplorer::RunControl *rc)

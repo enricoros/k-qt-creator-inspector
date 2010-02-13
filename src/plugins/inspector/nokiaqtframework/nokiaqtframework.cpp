@@ -32,13 +32,12 @@
 #include "localcommserver.h"
 #include "nokiaqtinspectionmodel.h"
 #include "shareddebugger.h"
+
 #include "blueprint/blueprintmodule.h"
 #include "info/infomodule.h"
 #include "painting/paintingmodule.h"
 #include "warnings/warningsmodule.h"
-#include <debugger/debuggermanager.h>
-#include <projectexplorer/projectexplorer.h>
-#include <projectexplorer/projectexplorerconstants.h>
+
 #include <QtGui/QMessageBox>
 
 using namespace Inspector::Internal;
@@ -72,20 +71,12 @@ LocalCommServer *NokiaQtFramework::commServer() const
 
 bool NokiaQtFramework::startAttachToPid(quint64 pid)
 {
-    const Debugger::DebuggerStartParametersPtr sp(new Debugger::DebuggerStartParameters);
-    sp->attachPID = pid;
-    sp->startMode = Debugger::AttachExternal;
-    qWarning("SAPT");
-    //if (RunControl *runControl = m_debuggerRunControlFactory->create(sp))
-    //    ProjectExplorerPlugin::instance()->startRunControl(runControl, ProjectExplorer::Constants::DEBUGMODE);
-    return false;
+    return m_sharedDebugger->startPidAttach(pid);
 }
 
 bool NokiaQtFramework::startRunConfiguration(ProjectExplorer::RunConfiguration *rc)
 {
-    ProjectExplorer::ProjectExplorerPlugin::instance()->
-       inspectorExecuteRunConfiguration(rc, ProjectExplorer::Constants::DEBUGMODE);
-    return true;
+    return m_sharedDebugger->startRunConfiguration(rc);
 }
 
 int NokiaQtFramework::infoModuleUid() const

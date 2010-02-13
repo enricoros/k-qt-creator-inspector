@@ -27,56 +27,48 @@
 **
 **************************************************************************/
 
-#ifndef SHAREDDEBUGGER_H
-#define SHAREDDEBUGGER_H
+#ifndef INSPECTORRUNNER_H
+#define INSPECTORRUNNER_H
 
-#include <QtCore/QObject>
-#include <QtCore/QVariantList>
-
-namespace Debugger {
-class DebuggerManager;
-}
-
-namespace ProjectExplorer {
-class RunConfiguration;
-}
+#include <debugger/debuggermanager.h>
+#include <projectexplorer/runconfiguration.h>
+#include <projectexplorer/applicationrunconfiguration.h>
 
 namespace Inspector {
 namespace Internal {
 
-/**
-  \brief Controls Creator's Debugger Manager (single instanced by default)
-*/
-class SharedDebugger : public QObject
+
+// This is a job description
+class InspectorRunControl : public ProjectExplorer::RunControl
 {
     Q_OBJECT
 
 public:
-    SharedDebugger(QObject *parent = 0);
+    InspectorRunControl(Debugger::DebuggerManager *manager,
+                        ProjectExplorer::LocalApplicationRunConfiguration *runConfiguration);
+    InspectorRunControl(Debugger::DebuggerManager *manager,
+                        const Debugger::DebuggerStartParametersPtr &startParameters);
 
-    bool acquirable() const;
-    bool acquire();
-    void release();
-
-    bool startPidAttach(quint64 pid);
-    bool startRunConfiguration(ProjectExplorer::RunConfiguration *);
-
-    void callProbeFunction(const QString &name, const QVariantList &args);
+    // ProjectExplorer::RunControl
+    virtual void start();
+    virtual void stop();
+    virtual bool isRunning() const;
 
 signals:
-    void acquirableChanged(bool);
+    void stopRequested();
 
 private slots:
-    void slotDmStateChanged(int);
+    void debuggingFinished();
+    void slotAddToOutputWindowInline(const QString &output);
 
 private:
-    void setRunning(bool);
-    Debugger::DebuggerManager *m_debuggerManager;
-    bool m_acquired;
+    void init();
+    Debugger::DebuggerStartParametersPtr m_startParameters;
+    Debugger::DebuggerManager *m_manager;
     bool m_running;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // SHAREDDEBUGGER_H
+#endif // INSPECTORRUNNER_H
