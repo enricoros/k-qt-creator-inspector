@@ -37,7 +37,7 @@ namespace Inspector {
 namespace Internal {
 
 class InspectorContainer;
-class Instance;
+class Inspection;
 class SharedDebugger;
 
 // constants
@@ -56,16 +56,16 @@ public:
     InspectorPlugin();
     ~InspectorPlugin();
 
-    static InspectorPlugin *pluginInstance();
+    static InspectorPlugin *instance();
 
     // shared debugger
     bool debuggerAcquirable() const;
-    SharedDebugger *acquireDebugger(Instance *);
+    SharedDebugger *acquireDebugger(Inspection *);
     bool releaseDebugger();
 
-    QList<Instance *> instances() const;
-    void addInstance(Instance *);
-    void deleteInstance(Instance *);
+    QList<Inspection *> inspections() const;
+    void addInspection(Inspection *);
+    void deleteInspection(Inspection *);
 
     // ::ExtensionSystem::IPlugin
     bool initialize(const QStringList &arguments, QString *error_message);
@@ -73,8 +73,8 @@ public:
 
 signals:
     void debuggerAcquirableChanged(bool);
-    void instanceAdded(Instance *);
-    void instanceRemoved(Instance *);
+    void inspectionAdded(Inspection *);
+    void inspectionRemoved(Inspection *);
 
 private slots:
     void slotSetPluginEnabled(bool enabled);
@@ -85,7 +85,7 @@ private:
     static InspectorPlugin *s_pluginInstance;
     SharedDebugger *m_sharedDebugger;
     Internal::InspectorContainer *m_container;
-    QList<Instance *> m_instances;
+    QList<Inspection *> m_inspections;
     bool m_pluginEnabled;
 };
 

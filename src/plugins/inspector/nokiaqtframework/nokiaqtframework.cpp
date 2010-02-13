@@ -45,11 +45,11 @@ using namespace Inspector::Internal;
 //
 // NokiaQtFramework
 //
-NokiaQtFramework::NokiaQtFramework(Instance *instance, SharedDebugger *sd, QObject *parent)
-  : IFramework(instance, parent)
+NokiaQtFramework::NokiaQtFramework(Inspection *inspection, SharedDebugger *sd, QObject *parent)
+  : IFramework(inspection, parent)
   , m_sharedDebugger(sd)
 {
-    m_commServer = new LocalCommServer(instanceModel());
+    m_commServer = new LocalCommServer(inspectionModel());
 
     addModule(new InfoModule(this));
     addModule(new PaintingModule(this));
@@ -59,7 +59,7 @@ NokiaQtFramework::NokiaQtFramework(Instance *instance, SharedDebugger *sd, QObje
 
 NokiaQtFramework::~NokiaQtFramework()
 {
-    InspectorPlugin::pluginInstance()->releaseDebugger();
+    InspectorPlugin::instance()->releaseDebugger();
     delete m_commServer;
 }
 
@@ -87,6 +87,7 @@ bool NokiaQtFramework::startAttachToPid(quint64 pid)
     qWarning("SAPT");
     //if (RunControl *runControl = m_debuggerRunControlFactory->create(sp))
     //    ProjectExplorerPlugin::instance()->startRunControl(runControl, ProjectExplorer::Constants::DEBUGMODE);
+    return false;
 }
 
 bool NokiaQtFramework::startRunConfiguration(ProjectExplorer::RunConfiguration *rc)
@@ -123,12 +124,12 @@ void NokiaQtFrameworkFactory::configure()
 
 bool NokiaQtFrameworkFactory::available() const
 {
-    return InspectorPlugin::pluginInstance()->debuggerAcquirable();
+    return InspectorPlugin::instance()->debuggerAcquirable();
 }
 
-IFramework *NokiaQtFrameworkFactory::createFramework(Instance *instance)
+IFramework *NokiaQtFrameworkFactory::createFramework(Inspection *inspection)
 {
-    if (SharedDebugger *sd = InspectorPlugin::pluginInstance()->acquireDebugger(instance))
-        return new NokiaQtFramework(instance, sd);
+    if (SharedDebugger *sd = InspectorPlugin::instance()->acquireDebugger(inspection))
+        return new NokiaQtFramework(inspection, sd);
     return 0;
 }

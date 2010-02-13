@@ -36,7 +36,7 @@ using namespace Debugger;
 SharedDebugger::SharedDebugger(QObject *parent)
   : QObject(parent)
   , m_debuggerManager(0)
-  , m_instance(0)
+  , m_inspecton(0)
   , m_running(false)
 {
     m_debuggerManager = DebuggerManager::instance();
@@ -48,7 +48,7 @@ SharedDebugger::SharedDebugger(QObject *parent)
 
 bool SharedDebugger::acquirable() const
 {
-    return !m_running && !m_instance;
+    return !m_running && !m_inspecton;
 }
 
 void SharedDebugger::callProbeFunction(const QString &name, const QVariantList &args)
@@ -96,17 +96,17 @@ void SharedDebugger::setRunning(bool running)
     }
 }
 
-void SharedDebugger::setInstance(Instance *instance)
+void SharedDebugger::setInspection(Inspection *inspection)
 {
-    if (m_instance != instance) {
+    if (m_inspecton != inspection) {
         bool prev = acquirable();
-        m_instance = instance;
+        m_inspecton = inspection;
         bool current = acquirable();
         if (prev != current)
             emit acquirableChanged(current);
     }
 
     // shut down debugger when released
-    if (!instance && m_running)
+    if (!inspection && m_running)
         m_debuggerManager->exitDebugger();
 }

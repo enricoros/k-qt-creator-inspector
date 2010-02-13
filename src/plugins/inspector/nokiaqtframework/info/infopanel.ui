@@ -7,7 +7,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>550</width>
+    <width>548</width>
     <height>425</height>
    </rect>
   </property>
@@ -26,7 +26,7 @@
         </sizepolicy>
        </property>
        <property name="pixmap">
-        <pixmap resource="../../inspector.qrc">:/inspector/images/submenu-up.png</pixmap>
+        <pixmap>:/inspector/images/submenu-up.png</pixmap>
        </property>
       </widget>
      </item>
@@ -48,14 +48,14 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="pluginWidget">
       <property name="autoFillBackground">
        <bool>true</bool>
       </property>
       <attribute name="icon">
-       <iconset resource="../../inspector.qrc">
+       <iconset>
         <normaloff>:/inspector/images/inspector-icon-32.png</normaloff>:/inspector/images/inspector-icon-32.png</iconset>
       </attribute>
       <attribute name="title">
@@ -88,7 +88,7 @@
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap resource="../../inspector.qrc">:/inspector/images/status-ok.png</pixmap>
+          <pixmap>:/inspector/images/status-ok.png</pixmap>
          </property>
         </widget>
        </item>
@@ -121,7 +121,7 @@
        <item row="3" column="0">
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Instance Enabled:</string>
+          <string>Inspection Enabled:</string>
          </property>
         </widget>
        </item>
@@ -163,7 +163,7 @@
           </font>
          </property>
          <property name="text">
-          <string>New Instance Activation Options</string>
+          <string>New Inspection Activation Options - OBSOLETE</string>
          </property>
         </widget>
        </item>
@@ -200,7 +200,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="instanceWidget">
+     <widget class="QWidget" name="ciWidget">
       <property name="autoFillBackground">
        <bool>true</bool>
       </property>
@@ -209,7 +209,7 @@
         <normaloff>:/debugger/images/debugger_start.png</normaloff>:/debugger/images/debugger_start.png</iconset>
       </attribute>
       <attribute name="title">
-       <string>Instance 1</string>
+       <string>Current Inspection</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
        <item row="0" column="0">
@@ -486,7 +486,7 @@
  <resources>
   <include location="../../inspector.qrc"/>
   <include location="../../inspector.qrc"/>
-  <include location="../inspector.qrc"/>
+  <include location="../../inspector.qrc"/>
  </resources>
  <connections>
   <connection>

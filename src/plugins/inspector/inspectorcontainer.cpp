@@ -29,9 +29,9 @@
 
 #include "inspectorcontainer.h"
 #include "dashboardwindow.h"
+#include "inspection.h"
 #include "inspectionwindow.h"
 #include "inspectorplugin.h"
-#include "instance.h"
 #include "singletabwidget.h"
 #include <QtGui/QStackedWidget>
 #include <QtGui/QVBoxLayout>
@@ -63,31 +63,31 @@ InspectorContainer::InspectorContainer(QWidget *parent)
     connect(m_dashboardWindow, SIGNAL(requestDisplay()),
             this, SLOT(slotDisplayDashboardWindow()));
 
-    InspectorPlugin *plugin = InspectorPlugin::pluginInstance();
-    foreach (Instance *instance, plugin->instances())
-        slotInstanceAdded(instance);
-    connect(plugin, SIGNAL(instanceAdded(Instance*)),
-            this, SLOT(slotInstanceAdded(Instance*)));
-    connect(plugin, SIGNAL(instanceRemoved(Instance*)),
-            this, SLOT(slotInstanceRemoved(Instance*)));
+    InspectorPlugin *plugin = InspectorPlugin::instance();
+    foreach (Inspection *inspection, plugin->inspections())
+        slotInspectionAdded(inspection);
+    connect(plugin, SIGNAL(inspectionAdded(Inspection*)),
+            this, SLOT(slotInspectionAdded(Inspection*)));
+    connect(plugin, SIGNAL(inspectionRemoved(Inspection*)),
+            this, SLOT(slotInspectionRemoved(Inspection*)));
 }
 
-void InspectorContainer::slotInstanceAdded(Instance *instance)
+void InspectorContainer::slotInspectionAdded(Inspection *inspection)
 {
     // if already present, just show it
     foreach (InspectionWindow *inspectionWindow, m_inspections) {
-        if (inspectionWindow->instance() == instance) {
+        if (inspectionWindow->inspection() == inspection) {
             m_centralWidget->setCurrentWidget(inspectionWindow);
             return;
         }
     }
 
     // create a new InspectionWindow
-    InspectionWindow *inspectionWindow = new InspectionWindow(instance);
+    InspectionWindow *inspectionWindow = new InspectionWindow(inspection);
     connect(inspectionWindow, SIGNAL(requestInspectionDisplay()),
             this, SLOT(slotDisplayInspectionWindow()));
     m_centralWidget->addWidget(inspectionWindow);
-    m_topbarWidget->addTab(instance->instanceModel()->displayName());
+    m_topbarWidget->addTab(inspection->inspectionModel()->displayName());
     m_inspections.append(inspectionWindow);
 
     // switch to that
@@ -98,12 +98,12 @@ void InspectorContainer::slotInstanceAdded(Instance *instance)
     slotDisplayInspectionWindow();
 }
 
-void InspectorContainer::slotInstanceRemoved(Instance *instance)
+void InspectorContainer::slotInspectionRemoved(Inspection *inspection)
 {
-    // remove all the widgetry associated to the instance
-    int tabIndex = 1;   // 0 is the 'Workbench' label
+    // remove all the associated widgetry
+    int tabIndex = 1;   // 0 is the 'Dashboard' label
     foreach (InspectionWindow *inspectionWindow, m_inspections) {
-        if (inspectionWindow->instance() == instance) {
+        if (inspectionWindow->inspection() == inspection) {
             m_inspections.removeAll(inspectionWindow);
             disconnect(inspectionWindow, 0, this, 0);
             m_centralWidget->removeWidget(inspectionWindow);

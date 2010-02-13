@@ -49,7 +49,7 @@ public:
 
 private:
     friend class NvidiaCudaFrameworkFactory;
-    NvidiaCudaFramework(Instance *, QObject *parent = 0);
+    NvidiaCudaFramework(Inspection *, QObject *parent = 0);
 };
 
 
@@ -61,7 +61,7 @@ public:
     // ::IFrameworkFactory
     QString displayName() const;
     QIcon icon() const;
-    IFramework *createFramework(Instance *);
+    IFramework *createFramework(Inspection *);
 };
 
 } // namespace Internal

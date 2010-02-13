@@ -28,7 +28,7 @@
 **************************************************************************/
 
 #include "statusbarwidget.h"
-#include "instance.h"
+#include "inspection.h"
 #include "tasksscroller.h"
 #include <QHBoxLayout>
 #include <QLabel>
@@ -107,14 +107,14 @@ StatusBarWidget::StatusBarWidget(QWidget *parent)
     m_layout->addStretch(1);
 }
 
-void StatusBarWidget::setInstance(Instance *instance)
+void StatusBarWidget::setInspection(Inspection *inspection)
 {
     // clear previous data
     qDeleteAll(m_buttons);
     m_buttons.clear();
 
     // apply the model to the tasks widget
-    TasksModel *model = instance ? instance->tasksModel() : 0;
+    TasksModel *model = inspection ? inspection->tasksModel() : 0;
     m_taskScroller->setTasksModel(model);
 }
 

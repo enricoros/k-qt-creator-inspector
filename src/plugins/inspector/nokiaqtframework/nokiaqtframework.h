@@ -61,7 +61,7 @@ public:
 
 private:
     friend class NokiaQtFrameworkFactory;
-    NokiaQtFramework(Instance *, SharedDebugger *, QObject *parent = 0);
+    NokiaQtFramework(Inspection *, SharedDebugger *, QObject *parent = 0);
     LocalCommServer *m_commServer;
     SharedDebugger *m_sharedDebugger;
 };
@@ -78,7 +78,7 @@ public:
     bool isConfigurable() const;
     void configure();
     bool available() const;
-    IFramework *createFramework(Instance *);
+    IFramework *createFramework(Inspection *);
 };
 
 } // namespace Internal

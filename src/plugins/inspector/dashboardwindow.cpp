@@ -29,8 +29,8 @@
 
 #include "dashboardwindow.h"
 #include "iframework.h"
+#include "inspection.h"
 #include "inspectorplugin.h"
-#include "instance.h"
 #include "shareddebugger.h"
 #include "runcontrolwatcher.h"
 #include <extensionsystem/pluginmanager.h>
@@ -92,20 +92,20 @@ DashboardWindow::DashboardWindow(QWidget *parent)
     setFrameStyle(QFrame::NoFrame);
     setWidgetResizable(true);
 
-    InspectorPlugin *plugin = InspectorPlugin::pluginInstance();
+    InspectorPlugin *plugin = InspectorPlugin::instance();
 
     // 1. create the Active Inspections widget
     {
         QWidget *widget = new QWidget;
 
-        m_instancesLayout = new QVBoxLayout;
-        m_instancesLayout->setContentsMargins(LEFT_MARGIN, ABOVE_CONTENTS_MARGIN, 0, 0);
-        m_instancesLayout->setSpacing(0);
-        widget->setLayout(m_instancesLayout);
+        m_inspectionsLayout = new QVBoxLayout;
+        m_inspectionsLayout->setContentsMargins(LEFT_MARGIN, ABOVE_CONTENTS_MARGIN, 0, 0);
+        m_inspectionsLayout->setSpacing(0);
+        widget->setLayout(m_inspectionsLayout);
 
-        m_noInstancesLabel = new QLabel;
-        m_noInstancesLabel->setText(tr("No inspections running"));
-        m_instancesLayout->addWidget(m_noInstancesLabel);
+        m_noInspectionsLabel = new QLabel;
+        m_noInspectionsLabel->setText(tr("No Inspection running. Start a new one on the tab below."));
+        m_inspectionsLayout->addWidget(m_noInspectionsLabel);
 
         appendWrappedWidget(tr("Active Inspections"),
                             QIcon(":/inspector/images/inspector-icon-32.png"),
@@ -120,7 +120,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
         grid->setSpacing(0);
         grid->setColumnMinimumWidth(0, LEFT_MARGIN);
 
-        // 2.1 run a new Instance (TODO: turn this into a parser of "Inspect %1 running %2 with %3")
+        // 2.1 run a new Inspection (TODO: turn this into a parser of "Inspect %1 running %2 with %3")
         QWidget *runWidget = new QWidget;
         QHBoxLayout *runLayout = new QHBoxLayout(runWidget);
          runLayout->setMargin(0);
@@ -146,7 +146,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
                 this, SLOT(slotNewRun()));
          runLayout->addWidget(m_newRunButton);
         appendSubWidget(grid, runWidget, tr("Inspect a New Target")/*,
-                        tr("Start a new instance of the selected project.")*/);
+                        tr("Start a new Inspection on the selected project.")*/);
 
         connect(m_projectsCombo, SIGNAL(currentProjectChanged()),
                 this, SLOT(slotProjectChanged()));
@@ -158,7 +158,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
         slotDeviceChanged();
         slotRunconfChanged();
 
-        // 2.2 attach to an existing instance
+        // 2.2 attach to an existing Target
         QWidget *attWidget = new QWidget;
         QVBoxLayout *attLayout = new QVBoxLayout(attWidget);
          attLayout->setMargin(0);
@@ -255,56 +255,59 @@ DashboardWindow::DashboardWindow(QWidget *parent)
                             tempLabel);
     }
 
-    foreach (Instance *instance, plugin->instances())
-        slotInstanceAdded(instance);
-    connect(plugin, SIGNAL(instanceAdded(Instance*)),
-            this, SLOT(slotInstanceAdded(Instance*)));
-    connect(plugin, SIGNAL(instanceRemoved(Instance*)),
-            this, SLOT(slotInstanceRemoved(Instance*)));
+    foreach (Inspection *inspection, plugin->inspections())
+        slotInspectionAdded(inspection);
+    connect(plugin, SIGNAL(inspectionAdded(Inspection*)),
+            this, SLOT(slotInspectionAdded(Inspection*)));
+    connect(plugin, SIGNAL(inspectionRemoved(Inspection*)),
+            this, SLOT(slotInspectionRemoved(Inspection*)));
 }
 
 void DashboardWindow::newInspection(quint64 pid, IFrameworkFactory *factory)
 {
+    // TODO
+    Q_UNUSED(pid);
+
     // sanity check
     if (!factory->available()) {
-        qWarning("InspectorPlugin::newInspection: can't start more instances of creator's debugger");
+        qWarning("DashboardWindow::newInspection: factory is busy");
         return;
     }
 
-    Instance *instance = new Instance("FIXME-NAME", factory);
-    if (!instance->framework()) {
-        qWarning("InspectorPlugin::newInspection: no available framework. skipping");
-        delete instance;
+    Inspection *inspection = new Inspection("FIXME-NAME", factory);
+    if (!inspection->framework()) {
+        qWarning("DashboardWindow::newInspection: no available framework. skipping");
+        delete inspection;
         return;
     }
-    /*if (!instance->framework()->startRunConfiguration(rc)) {
-        qWarning("InspectorPlugin::newInspection: can't start the run configuration. skipping");
-        delete instance;
+    /*if (!inspection->framework()->startRunConfiguration(rc)) {
+        qWarning("DashboardWindow::newInspection: can't start the run configuration. skipping");
+        delete inspection;
         return;
     }*/
-    InspectorPlugin::pluginInstance()->addInstance(instance);
+    InspectorPlugin::instance()->addInspection(inspection);
 }
 
 void DashboardWindow::newInspection(ProjectExplorer::RunConfiguration *rc, IFrameworkFactory *factory)
 {
     // sanity check
     if (!factory->available()) {
-        qWarning("InspectorPlugin::newInspection: can't start more instances of creator's debugger");
+        qWarning("DashboardWindow::newInspection: factory is busy");
         return;
     }
 
-    Instance *instance = new Instance(rc->displayName(), factory);
-    if (!instance->framework()) {
-        qWarning("InspectorPlugin::newInspection: no available framework. skipping");
-        delete instance;
+    Inspection *inspection = new Inspection(rc->displayName(), factory);
+    if (!inspection->framework()) {
+        qWarning("DashboardWindow::newInspection: no available framework. skipping");
+        delete inspection;
         return;
     }
-    if (!instance->framework()->startRunConfiguration(rc)) {
-        qWarning("InspectorPlugin::newInspection: can't start the run configuration. skipping");
-        delete instance;
+    if (!inspection->framework()->startRunConfiguration(rc)) {
+        qWarning("DashboardWindow::newInspection: can't start the run configuration. skipping");
+        delete inspection;
         return;
     }
-    InspectorPlugin::pluginInstance()->addInstance(instance);
+    InspectorPlugin::instance()->addInspection(inspection);
 }
 
 void DashboardWindow::slotProjectChanged()
@@ -330,43 +333,43 @@ void DashboardWindow::slotRunconfChanged()
     m_newRunButton->setEnabled(runconf);
 }
 
-void DashboardWindow::slotInstanceAdded(Instance *instance)
+void DashboardWindow::slotInspectionAdded(Inspection *inspection)
 {
-    // create the RunningInstanceWidget
-    m_instances.append(instance);
-    RunningInstanceWidget *r = new RunningInstanceWidget(instance);
-    connect(r, SIGNAL(closeInstance(Instance*)),
-            this, SLOT(slotCloseInstance(Instance*)));
-    m_instanceWidgets.append(r);
-    m_instancesLayout->addWidget(r);
+    // create the RunningInspectionWidget
+    m_inspections.append(inspection);
+    RunningInspectionWidget *r = new RunningInspectionWidget(inspection);
+    connect(r, SIGNAL(closeInspection(Inspection*)),
+            this, SLOT(slotCloseInspection(Inspection*)));
+    m_inspectionWidgets.append(r);
+    m_inspectionsLayout->addWidget(r);
 
-    // hide a label if have instances
-    if (!m_instances.isEmpty())
-        m_noInstancesLabel->hide();
+    // hide a label if have inspections
+    if (!m_inspections.isEmpty())
+        m_noInspectionsLabel->hide();
 }
 
-void DashboardWindow::slotInstanceRemoved(Instance *removedInstance)
+void DashboardWindow::slotInspectionRemoved(Inspection *removedInspection)
 {
-    // remove the RunningInstanceWidget
+    // remove the RunningInspectionWidget
     int index = 0;
-    foreach (Instance *instance, m_instances) {
-        if (instance == removedInstance) {
-            m_instances.removeAt(index);
-            QWidget *iWidget = m_instanceWidgets.takeAt(index);
-            m_instancesLayout->removeWidget(iWidget);
+    foreach (Inspection *inspection, m_inspections) {
+        if (inspection == removedInspection) {
+            m_inspections.removeAt(index);
+            QWidget *iWidget = m_inspectionWidgets.takeAt(index);
+            m_inspectionsLayout->removeWidget(iWidget);
             iWidget->deleteLater();
             break;
         }
     }
 
-    // show a label if no instances
-    if (m_instances.isEmpty())
-        m_noInstancesLabel->show();
+    // show a label if no inspections
+    if (m_inspections.isEmpty())
+        m_noInspectionsLabel->show();
 }
 
-void DashboardWindow::slotCloseInstance(Instance *instance)
+void DashboardWindow::slotCloseInspection(Inspection *inspection)
 {
-    InspectorPlugin::pluginInstance()->deleteInstance(instance);
+    InspectorPlugin::instance()->deleteInspection(inspection);
 }
 
 void DashboardWindow::slotNewRun()
@@ -385,6 +388,8 @@ void DashboardWindow::slotNewAttach()
 
 void DashboardWindow::slotAttachPidSelected(quint64 pid)
 {
+    // TODO
+    Q_UNUSED(pid);
     m_attButton->setEnabled(true);
 }
 
@@ -701,23 +706,23 @@ QList<IFrameworkFactory *> FrameworksComboBox::allFactories()
 }
 
 //
-// RunningInstanceWidget
+// RunningInspectionWidget
 //
-RunningInstanceWidget::RunningInstanceWidget(Instance *instance, QWidget *parent)
+RunningInspectionWidget::RunningInspectionWidget(Inspection *inspection, QWidget *parent)
   : QWidget(parent)
-  , m_instance(instance)
+  , m_inspection(inspection)
 {
     QHBoxLayout *lay = new QHBoxLayout(this);
     lay->setMargin(0);
 
     QLabel *label1 = new QLabel;
-    label1->setText(instance->instanceModel()->displayName());
+    label1->setText(inspection->inspectionModel()->displayName());
     lay->addWidget(label1);
 
     lay->addStretch(10);
 
     QLabel *label2 = new QLabel;
-    label2->setText(tr("#%1").arg(instance->instanceModel()->monotonicId()));
+    label2->setText(tr("#%1").arg(inspection->inspectionModel()->monotonicId()));
     lay->addWidget(label2);
 
     lay->addStretch(100);
@@ -730,9 +735,9 @@ RunningInstanceWidget::RunningInstanceWidget(Instance *instance, QWidget *parent
     lay->addWidget(b);
 }
 
-void RunningInstanceWidget::slotRemoveClicked()
+void RunningInspectionWidget::slotRemoveClicked()
 {
-    emit closeInstance(m_instance);
+    emit closeInspection(m_inspection);
 }
 
 } // namespace Internal

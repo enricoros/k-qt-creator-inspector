@@ -27,14 +27,14 @@
 **
 **************************************************************************/
 
-#include "instancemodel.h"
+#include "inspectionmodel.h"
 
 #include "../../../share/qtcreator/gdbmacros/perfunction.h"
 
 using namespace Inspector::Internal;
 
-/* == InstanceModel Usage ==
-Row 'InstanceStatus_Row': Instance Status
+/* == InspectionModel Usage ==
+Row 'InspectionStatus_Row': Inspection Status
   0: targetName             string
   1: frameworkName          string
   2: monotonicId            int
@@ -63,16 +63,16 @@ Row 'CommServer_Row': Communication Server
   8: communication log parent (1 row per string)
 */
 
-InstanceModel::InstanceModel(const QString &targetName, const QString &frameworkName, QObject *parent)
+InspectionModel::InspectionModel(const QString &targetName, const QString &frameworkName, QObject *parent)
   : Internal::AbstractEasyModel(3, 0, parent)
 {
     // init model
-    setItemValue(InstanceStatus_Row, 0, targetName);
-    setItemValue(InstanceStatus_Row, 1, frameworkName);
+    setItemValue(InspectionStatus_Row, 0, targetName);
+    setItemValue(InspectionStatus_Row, 1, frameworkName);
     static int s_monotonicId = 0;
-    setItemValue(InstanceStatus_Row, 2, (++s_monotonicId));
-    setItemValue(InstanceStatus_Row, 3, true);
-    setItemValue(InstanceStatus_Row, 4, false);
+    setItemValue(InspectionStatus_Row, 2, (++s_monotonicId));
+    setItemValue(InspectionStatus_Row, 3, true);
+    setItemValue(InspectionStatus_Row, 4, false);
     setItemValue(ProbeStatus_Row, 0, QString());
     setItemValue(ProbeStatus_Row, 1, -1);
     setItemValue(ProbeStatus_Row, 2, -1);
@@ -83,37 +83,37 @@ InstanceModel::InstanceModel(const QString &targetName, const QString &framework
     setItemValue(ProbeStatus_Row, 7, -1);
 }
 
-QString InstanceModel::displayName() const
+QString InspectionModel::displayName() const
 {
     return tr("%1 [%2 framework]").arg(targetName()).arg(frameworkName());
 }
 
-QString InstanceModel::targetName() const
+QString InspectionModel::targetName() const
 {
-    return itemValue(InstanceStatus_Row, 0).toString();
+    return itemValue(InspectionStatus_Row, 0).toString();
 }
 
-QString InstanceModel::frameworkName() const
+QString InspectionModel::frameworkName() const
 {
-    return itemValue(InstanceStatus_Row, 1).toString();
+    return itemValue(InspectionStatus_Row, 1).toString();
 }
 
-int InstanceModel::monotonicId() const
+int InspectionModel::monotonicId() const
 {
-    return itemValue(InstanceStatus_Row, 2).toInt();
+    return itemValue(InspectionStatus_Row, 2).toInt();
 }
 
-bool InstanceModel::debugPaint() const
+bool InspectionModel::debugPaint() const
 {
-    return itemValue(InstanceStatus_Row, 4).toBool();
+    return itemValue(InspectionStatus_Row, 4).toBool();
 }
 
-bool InstanceModel::instanceEnabled() const
+bool InspectionModel::inspectionEnabled() const
 {
-    return itemValue(InstanceStatus_Row, 3).toBool();
+    return itemValue(InspectionStatus_Row, 3).toBool();
 }
 
-void InstanceModel::setDebugEnabled(bool value)
+void InspectionModel::setDebugEnabled(bool value)
 {
     setItemValue(ProbeStatus_Row, 1, value);
     if (!value) {
@@ -123,32 +123,32 @@ void InstanceModel::setDebugEnabled(bool value)
     }
 }
 
-void InstanceModel::setDebugStopped(bool value)
+void InspectionModel::setDebugStopped(bool value)
 {
     setItemValue(ProbeStatus_Row, 2, value);
 }
 
-void InstanceModel::setProbePresent(bool value)
+void InspectionModel::setProbePresent(bool value)
 {
     setItemValue(ProbeStatus_Row, 4, value);
 }
 
-void InstanceModel::setProbeInjected(bool value)
+void InspectionModel::setProbeInjected(bool value)
 {
     setItemValue(ProbeStatus_Row, 5, value);
 }
 
-void InstanceModel::setProbeActive(bool value)
+void InspectionModel::setProbeActive(bool value)
 {
     setItemValue(ProbeStatus_Row, 7, value);
 }
 
-QString InstanceModel::localServerName() const
+QString InspectionModel::localServerName() const
 {
-    return itemValue(InstanceModel::CommServer_Row, 1).toString();
+    return itemValue(InspectionModel::CommServer_Row, 1).toString();
 }
 
-int InstanceModel::probeActivationFlags() const
+int InspectionModel::probeActivationFlags() const
 {
     // flags are in perfunction.h
     int flags = Inspector::Internal::AF_None;
@@ -157,12 +157,12 @@ int InstanceModel::probeActivationFlags() const
     return flags;
 }
 
-void InstanceModel::setDebugPaint(bool value)
+void InspectionModel::setDebugPaint(bool value)
 {
-    setItemValue(InstanceStatus_Row, 4, value);
+    setItemValue(InspectionStatus_Row, 4, value);
 }
 
-void InstanceModel::setInstanceEnabled(bool value)
+void InspectionModel::setInspectionEnabled(bool value)
 {
-    setItemValue(InstanceStatus_Row, 3, value);
+    setItemValue(InspectionStatus_Row, 3, value);
 }

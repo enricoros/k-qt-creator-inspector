@@ -36,7 +36,7 @@ namespace Inspector {
 namespace Internal {
 
 class ComboTreeWidget;
-class Instance;
+class Inspection;
 class PanelContainerWidget;
 class StatusBarWidget;
 
@@ -45,9 +45,9 @@ class InspectionWindow : public QWidget
     Q_OBJECT
 
 public:
-    InspectionWindow(Instance *instance, QWidget *parent = 0);
+    InspectionWindow(Inspection *inspection, QWidget *parent = 0);
 
-    Instance *instance() const;
+    Inspection *inspection() const;
 
 signals:
     void requestInspectionDisplay();
@@ -57,9 +57,9 @@ private slots:
     void slotSetCurrentPanel(int moduleUid, int panelId);
 
 private:
-    void setInstance(Instance *instance);
+    void setInspection(Inspection *inspection);
     void showPanel(int moduleUid, int panelId);
-    Instance *              m_instance;
+    Inspection *              m_inspection;
     ComboTreeWidget *       m_menuWidget;
     PanelContainerWidget *  m_panelContainer;
     StatusBarWidget *       m_statusbarWidget;

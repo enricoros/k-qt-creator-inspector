@@ -28,7 +28,7 @@
 **************************************************************************/
 
 #include "localcommserver.h"
-#include "instancemodel.h"
+#include "inspectionmodel.h"
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
 #include <QDebug>
@@ -46,32 +46,32 @@
 
 using namespace Inspector::Internal;
 
-LocalCommServer::LocalCommServer(InstanceModel *model, QObject *parent)
+LocalCommServer::LocalCommServer(InspectionModel *model, QObject *parent)
     : QObject(parent)
     , m_model(model)
     , m_socket(0)
 {
     // init model data
-    m_model->setItemValue(InstanceModel::CommServer_Row, 0, false);
-    m_model->setItemValue(InstanceModel::CommServer_Row, 1, QString());
-    m_model->setItemValue(InstanceModel::CommServer_Row, 2, false);
-    m_model->setItemValue(InstanceModel::CommServer_Row, 3, false);
-    m_model->setItemValue(InstanceModel::CommServer_Row, 4, QString());
-  //m_model->setItemValue(InstanceModel::CommServer_Row, 5, --spare--);
-    m_model->setItemValue(InstanceModel::CommServer_Row, 6, "messages");
-    m_model->setItemValue(InstanceModel::CommServer_Row, 7, "errors");
-    m_model->setItemValue(InstanceModel::CommServer_Row, 8, "comm");
+    m_model->setItemValue(InspectionModel::CommServer_Row, 0, false);
+    m_model->setItemValue(InspectionModel::CommServer_Row, 1, QString());
+    m_model->setItemValue(InspectionModel::CommServer_Row, 2, false);
+    m_model->setItemValue(InspectionModel::CommServer_Row, 3, false);
+    m_model->setItemValue(InspectionModel::CommServer_Row, 4, QString());
+  //m_model->setItemValue(InspectionModel::CommServer_Row, 5, --spare--);
+    m_model->setItemValue(InspectionModel::CommServer_Row, 6, "messages");
+    m_model->setItemValue(InspectionModel::CommServer_Row, 7, "errors");
+    m_model->setItemValue(InspectionModel::CommServer_Row, 8, "comm");
 
     // create local server and listen for a connection
     m_localServer = new QLocalServer;
     int uniqueCode = QDateTime::currentDateTime().toTime_t() + QTime::currentTime().msec() + (qrand() % 1000);
     bool canListen = m_localServer->listen(QString("creator_insp_%1").arg(uniqueCode));
-    m_model->setItemValue(InstanceModel::CommServer_Row, 1, m_localServer->serverName());
-    m_model->setItemValue(InstanceModel::CommServer_Row, 2, canListen);
+    m_model->setItemValue(InspectionModel::CommServer_Row, 1, m_localServer->serverName());
+    m_model->setItemValue(InspectionModel::CommServer_Row, 2, canListen);
     if (!canListen)
         return;
     connect(m_localServer, SIGNAL(newConnection()), this, SLOT(slotIncomingConnection()));
-    m_model->setItemValue(InstanceModel::CommServer_Row, 0, true);
+    m_model->setItemValue(InspectionModel::CommServer_Row, 0, true);
 }
 
 LocalCommServer::~LocalCommServer()
@@ -90,7 +90,7 @@ void LocalCommServer::slotIncomingConnection()
 
         // set the connection
         m_socket = nextConnection;
-        m_model->setItemValue(InstanceModel::CommServer_Row, 3, true);
+        m_model->setItemValue(InspectionModel::CommServer_Row, 3, true);
         connect(m_socket, SIGNAL(readyRead()), this, SLOT(slotReadConnection()));
         connect(m_socket, SIGNAL(disconnected()), this, SLOT(slotDisconnected()));
         connect(m_socket, SIGNAL(error(QLocalSocket::LocalSocketError)), this, SLOT(slotConnError(QLocalSocket::LocalSocketError)));
@@ -134,12 +134,12 @@ void LocalCommServer::slotDisconnected()
 {
     m_socket->deleteLater();
     m_socket = 0;
-    m_model->setItemValue(InstanceModel::CommServer_Row, 3, false);
+    m_model->setItemValue(InspectionModel::CommServer_Row, 3, false);
 }
 
 void LocalCommServer::slotConnError(QLocalSocket::LocalSocketError error)
 {
-    m_model->setItemValue(InstanceModel::CommServer_Row, 3, false);
+    m_model->setItemValue(InspectionModel::CommServer_Row, 3, false);
 
     // Log Error
     addMessageToModel(7, tr("error %1: %2").arg(error).arg(m_localServer->errorString()));
@@ -172,7 +172,7 @@ bool LocalCommServer::processIncomingData(quint32 channel, quint32 code1, QByteA
 
 void LocalCommServer::addMessageToModel(int column, const QString &message)
 {
-    QStandardItem *parentItem = m_model->item(InstanceModel::CommServer_Row, column);
+    QStandardItem *parentItem = m_model->item(InspectionModel::CommServer_Row, column);
     if (parentItem)
         parentItem->appendRow(new QStandardItem(message));
 }

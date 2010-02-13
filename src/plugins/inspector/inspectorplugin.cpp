@@ -29,7 +29,7 @@
 
 #include "inspectorplugin.h"
 #include "inspectorcontainer.h"
-#include "instance.h"
+#include "inspection.h"
 #include "shareddebugger.h"
 #include "nokiaqtframework/nokiaqtframework.h"
 #include "nvidiacudaframework/nvidiacudaframework.h"
@@ -58,15 +58,15 @@ InspectorPlugin::InspectorPlugin()
   , m_container(0)
   , m_pluginEnabled(true)
 {
-    // reference the plugin instance (for static accessors)
+    // reference the plugin (for static accessors)
     s_pluginInstance = this;
 }
 
 InspectorPlugin::~InspectorPlugin()
 {
-    // delete instances
-    while (!m_instances.isEmpty())
-        deleteInstance(m_instances.last());
+    // delete inspections
+    while (!m_inspections.isEmpty())
+        deleteInspection(m_inspections.last());
 
     // goodbye plugin
     s_pluginInstance = 0;
@@ -79,7 +79,7 @@ InspectorPlugin::~InspectorPlugin()
     m_container = 0;
 }
 
-InspectorPlugin *InspectorPlugin::pluginInstance()
+InspectorPlugin *InspectorPlugin::instance()
 {
     return s_pluginInstance;
 }
@@ -89,49 +89,49 @@ bool InspectorPlugin::debuggerAcquirable() const
     return m_sharedDebugger->acquirable();
 }
 
-SharedDebugger *InspectorPlugin::acquireDebugger(Instance *instance)
+SharedDebugger *InspectorPlugin::acquireDebugger(Inspection *inspection)
 {
     if (!m_sharedDebugger->acquirable()) {
         qWarning("InspectorPlugin::acquireDebugger: acquiring while taken or unavailable");
         return 0;
     }
-    m_sharedDebugger->setInstance(instance);
+    m_sharedDebugger->setInspection(inspection);
     return m_sharedDebugger;
 }
 
 bool InspectorPlugin::releaseDebugger()
 {
-    m_sharedDebugger->setInstance(0);
+    m_sharedDebugger->setInspection(0);
     return true;
 }
 
-QList<Instance *> InspectorPlugin::instances() const
+QList<Inspection *> InspectorPlugin::inspections() const
 {
-    return m_instances;
+    return m_inspections;
 }
 
-void InspectorPlugin::addInstance(Instance * instance)
+void InspectorPlugin::addInspection(Inspection * inspection)
 {
-    if (m_instances.contains(instance)) {
-        qWarning("InspectorPlugin::addInstance: instance already present");
+    if (m_inspections.contains(inspection)) {
+        qWarning("InspectorPlugin::addInspection: inspection already present");
         return;
     }
 
-    instance->instanceModel()->setInstanceEnabled(m_pluginEnabled);
-    m_instances.append(instance);
-    emit instanceAdded(instance);
+    inspection->inspectionModel()->setInspectionEnabled(m_pluginEnabled);
+    m_inspections.append(inspection);
+    emit inspectionAdded(inspection);
 }
 
-void InspectorPlugin::deleteInstance(Instance * instance)
+void InspectorPlugin::deleteInspection(Inspection * inspection)
 {
-    if (!m_instances.contains(instance)) {
-        qWarning("InspectorPlugin::deleteInstance: instance is not present");
+    if (!m_inspections.contains(inspection)) {
+        qWarning("InspectorPlugin::deleteInspection: inspection is not present");
         return;
     }
 
-    m_instances.removeAll(instance);
-    emit instanceRemoved(instance);
-    instance->deleteLater();
+    m_inspections.removeAll(inspection);
+    emit inspectionRemoved(inspection);
+    inspection->deleteLater();
 }
 
 bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_message)
@@ -184,9 +184,9 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     Core::Command *command = am->registerAction(enableAction, "Inspector.Enable", ourContext);
     inspContainer->addAction(command);
 
-    QAction *workBenchAction = new QAction(tr("Current Instance"), this);
-    connect(workBenchAction, SIGNAL(triggered()), this, SLOT(slotDisplayWindow()));
-    command = am->registerAction(workBenchAction, "Inspector.ShowInstance", ourContext);
+    QAction *showAction = new QAction(tr("Show Inspector"), this);
+    connect(showAction, SIGNAL(triggered()), this, SLOT(slotDisplayWindow()));
+    command = am->registerAction(showAction, "Inspector.ShowInspection", ourContext);
     inspContainer->addAction(command);
 
     return true;
@@ -198,10 +198,10 @@ void InspectorPlugin::extensionsInitialized()
 
 void InspectorPlugin::slotSetPluginEnabled(bool enabled)
 {
-    // enable/disable all Instances
+    // enable/disable all Inspections
     m_pluginEnabled = enabled;
-    foreach (Instance * instance, m_instances)
-        instance->instanceModel()->setInstanceEnabled(enabled);
+    foreach (Inspection * inspection, m_inspections)
+        inspection->inspectionModel()->setInspectionEnabled(enabled);
 }
 
 void InspectorPlugin::slotDisplayWindow()

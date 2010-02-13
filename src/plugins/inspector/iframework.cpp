@@ -29,16 +29,16 @@
 
 #include "iframework.h"
 #include "abstractpanel.h"
-#include "instance.h"
+#include "inspection.h"
 #include "tasksmodel.h"
 
 using namespace Inspector::Internal;
 
-IFramework::IFramework(Instance *instance, QObject *parent)
+IFramework::IFramework(Inspection *inspection, QObject *parent)
   : QObject(parent)
-  , m_instance(instance)
+  , m_inspection(inspection)
 {
-    connect(instance->tasksModel(), SIGNAL(itemChanged(QStandardItem*)),
+    connect(inspection->tasksModel(), SIGNAL(itemChanged(QStandardItem*)),
             this, SLOT(slotModelItemChanged(QStandardItem*)));
 }
 
@@ -50,9 +50,9 @@ IFramework::~IFramework()
     qDeleteAll(listCopy);
 }
 
-InstanceModel *IFramework::instanceModel() const
+InspectionModel *IFramework::inspectionModel() const
 {
-    return m_instance->instanceModel();
+    return m_inspection->inspectionModel();
 }
 
 void IFramework::addModule(IFrameworkModule * module)
@@ -136,11 +136,11 @@ void IFramework::slotModuleActivationRequested(const QString &text)
 
     // update the model
     QString name = text.isEmpty() ? module->name() : text;
-    if (!m_instance->tasksModel()->addTask(module->uid(), name, "provide description here")) {
+    if (!m_inspection->tasksModel()->addTask(module->uid(), name, "provide description here")) {
         qWarning("IFramework::slotModuleActivationRequested: can't add module %d", module->uid());
         return;
     }
-    if (!m_instance->tasksModel()->startTask(module->uid())) {
+    if (!m_inspection->tasksModel()->startTask(module->uid())) {
         qWarning("IFramework::slotModuleActivationRequested: can't start module %d", module->uid());
         return;
     }
@@ -158,7 +158,7 @@ void IFramework::slotModuleDeactivated()
     IFrameworkModule * module = static_cast<IFrameworkModule *>(sender());
 
     // update the model
-    if (!m_instance->tasksModel()->stopTask(module->uid())) {
+    if (!m_inspection->tasksModel()->stopTask(module->uid())) {
         qWarning("IFramework::slotModuleDeactivated: can't stop module %d", module->uid());
         return;
     }
@@ -172,7 +172,7 @@ void IFramework::slotModuleDestroyed()
     IFrameworkModule * module = static_cast<IFrameworkModule *>(sender());
     // CHANGE THIS? superseed by the model?
     if (m_modules.contains(module)) {
-        m_instance->tasksModel()->stopTask(module->uid());
+        m_inspection->tasksModel()->stopTask(module->uid());
         removeModule(module);
     }
 }

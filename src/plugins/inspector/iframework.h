@@ -44,8 +44,8 @@ class RunConfiguration;
 namespace Inspector {
 namespace Internal {
 
-class Instance;
-class InstanceModel;
+class Inspection;
+class InspectionModel;
 
 /**
   \brief Handles everything within a framework
@@ -55,7 +55,7 @@ class IFramework : public QObject
     Q_OBJECT
 
 public:
-    IFramework(Instance *instance, QObject *parent = 0);
+    IFramework(Inspection *inspection, QObject *parent = 0);
     virtual ~IFramework();
 
     // operate on modules
@@ -69,7 +69,7 @@ public:
     virtual bool startRunConfiguration(ProjectExplorer::RunConfiguration *) { return false; }
 
     // ### is it ok to put this here?
-    InstanceModel *instanceModel() const;
+    InspectionModel *inspectionModel() const;
 
 signals:
     void modulesChanged();
@@ -80,7 +80,7 @@ protected:
     void removeModule(IFrameworkModule *);
     IFrameworkModule * moduleForUid(int moduleUid) const;
 
-    Instance *m_instance;
+    Inspection *m_inspection;
     QList<IFrameworkModule *> m_modules;
     QList<IFrameworkModule *> m_activeModules;
 
@@ -111,7 +111,7 @@ public:
     virtual bool isConfigurable() const { return false; }
 
     virtual bool available() const { return true; }
-    virtual IFramework *createFramework(Instance *) = 0;
+    virtual IFramework *createFramework(Inspection *) = 0;
 
 public slots:
     virtual void configure() { }

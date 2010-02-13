@@ -49,7 +49,7 @@ namespace Inspector {
 namespace Internal {
 
 class IFrameworkFactory;
-class Instance;
+class Inspection;
 class DevicesComboBox;
 class FrameworksComboBox;
 class ProjectsComboBox;
@@ -76,10 +76,10 @@ private slots:
     void slotDeviceChanged();
     void slotRunconfChanged();
 
-    void slotInstanceAdded(Instance *);
-    void slotInstanceRemoved(Instance *);
+    void slotInspectionAdded(Inspection *);
+    void slotInspectionRemoved(Inspection *);
 
-    void slotCloseInstance(Instance*);
+    void slotCloseInspection(Inspection *);
 
     void slotNewRun();
     void slotNewAttach();
@@ -108,11 +108,11 @@ private:
     FrameworksComboBox *m_attFrameworks;
     QAbstractButton *m_attButton;
 
-    // running Instances
-    QLabel *m_noInstancesLabel;
-    QVBoxLayout *m_instancesLayout;
-    QList<Instance *> m_instances;
-    QList<QWidget *> m_instanceWidgets;
+    // running Inspections
+    QLabel *m_noInspectionsLabel;
+    QVBoxLayout *m_inspectionsLayout;
+    QList<Inspection *> m_inspections;
+    QList<QWidget *> m_inspectionWidgets;
 };
 
 /**
@@ -212,23 +212,23 @@ signals:
 };
 
 /**
-  \brief Shows compact information about an Instance
+  \brief Shows compact information about an Inspection
 */
-class RunningInstanceWidget : public QWidget
+class RunningInspectionWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    RunningInstanceWidget(Instance *, QWidget *parent = 0);
+    RunningInspectionWidget(Inspection *, QWidget *parent = 0);
 
 signals:
-    void closeInstance(Instance *);
+    void closeInspection(Inspection *);
 
 private slots:
     void slotRemoveClicked();
 
 private:
-    Instance *m_instance;
+    Inspection *m_inspection;
 };
 
 } // namespace Internal
