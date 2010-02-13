@@ -29,7 +29,7 @@
 
 #include "temperaturepanel.h"
 #include "iframework.h"
-#include "inspectionmodel.h"
+#include "iinspectionmodel.h"
 #include "paintingmodel.h"
 #include "paintingmodule.h"
 #include "../nokiaqtframework.h"

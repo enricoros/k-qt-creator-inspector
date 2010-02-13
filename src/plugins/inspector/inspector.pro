@@ -15,8 +15,8 @@ HEADERS += \
     dashboardwindow.h \
     iframeworkmodule.h \
     iframework.h \
+    iinspectionmodel.h \
     inspection.h \
-    inspectionmodel.h \
     inspectionwindow.h \
     inspectorcontainer.h \
     inspectorplugin.h \
@@ -37,8 +37,8 @@ SOURCES += \
     dashboardwindow.cpp \
     iframeworkmodule.cpp \
     iframework.cpp \
+    iinspectionmodel.cpp \
     inspection.cpp \
-    inspectionmodel.cpp \
     inspectionwindow.cpp \
     inspectorcontainer.cpp \
     inspectorplugin.cpp \

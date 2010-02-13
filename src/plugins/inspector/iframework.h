@@ -44,8 +44,8 @@ class RunConfiguration;
 namespace Inspector {
 namespace Internal {
 
-class Inspection;
-class InspectionModel;
+class IInspectionModel;
+class TasksModel;
 
 /**
   \brief Handles everything within a framework
@@ -55,21 +55,22 @@ class IFramework : public QObject
     Q_OBJECT
 
 public:
-    IFramework(Inspection *inspection, QObject *parent = 0);
+    IFramework(QObject *parent = 0);
     virtual ~IFramework();
 
-    // operate on modules
-    ModuleMenuEntries menuEntries() const;
-    QStringList moduleNames() const;
-    AbstractPanel *createPanel(int moduleUid, int panelId) const;
+    // main objects
+    TasksModel *tasksModel() const;
+    virtual IInspectionModel *inspectionModel() const = 0;
 
-    // to be reimplemented by subclasses
-    virtual int infoModuleUid() const = 0;
+    // may be reimplemented by subclasses
     virtual bool startAttachToPid(quint64) { return false; }
     virtual bool startRunConfiguration(ProjectExplorer::RunConfiguration *) { return false; }
+    virtual int infoModuleUid() const { return 0; }
 
-    // ### is it ok to put this here?
-    InspectionModel *inspectionModel() const;
+    // modules: menu entries and panel creation
+    QStringList moduleNames() const;
+    ModuleMenuEntries menuEntries() const;
+    AbstractPanel *createPanel(int moduleUid, int panelId) const;
 
 signals:
     void modulesChanged();
@@ -80,7 +81,7 @@ protected:
     void removeModule(IFrameworkModule *);
     IFrameworkModule * moduleForUid(int moduleUid) const;
 
-    Inspection *m_inspection;
+    TasksModel *m_taskModel;
     QList<IFrameworkModule *> m_modules;
     QList<IFrameworkModule *> m_activeModules;
 
@@ -111,7 +112,7 @@ public:
     virtual bool isConfigurable() const { return false; }
 
     virtual bool available() const { return true; }
-    virtual IFramework *createFramework(Inspection *) = 0;
+    virtual IFramework *createFramework() = 0;
 
 public slots:
     virtual void configure() { }

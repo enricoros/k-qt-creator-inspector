@@ -27,19 +27,14 @@
 **
 **************************************************************************/
 
-#include "inspectionmodel.h"
+#include "nokiaqtinspectionmodel.h"
 
 #include "../../../share/qtcreator/gdbmacros/perfunction.h"
 
 using namespace Inspector::Internal;
 
-/* == InspectionModel Usage ==
-Row 'InspectionStatus_Row': Inspection Status
-  0: targetName             string
-  1: frameworkName          string
-  2: monotonicId            int
-  3: enabled                ###remove?
-  4: af: debug paint        ###move?
+/* == NokiaQtInspectionModel Usage ==
+Inherits rows from IInspectionModel
 
 Row 'ProbeStatus_Row': Probe Status
   0: target name            undefined
@@ -63,16 +58,10 @@ Row 'CommServer_Row': Communication Server
   8: communication log parent (1 row per string)
 */
 
-InspectionModel::InspectionModel(const QString &targetName, const QString &frameworkName, QObject *parent)
-  : Internal::AbstractEasyModel(3, 0, parent)
+NokiaQtInspectionModel::NokiaQtInspectionModel(QObject *parent)
+  : IInspectionModel(parent)
 {
     // init model
-    setItemValue(InspectionStatus_Row, 0, targetName);
-    setItemValue(InspectionStatus_Row, 1, frameworkName);
-    static int s_monotonicId = 0;
-    setItemValue(InspectionStatus_Row, 2, (++s_monotonicId));
-    setItemValue(InspectionStatus_Row, 3, true);
-    setItemValue(InspectionStatus_Row, 4, false);
     setItemValue(ProbeStatus_Row, 0, QString());
     setItemValue(ProbeStatus_Row, 1, -1);
     setItemValue(ProbeStatus_Row, 2, -1);
@@ -81,39 +70,11 @@ InspectionModel::InspectionModel(const QString &targetName, const QString &frame
     setItemValue(ProbeStatus_Row, 5, -1);
     setItemValue(ProbeStatus_Row, 6, QString());
     setItemValue(ProbeStatus_Row, 7, -1);
+
+    setFrameworkName(tr("Qt by Nokia"));
 }
 
-QString InspectionModel::displayName() const
-{
-    return tr("%1 [%2 framework]").arg(targetName()).arg(frameworkName());
-}
-
-QString InspectionModel::targetName() const
-{
-    return itemValue(InspectionStatus_Row, 0).toString();
-}
-
-QString InspectionModel::frameworkName() const
-{
-    return itemValue(InspectionStatus_Row, 1).toString();
-}
-
-int InspectionModel::monotonicId() const
-{
-    return itemValue(InspectionStatus_Row, 2).toInt();
-}
-
-bool InspectionModel::debugPaint() const
-{
-    return itemValue(InspectionStatus_Row, 4).toBool();
-}
-
-bool InspectionModel::inspectionEnabled() const
-{
-    return itemValue(InspectionStatus_Row, 3).toBool();
-}
-
-void InspectionModel::setDebugEnabled(bool value)
+void NokiaQtInspectionModel::setDebugEnabled(bool value)
 {
     setItemValue(ProbeStatus_Row, 1, value);
     if (!value) {
@@ -123,32 +84,32 @@ void InspectionModel::setDebugEnabled(bool value)
     }
 }
 
-void InspectionModel::setDebugStopped(bool value)
+void NokiaQtInspectionModel::setDebugStopped(bool value)
 {
     setItemValue(ProbeStatus_Row, 2, value);
 }
 
-void InspectionModel::setProbePresent(bool value)
+void NokiaQtInspectionModel::setProbePresent(bool value)
 {
     setItemValue(ProbeStatus_Row, 4, value);
 }
 
-void InspectionModel::setProbeInjected(bool value)
+void NokiaQtInspectionModel::setProbeInjected(bool value)
 {
     setItemValue(ProbeStatus_Row, 5, value);
 }
 
-void InspectionModel::setProbeActive(bool value)
+void NokiaQtInspectionModel::setProbeActive(bool value)
 {
     setItemValue(ProbeStatus_Row, 7, value);
 }
 
-QString InspectionModel::localServerName() const
+QString NokiaQtInspectionModel::localServerName() const
 {
-    return itemValue(InspectionModel::CommServer_Row, 1).toString();
+    return itemValue(CommServer_Row, 1).toString();
 }
 
-int InspectionModel::probeActivationFlags() const
+int NokiaQtInspectionModel::probeActivationFlags() const
 {
     // flags are in perfunction.h
     int flags = Inspector::Internal::AF_None;
@@ -157,12 +118,16 @@ int InspectionModel::probeActivationFlags() const
     return flags;
 }
 
-void InspectionModel::setDebugPaint(bool value)
+bool NokiaQtInspectionModel::debugPaint() const
 {
-    setItemValue(InspectionStatus_Row, 4, value);
+    qWarning("NokiaQtInspectionModel::debugPaint: not implemented");
+    //return itemValue(InspectionStatus_Row, 4).toBool();
+    return false;
 }
 
-void InspectionModel::setInspectionEnabled(bool value)
+void NokiaQtInspectionModel::setDebugPaint(bool value)
 {
-    setItemValue(InspectionStatus_Row, 3, value);
+    qWarning("NokiaQtInspectionModel::setDebugPaint: not implemented");
+    Q_UNUSED(value);
+    //setItemValue(InspectionStatus_Row, 4, value);
 }

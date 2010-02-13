@@ -29,16 +29,15 @@
 
 #include "iframework.h"
 #include "abstractpanel.h"
-#include "inspection.h"
 #include "tasksmodel.h"
 
 using namespace Inspector::Internal;
 
-IFramework::IFramework(Inspection *inspection, QObject *parent)
+IFramework::IFramework(QObject *parent)
   : QObject(parent)
-  , m_inspection(inspection)
 {
-    connect(inspection->tasksModel(), SIGNAL(itemChanged(QStandardItem*)),
+    m_taskModel = new TasksModel(this);
+    connect(m_taskModel, SIGNAL(itemChanged(QStandardItem*)),
             this, SLOT(slotModelItemChanged(QStandardItem*)));
 }
 
@@ -50,9 +49,9 @@ IFramework::~IFramework()
     qDeleteAll(listCopy);
 }
 
-InspectionModel *IFramework::inspectionModel() const
+TasksModel *IFramework::tasksModel() const
 {
-    return m_inspection->inspectionModel();
+    return m_taskModel;
 }
 
 void IFramework::addModule(IFrameworkModule * module)
@@ -90,20 +89,20 @@ void IFramework::removeModule(IFrameworkModule * module)
     emit modulesChanged();
 }
 
-ModuleMenuEntries IFramework::menuEntries() const
-{
-    ModuleMenuEntries entries;
-    foreach (IFrameworkModule *module, m_modules)
-        entries.append(module->menuEntries());
-    return entries;
-}
-
 QStringList IFramework::moduleNames() const
 {
     QStringList names;
     foreach (IFrameworkModule *module, m_modules)
         names.append(module->name());
     return names;
+}
+
+ModuleMenuEntries IFramework::menuEntries() const
+{
+    ModuleMenuEntries entries;
+    foreach (IFrameworkModule *module, m_modules)
+        entries.append(module->menuEntries());
+    return entries;
 }
 
 AbstractPanel *IFramework::createPanel(int moduleUid, int panelId) const
@@ -136,11 +135,11 @@ void IFramework::slotModuleActivationRequested(const QString &text)
 
     // update the model
     QString name = text.isEmpty() ? module->name() : text;
-    if (!m_inspection->tasksModel()->addTask(module->uid(), name, "provide description here")) {
+    if (!m_taskModel->addTask(module->uid(), name, "provide description here")) {
         qWarning("IFramework::slotModuleActivationRequested: can't add module %d", module->uid());
         return;
     }
-    if (!m_inspection->tasksModel()->startTask(module->uid())) {
+    if (!m_taskModel->startTask(module->uid())) {
         qWarning("IFramework::slotModuleActivationRequested: can't start module %d", module->uid());
         return;
     }
@@ -158,7 +157,7 @@ void IFramework::slotModuleDeactivated()
     IFrameworkModule * module = static_cast<IFrameworkModule *>(sender());
 
     // update the model
-    if (!m_inspection->tasksModel()->stopTask(module->uid())) {
+    if (!m_taskModel->stopTask(module->uid())) {
         qWarning("IFramework::slotModuleDeactivated: can't stop module %d", module->uid());
         return;
     }
@@ -172,7 +171,7 @@ void IFramework::slotModuleDestroyed()
     IFrameworkModule * module = static_cast<IFrameworkModule *>(sender());
     // CHANGE THIS? superseed by the model?
     if (m_modules.contains(module)) {
-        m_inspection->tasksModel()->stopTask(module->uid());
+        m_taskModel->stopTask(module->uid());
         removeModule(module);
     }
 }

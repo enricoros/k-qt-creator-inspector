@@ -60,7 +60,7 @@ public:
 
     // shared debugger
     bool debuggerAcquirable() const;
-    SharedDebugger *acquireDebugger(Inspection *);
+    SharedDebugger *acquireDebugger();
     bool releaseDebugger();
 
     QList<Inspection *> inspections() const;

@@ -39,14 +39,14 @@ class QLocalServer;
 namespace Inspector {
 namespace Internal {
 
-class InspectionModel;
+class NokiaQtInspectionModel;
 
 class LocalCommServer : public QObject
 {
     Q_OBJECT
 
 public:
-    LocalCommServer(InspectionModel *, QObject *parent = 0);
+    LocalCommServer(NokiaQtInspectionModel *, QObject *parent = 0);
     ~LocalCommServer();
 
 signals:
@@ -62,7 +62,7 @@ private:
     bool processIncomingData(quint32 channel, quint32 code1, QByteArray *data);
     void addMessageToModel(int column, const QString &message);
 
-    InspectionModel *m_model;
+    NokiaQtInspectionModel *m_model;
 
     QLocalServer *m_localServer;
     QLocalSocket *m_socket;

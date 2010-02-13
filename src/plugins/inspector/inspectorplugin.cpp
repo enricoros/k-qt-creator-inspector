@@ -89,19 +89,18 @@ bool InspectorPlugin::debuggerAcquirable() const
     return m_sharedDebugger->acquirable();
 }
 
-SharedDebugger *InspectorPlugin::acquireDebugger(Inspection *inspection)
+SharedDebugger *InspectorPlugin::acquireDebugger()
 {
-    if (!m_sharedDebugger->acquirable()) {
+    if (!m_sharedDebugger->acquire()) {
         qWarning("InspectorPlugin::acquireDebugger: acquiring while taken or unavailable");
         return 0;
     }
-    m_sharedDebugger->setInspection(inspection);
     return m_sharedDebugger;
 }
 
 bool InspectorPlugin::releaseDebugger()
 {
-    m_sharedDebugger->setInspection(0);
+    m_sharedDebugger->release();
     return true;
 }
 

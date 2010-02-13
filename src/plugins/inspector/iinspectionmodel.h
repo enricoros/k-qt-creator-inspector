@@ -27,8 +27,8 @@
 **
 **************************************************************************/
 
-#ifndef INSPECTIONMODEL_H
-#define INSPECTIONMODEL_H
+#ifndef IINSPECTIONMODEL_H
+#define IINSPECTIONMODEL_H
 
 #include "abstracteasymodel.h"
 #include <QtCore/QString>
@@ -37,39 +37,29 @@
 namespace Inspector {
 namespace Internal {
 
-class InspectionModel : public AbstractEasyModel
+class IInspectionModel : public AbstractEasyModel
 {
     Q_OBJECT
 
 public:
-    InspectionModel(const QString &targetName, const QString &frameworkName, QObject *parent = 0);
+    IInspectionModel(QObject *parent = 0);
 
-    enum { InspectionStatus_Row = 0, ProbeStatus_Row = 1, CommServer_Row = 2 };
+    enum { InspectionStatus_Row = 0 };
 
     // inspection status
     QString displayName() const;
     QString targetName() const;
     QString frameworkName() const;
     int monotonicId() const;
-    bool debugPaint() const;
     bool inspectionEnabled() const;
 
-    // probe status (set by the Debugger plugin)
-    void setDebugEnabled(bool);
-    void setDebugStopped(bool);
-    void setProbePresent(bool);
-    void setProbeInjected(bool);
-    void setProbeActive(bool);
-    // startup params (read by the Debugger plugin)
-    QString localServerName() const;
-    int probeActivationFlags() const;
-
 public slots:
-    void setDebugPaint(bool);
+    void setTargetName(const QString &);
+    void setFrameworkName(const QString &);
     void setInspectionEnabled(bool);
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // INSPECTIONMODEL_H
+#endif // IINSPECTIONMODEL_H
