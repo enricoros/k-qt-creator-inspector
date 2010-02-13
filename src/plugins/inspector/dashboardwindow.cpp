@@ -108,7 +108,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
         m_inspectionsLayout->addWidget(m_noInspectionsLabel);
 
         appendWrappedWidget(tr("Active Inspections"),
-                            QIcon(":/inspector/images/inspector-icon-32.png"),
+                            QIcon(":/inspector/images/icon-inspections-small.png"),
                             widget);
     }
 
@@ -191,7 +191,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
         appendSubWidget(grid, attWidget, tr("Inspect a Running Target"));
 
         appendWrappedWidget(tr("Create a New Inspection"),
-                            QIcon(":/projectexplorer/images/session.png"),
+                            QIcon(":/inspector/images/icon-newinspection-small.png"),
                             panel);
 
         // disable widgets while the debugger is running (should be done per-runconf)
@@ -242,7 +242,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
         }
 
         appendWrappedWidget(tr("Configure Frameworks"),
-                            QIcon(":/projectexplorer/images/rebuild_small.png"),
+                            QIcon(":/inspector/images/icon-configure-small.png"),
                             widget);
     }
 
