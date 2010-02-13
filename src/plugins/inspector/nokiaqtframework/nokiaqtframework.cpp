@@ -69,14 +69,9 @@ LocalCommServer *NokiaQtFramework::commServer() const
     return m_commServer;
 }
 
-bool NokiaQtFramework::startAttachToPid(quint64 pid)
+bool NokiaQtFramework::startInspection(const InspectionTarget &target)
 {
-    return m_sharedDebugger->startPidAttach(pid);
-}
-
-bool NokiaQtFramework::startRunConfiguration(ProjectExplorer::RunConfiguration *rc)
-{
-    return m_sharedDebugger->startRunConfiguration(rc);
+    return m_sharedDebugger->startTarget(target);
 }
 
 int NokiaQtFramework::infoModuleUid() const
@@ -115,18 +110,30 @@ void NokiaQtFrameworkFactory::configure()
         tr("Configuration not implemented, please try again later."));
 }
 
-bool NokiaQtFrameworkFactory::available() const
+bool NokiaQtFrameworkFactory::available(const InspectionTarget &target) const
 {
+    // bad: other than StartLocalRunConfiguratio or AttachToPid
+    if (target.type != InspectionTarget::StartLocalRunConfiguration &&
+        target.type != InspectionTarget::AttachToPid)
+        return false;
+
+    // bad: StartLocalRunConfiguration with a null rc
+    if (target.type == InspectionTarget::StartLocalRunConfiguration &&
+        !target.runConfiguration)
+        return false;
+
+    // good: shareddebugger free
     return InspectorPlugin::instance()->debuggerAcquirable();
 }
 
-IFramework *NokiaQtFrameworkFactory::createFramework()
+IFramework *NokiaQtFrameworkFactory::createFramework(const InspectionTarget &target)
 {
     SharedDebugger *sharedDebugger = InspectorPlugin::instance()->acquireDebugger();
     if (!sharedDebugger)
         return 0;
 
     NokiaQtInspectionModel *model = new NokiaQtInspectionModel;
+    model->setTargetName(target.displayName);
     model->setFrameworkName(displayName());
 
     return new NokiaQtFramework(model, sharedDebugger);

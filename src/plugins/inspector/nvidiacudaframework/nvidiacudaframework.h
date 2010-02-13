@@ -44,7 +44,7 @@ class NvidiaCudaFramework : public IFramework
 
 public:
     // ::IFramework
-    bool startRunConfiguration(ProjectExplorer::RunConfiguration *rc);
+    bool startInspection(const InspectionTarget &);
 
 private:
     friend class NvidiaCudaFrameworkFactory;
@@ -60,7 +60,7 @@ public:
     // ::IFrameworkFactory
     QString displayName() const;
     QIcon icon() const;
-    IFramework *createFramework();
+    IFramework *createFramework(const InspectionTarget &);
 };
 
 } // namespace Internal

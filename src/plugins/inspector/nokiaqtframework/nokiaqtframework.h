@@ -53,8 +53,7 @@ public:
     LocalCommServer *commServer() const;
 
     // ::IFramework
-    bool startAttachToPid(quint64 pid);
-    bool startRunConfiguration(ProjectExplorer::RunConfiguration *rc);
+    bool startInspection(const InspectionTarget &);
     int infoModuleUid() const;
 
     // ### move this
@@ -79,8 +78,9 @@ public:
     QIcon icon() const;
     bool isConfigurable() const;
     void configure();
-    bool available() const;
-    IFramework *createFramework();
+
+    bool available(const InspectionTarget &) const;
+    IFramework *createFramework(const InspectionTarget &);
 };
 
 } // namespace Internal

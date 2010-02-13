@@ -33,6 +33,7 @@
 #include <QtCore/QList>
 #include <QtGui/QComboBox>
 #include <QtGui/QScrollArea>
+#include "inspectiontarget.h"
 class QAbstractButton;
 class QGridLayout;
 class QLabel;
@@ -41,7 +42,6 @@ class QVBoxLayout;
 namespace ProjectExplorer {
 class Project;
 class RunConfiguration;
-class RunControl;
 class Target;
 }
 
@@ -65,8 +65,7 @@ class DashboardWindow : public QScrollArea
 public:
     DashboardWindow(QWidget *parent = 0);
 
-    void newInspection(quint64 pid, IFrameworkFactory *);
-    void newInspection(ProjectExplorer::RunConfiguration *, IFrameworkFactory *);
+    void newInspection(const InspectionTarget &, IFrameworkFactory *);
 
 signals:
     void requestDisplay();
@@ -76,16 +75,19 @@ private slots:
     void slotDeviceChanged();
     void slotRunconfChanged();
 
+    void slotEvaluateNewTarget();
+    void slotStartNewTarget();
+
+    void slotExistingTargetSelected(const InspectionTarget &);
+    void slotEvaluateExistingTarget();
+    void slotStartExistingTarget();
+
+    void slotSharedDebuggerAcquirableChanged();
+
     void slotInspectionAdded(Inspection *);
     void slotInspectionRemoved(Inspection *);
 
     void slotCloseInspection(Inspection *);
-
-    void slotStartClicked();
-    void slotNewAttach();
-
-    void slotAttachPidSelected(quint64 pid);
-    void slotRunControlSelected(ProjectExplorer::RunControl *);
 
 private:
     void appendWrappedWidget(const QString &title, const QIcon &icon, QWidget *widget);
@@ -101,9 +103,11 @@ private:
     DevicesComboBox *m_devicesCombo;
     RunconfComboBox *m_runconfsCombo;
     FrameworksComboBox *m_frameworksCombo;
+    InspectionTarget m_runTarget;
     QAbstractButton *m_newRunButton;
 
     // attach to running
+    InspectionTarget m_attTarget;
     FrameworksComboBox *m_attFrameworks;
     QAbstractButton *m_attButton;
 

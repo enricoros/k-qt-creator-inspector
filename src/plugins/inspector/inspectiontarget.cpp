@@ -27,45 +27,14 @@
 **
 **************************************************************************/
 
-#include "nvidiacudaframework.h"
-#include "iinspectionmodel.h"
+#include "inspectiontarget.h"
 
 using namespace Inspector::Internal;
 
-//
-// NvidiaCudaFramework
-//
-NvidiaCudaFramework::NvidiaCudaFramework(IInspectionModel *inspectionModel, QObject *parent)
-  : IFramework(inspectionModel, parent)
+InspectionTarget::InspectionTarget()
+  : type(Undefined)
+  , runConfiguration(0)
+  , pid(0)
+  , runControl(0)
 {
-    //addModule(0);
-}
-
-bool NvidiaCudaFramework::startInspection(const InspectionTarget &target)
-{
-    Q_UNUSED(target);
-    qWarning("NvidiaCudaFramework::startRunConfiguration: TODO");
-    return true;
-}
-
-//
-// NvidiaCudaFrameworkFactory
-//
-QString NvidiaCudaFrameworkFactory::displayName() const
-{
-    return tr("NVIDIA CUDA");
-}
-
-QIcon NvidiaCudaFrameworkFactory::icon() const
-{
-    return QIcon(/*FIXME*/);
-}
-
-IFramework *NvidiaCudaFrameworkFactory::createFramework(const InspectionTarget &target)
-{
-    IInspectionModel *model = new IInspectionModel;
-    model->setTargetName(target.displayName);
-    model->setFrameworkName(displayName());
-
-    return new NvidiaCudaFramework(model);
 }

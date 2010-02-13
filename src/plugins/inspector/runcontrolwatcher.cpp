@@ -42,9 +42,9 @@
 using namespace Inspector::Internal;
 
 //
-// RunControlList
+// RunningTargetSelectorWidget
 //
-RunControlList::RunControlList(QWidget *parent)
+RunningTargetSelectorWidget::RunningTargetSelectorWidget(QWidget *parent)
   : QWidget(parent)
 {
     m_buttonGroup = new QButtonGroup(this);
@@ -59,7 +59,7 @@ RunControlList::RunControlList(QWidget *parent)
 
     AttachToPidWidget *ap = new AttachToPidWidget(m_buttonGroup);
     connect(ap, SIGNAL(attachPidSelected(quint64)),
-            this, SIGNAL(attachPidSelected(quint64)));
+            this, SLOT(slotPidSelected(quint64)));
     m_layout->addWidget(ap);
 
     ProjectExplorer::ProjectExplorerPlugin *pep = ProjectExplorer::ProjectExplorerPlugin::instance();
@@ -69,7 +69,7 @@ RunControlList::RunControlList(QWidget *parent)
             this, SLOT(slotRunControlAdded(ProjectExplorer::RunControl*)));
 }
 
-void RunControlList::slotRunControlAdded(ProjectExplorer::RunControl *rc)
+void RunningTargetSelectorWidget::slotRunControlAdded(ProjectExplorer::RunControl *rc)
 {
     // listen for RunControl removal
     connect(rc, SIGNAL(destroyed()), this, SLOT(slotRunControlDestroyed()));
@@ -79,13 +79,13 @@ void RunControlList::slotRunControlAdded(ProjectExplorer::RunControl *rc)
     m_layout->insertWidget(m_layout->count() - 1, widget);
     m_runWidgets.append(widget);
     connect(widget, SIGNAL(runControlSelected(ProjectExplorer::RunControl*)),
-            this, SIGNAL(runControlSelected(ProjectExplorer::RunControl*)));
+            this, SLOT(slotRunControlSelected(ProjectExplorer::RunControl*)));
 
     // hide the no-label if have something
     /*m_noRunningLabel->hide();*/
 }
 
-void RunControlList::slotRunControlDestroyed()
+void RunningTargetSelectorWidget::slotRunControlDestroyed()
 {
     // remove the associated widget
     ProjectExplorer::RunControl *rc = static_cast<ProjectExplorer::RunControl *>(sender());
@@ -101,6 +101,24 @@ void RunControlList::slotRunControlDestroyed()
     // show the no-label if empty
     /*if (m_runWidgets.isEmpty())
         m_noRunningLabel->show();*/
+}
+
+void RunningTargetSelectorWidget::slotRunControlSelected(ProjectExplorer::RunControl *rc)
+{
+    InspectionTarget target;
+    target.type = InspectionTarget::HijackRunControl;
+    target.runControl = rc;
+    target.displayName = rc->displayName();
+    emit inspectionTargetSelected(target);
+}
+
+void RunningTargetSelectorWidget::slotPidSelected(quint64 pid)
+{
+    InspectionTarget target;
+    target.type = InspectionTarget::AttachToPid;
+    target.pid = pid;
+    target.displayName = tr("Process %1").arg(pid);
+    emit inspectionTargetSelected(target);
 }
 
 //
@@ -234,7 +252,6 @@ AttachToPidWidget::AttachToPidWidget(QButtonGroup *group, QWidget *parent)
     m_radio->setText(tr("Attach to Running External Application..."));
     connect(m_radio, SIGNAL(toggled(bool)),
             this, SLOT(slotToggled(bool)));
-    m_radio->setProperty("pid", (quint64)0);
     group->addButton(m_radio);
     lay->addWidget(m_radio);
 
@@ -250,23 +267,24 @@ AttachToPidWidget::AttachToPidWidget(QButtonGroup *group, QWidget *parent)
 void AttachToPidWidget::slotSelectPidClicked()
 {
     Debugger::Internal::AttachExternalDialog dlg(this);
-    if (dlg.exec() != QDialog::Accepted)
+    if (dlg.exec() != QDialog::Accepted || !dlg.attachPID())
         return;
     m_pid = dlg.attachPID();
     m_pidSelectLabel->setText(tr("[<a href='extproc'>%1</a>]").arg(m_pid));
-    m_radio->setProperty("pid", (quint64)m_pid);
-    if (m_pid)
+    if (!m_radio->isChecked())
         m_radio->setChecked(true);
+    emit attachPidSelected(m_pid);
 }
 
 void AttachToPidWidget::slotToggled(bool checked)
 {
-    if (checked) {
-        if (!m_pid)
-            slotSelectPidClicked();
-        if (m_pid)
-            emit attachPidSelected(m_pid);
-        //else
-        //    m_radio->setChecked(false);
+    if (!checked)
+        return;
+    if (m_pid) {
+        emit attachPidSelected(m_pid);
+        return;
     }
+    slotSelectPidClicked();
+    if (!m_pid)
+        m_radio->setChecked(false);
 }

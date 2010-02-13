@@ -27,45 +27,42 @@
 **
 **************************************************************************/
 
-#include "nvidiacudaframework.h"
-#include "iinspectionmodel.h"
+#ifndef INSPECTIONTARGET_H
+#define INSPECTIONTARGET_H
 
-using namespace Inspector::Internal;
+#include <QtCore/QtGlobal>
+#include <QtCore/QString>
 
-//
-// NvidiaCudaFramework
-//
-NvidiaCudaFramework::NvidiaCudaFramework(IInspectionModel *inspectionModel, QObject *parent)
-  : IFramework(inspectionModel, parent)
-{
-    //addModule(0);
+namespace ProjectExplorer {
+class LocalApplicationRunConfiguration;
+class RunControl;
 }
 
-bool NvidiaCudaFramework::startInspection(const InspectionTarget &target)
-{
-    Q_UNUSED(target);
-    qWarning("NvidiaCudaFramework::startRunConfiguration: TODO");
-    return true;
-}
+namespace Inspector {
+namespace Internal {
 
-//
-// NvidiaCudaFrameworkFactory
-//
-QString NvidiaCudaFrameworkFactory::displayName() const
-{
-    return tr("NVIDIA CUDA");
-}
 
-QIcon NvidiaCudaFrameworkFactory::icon() const
+class InspectionTarget
 {
-    return QIcon(/*FIXME*/);
-}
+public:
+    InspectionTarget();
 
-IFramework *NvidiaCudaFrameworkFactory::createFramework(const InspectionTarget &target)
-{
-    IInspectionModel *model = new IInspectionModel;
-    model->setTargetName(target.displayName);
-    model->setFrameworkName(displayName());
+    enum TargetType {
+        Undefined,
+        StartLocalRunConfiguration,
+        AttachToPid,
+        HijackRunControl,
+        HijackDebuggerRunControl
+    };
+    TargetType type;
+    ProjectExplorer::LocalApplicationRunConfiguration *runConfiguration;
+    quint64 pid;
+    ProjectExplorer::RunControl *runControl;
 
-    return new NvidiaCudaFramework(model);
-}
+    QString displayName;
+};
+
+} // namespace Internal
+} // namespace Inspector
+
+#endif // INSPECTIONTARGET_H

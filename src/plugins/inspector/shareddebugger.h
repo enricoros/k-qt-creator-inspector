@@ -32,13 +32,10 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QVariantList>
+#include "inspectiontarget.h"
 
 namespace Debugger {
 class DebuggerManager;
-}
-
-namespace ProjectExplorer {
-class RunConfiguration;
 }
 
 namespace Inspector {
@@ -58,8 +55,7 @@ public:
     bool acquire();
     void release();
 
-    bool startPidAttach(quint64 pid);
-    bool startRunConfiguration(ProjectExplorer::RunConfiguration *);
+    bool startTarget(const InspectionTarget &);
 
     void callProbeFunction(const QString &name, const QVariantList &args);
 

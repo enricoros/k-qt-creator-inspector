@@ -31,14 +31,14 @@
 #include "iframework.h"
 #include "inspection.h"
 #include "inspectorplugin.h"
-#include "shareddebugger.h"
 #include "runcontrolwatcher.h"
 #include <extensionsystem/pluginmanager.h>
+#include <projectexplorer/applicationrunconfiguration.h>
 #include <projectexplorer/projectexplorerconstants.h>
 #include <projectexplorer/projectexplorer.h>
 #include <projectexplorer/project.h>
-#include <projectexplorer/runconfiguration.h>
 #include <projectexplorer/session.h>
+#include <utils/qtcassert.h>
 #include <utils/stylehelper.h>
 #include <QtGui/QComboBox>
 #include <QtGui/QGridLayout>
@@ -143,7 +143,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
         m_newRunButton->setText(tr("Start"));
         m_newRunButton->setIcon(QIcon(":/projectexplorer/images/run_small.png"));
         connect(m_newRunButton, SIGNAL(clicked()),
-                this, SLOT(slotStartClicked()));
+                this, SLOT(slotStartNewTarget()));
          runLayout->addWidget(m_newRunButton);
         appendSubWidget(grid, runWidget, tr("Inspect a New Target")/*,
                         tr("Start a new Inspection on the selected project.")*/);
@@ -154,6 +154,8 @@ DashboardWindow::DashboardWindow(QWidget *parent)
                 this, SLOT(slotDeviceChanged()));
         connect(m_runconfsCombo, SIGNAL(currentRunconfChanged()),
                 this, SLOT(slotRunconfChanged()));
+        connect(m_frameworksCombo, SIGNAL(currentFrameworkChanged()),
+                this, SLOT(slotEvaluateNewTarget()));
         slotProjectChanged();
         slotDeviceChanged();
         slotRunconfChanged();
@@ -163,11 +165,9 @@ DashboardWindow::DashboardWindow(QWidget *parent)
         QVBoxLayout *attLayout = new QVBoxLayout(attWidget);
          attLayout->setMargin(0);
 
-        RunControlList *rcList = new RunControlList;
-        connect(rcList, SIGNAL(runControlSelected(ProjectExplorer::RunControl*)),
-                this, SLOT(slotRunControlSelected(ProjectExplorer::RunControl*)));
-        connect(rcList, SIGNAL(attachPidSelected(quint64)),
-                this, SLOT(slotAttachPidSelected(quint64)));
+        RunningTargetSelectorWidget *rcList = new RunningTargetSelectorWidget;
+        connect(rcList, SIGNAL(inspectionTargetSelected(const InspectionTarget &)),
+                this, SLOT(slotExistingTargetSelected(const InspectionTarget &)));
          attLayout->addWidget(rcList);
 
         QWidget *acPanel = new QWidget;
@@ -184,7 +184,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
         m_attButton->setIcon(QIcon(":/projectexplorer/images/debugger_start_small.png"));
         m_attButton->setEnabled(false);
         connect(m_attButton, SIGNAL(clicked()),
-                 this, SLOT(slotNewAttach()));
+                 this, SLOT(slotStartExistingTarget()));
          acLayout->addWidget(m_attButton);
          attLayout->addWidget(acPanel);
 
@@ -194,13 +194,13 @@ DashboardWindow::DashboardWindow(QWidget *parent)
                             QIcon(":/inspector/images/icon-newinspection-small.png"),
                             panel);
 
-        // disable widgets while the debugger is running (should be done per-runconf)
+        connect(m_attFrameworks, SIGNAL(currentFrameworkChanged()),
+                this, SLOT(slotEvaluateExistingTarget()));
+
+        // monitor shareddebugger state changes for changing the gui
         connect(plugin, SIGNAL(debuggerAcquirableChanged(bool)),
-                runWidget, SLOT(setEnabled(bool)));
-        runWidget->setEnabled(plugin->debuggerAcquirable());
-        connect(plugin, SIGNAL(debuggerAcquirableChanged(bool)),
-                rcList, SLOT(setEnabled(bool)));
-        rcList->setEnabled(plugin->debuggerAcquirable());
+                this, SLOT(slotSharedDebuggerAcquirableChanged()));
+        slotSharedDebuggerAcquirableChanged();
     }
 
     // create the Configure Frameworks widget
@@ -263,38 +263,19 @@ DashboardWindow::DashboardWindow(QWidget *parent)
             this, SLOT(slotInspectionRemoved(Inspection*)));
 }
 
-void DashboardWindow::newInspection(quint64 pid, IFrameworkFactory *factory)
+void DashboardWindow::newInspection(const InspectionTarget &target, IFrameworkFactory *factory)
 {
-    IFramework *framework = factory->createFramework();
+    QTC_ASSERT(target.type != InspectionTarget::Undefined, return);
+    QTC_ASSERT(factory, return);
+
+    IFramework *framework = factory->createFramework(target);
     if (!framework) {
         qWarning("DashboardWindow::newInspection: factory refusal");
         return;
     }
 
-    framework->inspectionModel()->setTargetName(tr("process %1").arg(pid));
-
-    if (!framework->startAttachToPid(pid)) {
-        qWarning("DashboardWindow::newInspection: can't attach to the process %lld. skipping", pid);
-        delete framework;
-        return;
-    }
-
-    Inspection *inspection = new Inspection(framework);
-    InspectorPlugin::instance()->addInspection(inspection);
-}
-
-void DashboardWindow::newInspection(ProjectExplorer::RunConfiguration *rc, IFrameworkFactory *factory)
-{
-    IFramework *framework = factory->createFramework();
-    if (!framework) {
-        qWarning("DashboardWindow::newInspection: factory refusal");
-        return;
-    }
-
-    framework->inspectionModel()->setTargetName(rc->displayName());
-
-    if (!framework->startRunConfiguration(rc)) {
-        qWarning("DashboardWindow::newInspection: can't start the run configuration. skipping");
+    if (!framework->startInspection(target)) {
+        qWarning("DashboardWindow::newInspection: can't start the target. inspection canceled");
         delete framework;
         return;
     }
@@ -309,6 +290,7 @@ void DashboardWindow::slotProjectChanged()
     m_devicesCombo->setProject(project);
     m_devicesCombo->setVisible(m_devicesCombo->count() > 1);
     m_projectsCombo->setEnabled(project);
+    slotEvaluateNewTarget();
 }
 
 void DashboardWindow::slotDeviceChanged()
@@ -317,13 +299,54 @@ void DashboardWindow::slotDeviceChanged()
     m_runconfsCombo->setDevice(device);
     m_runconfsCombo->setVisible(m_runconfsCombo->count() > 1);
     m_runconfLabel->setVisible(m_runconfsCombo->count() > 1);
+    slotEvaluateNewTarget();
 }
 
 void DashboardWindow::slotRunconfChanged()
 {
     ProjectExplorer::RunConfiguration *runconf = m_runconfsCombo->currentRunConfiguration();
     m_frameworksCombo->setEnabled(runconf);
-    m_newRunButton->setEnabled(runconf);
+    slotEvaluateNewTarget();
+}
+
+void DashboardWindow::slotEvaluateNewTarget()
+{
+    m_runTarget.type = InspectionTarget::StartLocalRunConfiguration;
+    m_runTarget.runConfiguration = qobject_cast<ProjectExplorer::LocalApplicationRunConfiguration *>(
+            m_runconfsCombo->currentRunConfiguration());
+    if (m_runTarget.runConfiguration)
+        m_runTarget.displayName = m_runTarget.runConfiguration->displayName();
+
+    IFrameworkFactory *factory = m_frameworksCombo->currentFactory();
+    m_newRunButton->setEnabled(factory && factory->available(m_runTarget));
+}
+
+void DashboardWindow::slotStartNewTarget()
+{
+    newInspection(m_runTarget, m_frameworksCombo->currentFactory());
+}
+
+void DashboardWindow::slotExistingTargetSelected(const InspectionTarget &target)
+{
+    m_attTarget = target;
+    slotEvaluateExistingTarget();
+}
+
+void DashboardWindow::slotEvaluateExistingTarget()
+{
+    IFrameworkFactory *attFactory = m_attFrameworks->currentFactory();
+    m_attButton->setEnabled(attFactory && attFactory->available(m_attTarget));
+}
+
+void DashboardWindow::slotStartExistingTarget()
+{
+    newInspection(m_attTarget, m_attFrameworks->currentFactory());
+}
+
+void DashboardWindow::slotSharedDebuggerAcquirableChanged()
+{
+    slotEvaluateNewTarget();
+    slotEvaluateExistingTarget();
 }
 
 void DashboardWindow::slotInspectionAdded(Inspection *inspection)
@@ -363,36 +386,6 @@ void DashboardWindow::slotInspectionRemoved(Inspection *removedInspection)
 void DashboardWindow::slotCloseInspection(Inspection *inspection)
 {
     InspectorPlugin::instance()->deleteInspection(inspection);
-}
-
-void DashboardWindow::slotStartClicked()
-{
-    if (ProjectExplorer::RunConfiguration *rc = m_runconfsCombo->currentRunConfiguration()) {
-        if (IFrameworkFactory *factory = m_frameworksCombo->currentFactory()) {
-            newInspection(rc, factory);
-        }
-    }
-}
-
-void DashboardWindow::slotNewAttach()
-{
-    qWarning("DashboardWindow::slotLaunchAttach: TODO - NOT IMPLEMENTED");
-}
-
-void DashboardWindow::slotAttachPidSelected(quint64 pid)
-{
-    // TODO
-    Q_UNUSED(pid);
-    m_attButton->setEnabled(true);
-
-    if (IFrameworkFactory *factory = m_frameworksCombo->currentFactory())
-        newInspection(pid, factory);
-}
-
-void DashboardWindow::slotRunControlSelected(ProjectExplorer::RunControl *rc)
-{
-    Q_UNUSED(rc);
-    m_attButton->setEnabled(false);
 }
 
 // keep this in sync with PanelsWidget::addPropertiesPanel in projectwindow.cpp

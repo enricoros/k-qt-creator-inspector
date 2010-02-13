@@ -32,15 +32,12 @@
 
 #include <QtCore/QList>
 #include <QtGui/QWidget>
+#include "inspectiontarget.h"
 class QButtonGroup;
 class QLabel;
 class QPushButton;
 class QRadioButton;
 class QVBoxLayout;
-
-namespace ProjectExplorer {
-class RunControl;
-}
 
 namespace Inspector {
 namespace Internal {
@@ -50,23 +47,25 @@ class RunControlWidget;
 /**
   \brief A widget in sync with all the ProjectExplorer's RunControls
 */
-class RunControlList : public QWidget
+class RunningTargetSelectorWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    RunControlList(QWidget *parent = 0);
+    RunningTargetSelectorWidget(QWidget *parent = 0);
 
     //void setRunControlAttached(ProjectExplorer::RunControl *rc, bool attached);
     //bool runControlAttached(ProjectExplorer::RunControl *rc) const;
 
 signals:
-    void attachPidSelected(quint64 pid);
-    void runControlSelected(ProjectExplorer::RunControl *rc);
+    void inspectionTargetSelected(const InspectionTarget &);
 
 private slots:
     void slotRunControlAdded(ProjectExplorer::RunControl *);
     void slotRunControlDestroyed();
+
+    void slotRunControlSelected(ProjectExplorer::RunControl *);
+    void slotPidSelected(quint64);
 
 private:
     QButtonGroup *m_buttonGroup;

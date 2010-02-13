@@ -17,6 +17,7 @@ HEADERS += \
     iframework.h \
     iinspectionmodel.h \
     inspection.h \
+    inspectiontarget.h \
     inspectionwindow.h \
     inspectorcontainer.h \
     inspectorplugin.h \
@@ -40,6 +41,7 @@ SOURCES += \
     iframework.cpp \
     iinspectionmodel.cpp \
     inspection.cpp \
+    inspectiontarget.cpp \
     inspectionwindow.cpp \
     inspectorcontainer.cpp \
     inspectorplugin.cpp \
