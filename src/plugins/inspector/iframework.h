@@ -35,11 +35,8 @@
 #include <QtCore/QString>
 #include <QtGui/QIcon>
 #include "iframeworkmodule.h"
+#include "inspectiontarget.h"
 class QStandardItem;
-
-namespace ProjectExplorer {
-class RunConfiguration;
-}
 
 namespace Inspector {
 namespace Internal {
@@ -63,8 +60,7 @@ public:
     IInspectionModel *inspectionModel() const;
 
     // may be reimplemented by subclasses
-    virtual bool startAttachToPid(quint64) { return false; }
-    virtual bool startRunConfiguration(ProjectExplorer::RunConfiguration *) { return false; }
+    virtual bool startInspection(const InspectionTarget &) { return false; }
     virtual int infoModuleUid() const { return 0; }
 
     // modules: menu entries and panel creation
@@ -113,8 +109,8 @@ public:
     virtual QIcon icon() const = 0;
     virtual bool isConfigurable() const { return false; }
 
-    virtual bool available() const { return true; }
-    virtual IFramework *createFramework() = 0;
+    virtual bool available(const InspectionTarget &) const { return true; }
+    virtual IFramework *createFramework(const InspectionTarget &) = 0;
 
 public slots:
     virtual void configure() { }

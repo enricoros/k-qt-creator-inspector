@@ -76,22 +76,29 @@ void SharedDebugger::release()
         m_debuggerManager->exitDebugger();
 }
 
-bool SharedDebugger::startPidAttach(quint64 pid)
+bool SharedDebugger::startTarget(const InspectionTarget &target)
 {
-    const Debugger::DebuggerStartParametersPtr sp(new Debugger::DebuggerStartParameters);
-    sp->attachPID = pid;
-    sp->startMode = Debugger::AttachExternal;
-    ProjectExplorer::RunControl *runControl = new InspectorRunControl(m_debuggerManager, sp);
-    ProjectExplorer::ProjectExplorerPlugin::instance()->startRunControl(runControl, ProjectExplorer::Constants::DEBUGMODE);
-    return true;
-}
+    ProjectExplorer::RunControl *runControl = 0;
 
-bool SharedDebugger::startRunConfiguration(ProjectExplorer::RunConfiguration *runConfiguration)
-{
-    ProjectExplorer::LocalApplicationRunConfiguration *localAppRc =
-            qobject_cast<ProjectExplorer::LocalApplicationRunConfiguration *>(runConfiguration);
-    QTC_ASSERT(localAppRc, return false);
-    ProjectExplorer::RunControl *runControl = new InspectorRunControl(m_debuggerManager, localAppRc);
+    switch (target.type) {
+    case InspectionTarget::StartLocalRunConfiguration:
+        runControl = new InspectorRunControl(m_debuggerManager, target.runConfiguration);
+        break;
+
+    case InspectionTarget::AttachToPid: {
+        const Debugger::DebuggerStartParametersPtr sp(new Debugger::DebuggerStartParameters);
+        sp->attachPID = target.pid;
+        sp->startMode = Debugger::AttachExternal;
+        runControl = new InspectorRunControl(m_debuggerManager, sp);
+        } break;
+
+    default:
+    case InspectionTarget::HijackRunControl:
+    case InspectionTarget::HijackDebuggerRunControl:
+        qWarning("SharedDebugger::startTarget: Hijack* not implemented");
+        return false;
+    }
+
     ProjectExplorer::ProjectExplorerPlugin::instance()->startRunControl(runControl, ProjectExplorer::Constants::DEBUGMODE);
     return true;
 }
