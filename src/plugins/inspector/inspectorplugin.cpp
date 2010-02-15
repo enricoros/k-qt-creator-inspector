@@ -159,7 +159,7 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
 
     // create the Mode, that registers the widget too
     Core::BaseMode * inspectorMode = new Core::BaseMode;
-    inspectorMode->setDisplayName(tr("Probe"));
+    inspectorMode->setDisplayName(tr("Inspect"));
     inspectorMode->setId(QLatin1String(Inspector::Internal::MODE_INSPECTOR));
     inspectorMode->setIcon(QIcon(":/inspector/images/inspector-icon-32.png"));
     inspectorMode->setPriority(Inspector::Internal::P_MODE_INSPECTOR);

@@ -38,6 +38,8 @@
 
 using namespace Inspector::Internal;
 
+// NOTE: SYNC this with Debugger::Internal::DebuggerRunner - HARDCODED
+
 //
 // InspectorRunControl
 //
@@ -130,6 +132,7 @@ void InspectorRunControl::start()
     if (m_manager->checkDebugConfiguration(m_startParameters->toolChainType, &errorMessage,
                                            &settingsCategory, &settingsPage)) {
         m_manager->startNewDebugger(m_startParameters);
+        m_manager->continueExec();
     } else {
         error(this, errorMessage);
         emit finished();

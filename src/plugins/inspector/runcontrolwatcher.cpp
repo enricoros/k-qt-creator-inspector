@@ -28,6 +28,7 @@
 **************************************************************************/
 
 #include "runcontrolwatcher.h"
+#include "inspectorrunner.h"
 #include <debugger/debuggerdialogs.h>
 #include <projectexplorer/projectexplorer.h>
 #include <projectexplorer/runconfiguration.h>
@@ -127,13 +128,16 @@ void RunningTargetSelectorWidget::slotPidSelected(quint64 pid)
 RunControlWidget::RunControlWidget(QButtonGroup *group, ProjectExplorer::RunControl *runControl, QWidget *parent)
   : QWidget(parent)
   , m_runControl(runControl)
-  , m_running(false)
-  , m_viaDebugger(false)
+  , m_rcType(Unknown)
+  , m_rcRunning(false)
 {
-    // heuristic to detect if running in debugger (FIXME)
-    m_viaDebugger = m_runControl->inherits("Debugger::Internal::DebuggerRunControl");
-
-    // TODO: find out if it's tainted (or launched) by Inspector or not
+    // heuristics to determine the runcontrol type
+    if (qobject_cast<InspectorRunControl *>(runControl))
+        m_rcType = InspectorRunning;
+    else if (m_runControl->inherits("Debugger::Internal::DebuggerRunControl")) // HARDCODED, FIXME
+        m_rcType = DebuggerRunning;
+    else
+        m_rcType = LocalAppRunning;
 
     // TEMP - show that this row is 'special'
     /*if (m_viaDebugger) {
@@ -153,7 +157,20 @@ RunControlWidget::RunControlWidget(QButtonGroup *group, ProjectExplorer::RunCont
     lay->setSpacing(0);
 
     QRadioButton *radio = new QRadioButton;
-    radio->setText(m_runControl->displayName());
+    switch (m_rcType) {
+    case Unknown:
+        radio->setText(m_runControl->displayName());
+        break;
+    case LocalAppRunning:
+        radio->setText(tr("Running: %1").arg(m_runControl->displayName()));
+        break;
+    case DebuggerRunning:
+        radio->setText(tr("Debugging: %1").arg(m_runControl->displayName()));
+        break;
+    case InspectorRunning:
+        radio->setText(tr("Inspecting: %1").arg(m_runControl->displayName()));
+        break;
+    }
     connect(radio, SIGNAL(toggled(bool)),
             this, SLOT(slotToggled(bool)));
     radio->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
@@ -200,17 +217,22 @@ ProjectExplorer::RunControl *RunControlWidget::runControl() const
     return m_runControl;
 }
 
+RunControlWidget::Type RunControlWidget::runControlType() const
+{
+    return m_rcType;
+}
+
 void RunControlWidget::slotRunControlStarted()
 {
     m_statusLabel->setText(tr("running..."));
-    m_running = true;
+    m_rcRunning = true;
     updateActions();
 }
 
 void RunControlWidget::slotRunControlFinished()
 {
     m_statusLabel->setText(tr("finished"));
-    m_running = false;
+    m_rcRunning = false;
     updateActions();
 }
 
@@ -232,9 +254,9 @@ void RunControlWidget::slotToggled(bool checked)
 
 void RunControlWidget::updateActions()
 {
-    m_debuggingLabel->setVisible(m_viaDebugger);
-    m_startLabel->setVisible(!m_viaDebugger && !m_running);
-    m_stopLabel->setVisible(m_running);
+    m_debuggingLabel->setVisible(m_rcType == DebuggerRunning);
+    m_startLabel->setVisible(m_rcType != DebuggerRunning && !m_rcRunning);
+    m_stopLabel->setVisible(m_rcRunning);
 }
 
 //

@@ -188,7 +188,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
          acLayout->addWidget(m_attButton);
          attLayout->addWidget(acPanel);
 
-        appendSubWidget(grid, attWidget, tr("Inspect a Running Target"));
+        appendSubWidget(grid, attWidget, tr("Inspect an Existing Target"));
 
         appendWrappedWidget(tr("Create a New Inspection"),
                             QIcon(":/inspector/images/icon-newinspection-small.png"),
