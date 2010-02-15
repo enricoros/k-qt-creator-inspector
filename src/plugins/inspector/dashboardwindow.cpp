@@ -199,8 +199,8 @@ DashboardWindow::DashboardWindow(QWidget *parent)
 
         // monitor shareddebugger state changes for changing the gui
         connect(plugin, SIGNAL(debuggerAcquirableChanged(bool)),
-                this, SLOT(slotSharedDebuggerAcquirableChanged()));
-        slotSharedDebuggerAcquirableChanged();
+                this, SLOT(slotUpdateActionStatus()));
+        slotUpdateActionStatus();
     }
 
     // create the Configure Frameworks widget
@@ -343,7 +343,7 @@ void DashboardWindow::slotStartExistingTarget()
     newInspection(m_attTarget, m_attFrameworks->currentFactory());
 }
 
-void DashboardWindow::slotSharedDebuggerAcquirableChanged()
+void DashboardWindow::slotUpdateActionStatus()
 {
     slotEvaluateNewTarget();
     slotEvaluateExistingTarget();
@@ -362,6 +362,7 @@ void DashboardWindow::slotInspectionAdded(Inspection *inspection)
     // hide a label if have inspections
     if (!m_inspections.isEmpty())
         m_noInspectionsLabel->hide();
+    slotUpdateActionStatus();
 }
 
 void DashboardWindow::slotInspectionRemoved(Inspection *removedInspection)
@@ -381,6 +382,7 @@ void DashboardWindow::slotInspectionRemoved(Inspection *removedInspection)
     // show a label if no inspections
     if (m_inspections.isEmpty())
         m_noInspectionsLabel->show();
+    slotUpdateActionStatus();
 }
 
 void DashboardWindow::slotCloseInspection(Inspection *inspection)

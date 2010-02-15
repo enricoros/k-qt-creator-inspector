@@ -82,7 +82,7 @@ private slots:
     void slotEvaluateExistingTarget();
     void slotStartExistingTarget();
 
-    void slotSharedDebuggerAcquirableChanged();
+    void slotUpdateActionStatus();
 
     void slotInspectionAdded(Inspection *);
     void slotInspectionRemoved(Inspection *);
