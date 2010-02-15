@@ -84,9 +84,15 @@ class RunControlWidget : public QWidget
 public:
     RunControlWidget(QButtonGroup *, ProjectExplorer::RunControl *, QWidget *parent = 0);
 
-    ProjectExplorer::RunControl *runControl() const;
+    enum Type {
+        Unknown,
+        LocalAppRunning,
+        DebuggerRunning,
+        InspectorRunning
+    };
 
-    void setAttachEnabled(bool enabled);
+    ProjectExplorer::RunControl *runControl() const;
+    Type runControlType() const;
 
 signals:
     void runControlSelected(ProjectExplorer::RunControl *rc);
@@ -102,9 +108,8 @@ private slots:
 private:
     void updateActions();
     ProjectExplorer::RunControl *m_runControl;
-    bool m_attachEnabled;
-    bool m_running;
-    bool m_viaDebugger;
+    Type m_rcType;
+    bool m_rcRunning;
     QLabel *m_debuggingLabel;
     QLabel *m_statusLabel;
     QLabel *m_startLabel;

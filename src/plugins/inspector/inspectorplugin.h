@@ -41,7 +41,7 @@ class Inspection;
 class SharedDebugger;
 
 // constants
-const char * const MODE_INSPECTOR   = "Probe";
+const char * const MODE_INSPECTOR   = "Inspect";
 const int          P_MODE_INSPECTOR = 5;
 
 /**

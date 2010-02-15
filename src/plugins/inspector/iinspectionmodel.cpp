@@ -54,7 +54,7 @@ IInspectionModel::IInspectionModel(QObject *parent)
 
 QString IInspectionModel::displayName() const
 {
-    return tr("%1 [%2 framework]").arg(targetName()).arg(frameworkName());
+    return tr("%1 [%2]").arg(targetName()).arg(frameworkName());
 }
 
 QString IInspectionModel::targetName() const
