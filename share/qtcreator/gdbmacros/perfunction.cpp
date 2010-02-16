@@ -48,7 +48,7 @@
 #include <QWidget>
 #include <QFont>
 
-#define PP_NAME "QtCreator Inspector Plugin"
+#define IP_NAME "QtCreator Inspector Plugin"
 
 /**
    This file shamelessyly hijacks the event dispatching callbacks and the
@@ -138,9 +138,9 @@ EventNotify Activation, qcoreapplication.cpp:
 #define CONSOLE_PRINT(...) do {fprintf(stderr, "%s:%d %s: ", __FILE__, __LINE__, PF_PRETTY_FUNCTION); fprintf(stderr, __VA_ARGS__); fprintf(stderr,"\n");} while(0)
 
 
-class PerfCommClient {
+class InspCommClient {
     public:
-        PerfCommClient(const char * serverName)
+        InspCommClient(const char * serverName)
             : m_fencing(false)
         {
             m_sock = new QLocalSocket();
@@ -150,7 +150,7 @@ class PerfCommClient {
                 printError("can't establish connection to the Inspector server");
         }
 
-        ~PerfCommClient()
+        ~InspCommClient()
         {
             delete m_sock;
         }
@@ -229,7 +229,7 @@ class PerfCommClient {
 };
 
 // static plugin data
-static PerfCommClient * ppCommClient = 0;
+static InspCommClient * ipCommClient = 0;
 static bool ppDebugPainting = false;
 static bool ppWindowTemperature = false;
 
@@ -237,7 +237,7 @@ static bool ppWindowTemperature = false;
 static bool eventInterceptorCallback(void **data)
 {
     QEvent *event = reinterpret_cast<QEvent*>(data[1]);
-    if (ppCommClient && !ppCommClient->fencing()
+    if (ipCommClient && !ipCommClient->fencing()
         && event->type() >= QEvent::Timer && event->type() <= QEvent::User
         && !ppWindowTemperature) {
         static int stackDepth = 0;
@@ -265,7 +265,7 @@ static bool eventInterceptorCallback(void **data)
 
         // send out data
         // TODO: use a per-thread STACK for SIGNALS AND SLOTS SENDING HERE ?
-        ppCommClient->sendDouble(Inspector::Internal::Channel_Events, 0, elapsedMs);
+        ipCommClient->sendDouble(Inspector::Internal::Channel_Events, 0, elapsedMs);
 
         // check for too long events
         if (elapsedMs > 200) {
@@ -275,7 +275,7 @@ static bool eventInterceptorCallback(void **data)
             dataWriter << (quint32)event->type();
             dataWriter << elapsedMs;
             dataWriter << (receiver->metaObject()->className() ? receiver->metaObject()->className() : "null");
-            ppCommClient->sendCustom(Inspector::Internal::Channel_Events, 1, eventData);
+            ipCommClient->sendCustom(Inspector::Internal::Channel_Events, 1, eventData);
         }
 
         // show painting, if
@@ -322,14 +322,14 @@ static void slotEndCallback(QObject *caller, int method_index)
 
 // Entry Points of the Shared Library (loaded by the GDB plugin)
 extern "C"
-Q_DECL_EXPORT bool qPerfActivate(const char * serverName, int activationFlags)
+Q_DECL_EXPORT bool qInspectorActivate(const char * serverName, int activationFlags)
 {
     // 1. comm client
-    if (ppCommClient) {
-        ppCommClient->printError("already active");
+    if (ipCommClient) {
+        ipCommClient->printError("already active");
         return false;
     } else
-        ppCommClient = new PerfCommClient(serverName);
+        ipCommClient = new InspCommClient(serverName);
 
     // 2. activation flags
     ppDebugPainting = activationFlags & Inspector::Internal::AF_PaintDebug;
@@ -341,15 +341,15 @@ Q_DECL_EXPORT bool qPerfActivate(const char * serverName, int activationFlags)
     // 4. events callback
     QInternal::registerCallback(QInternal::EventNotifyCallback, eventInterceptorCallback);
 
-    CONSOLE_PRINT(PP_NAME": Activated");
-    ppCommClient->sendCustom(Inspector::Internal::Channel_General, 0x00);
+    CONSOLE_PRINT(IP_NAME": Activated");
+    ipCommClient->sendCustom(Inspector::Internal::Channel_General, 0x00);
     return true;
 }
 
 extern "C"
-Q_DECL_EXPORT void qPerfDeactivate()
+Q_DECL_EXPORT void qInspectorDeactivate()
 {
-    CONSOLE_PRINT(PP_NAME": Deactivated");
+    CONSOLE_PRINT(IP_NAME": Deactivated");
 
     // 4. events callback
     QInternal::unregisterCallback(QInternal::EventNotifyCallback, eventInterceptorCallback);
@@ -359,8 +359,8 @@ Q_DECL_EXPORT void qPerfDeactivate()
     qt_register_signal_spy_callbacks(set);
 
     // 1. comm client
-    delete ppCommClient;
-    ppCommClient = 0;
+    delete ipCommClient;
+    ipCommClient = 0;
 }
 
 struct __TimedRect {
@@ -374,7 +374,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
     int innerPasses, int chunkWidth, int chunkHeight, bool consoleDebug)
 {
     // sanity check
-    if (!ppCommClient) {
+    if (!ipCommClient) {
         CONSOLE_PRINT("not connected to the Inspector");
         return;
     }
@@ -384,7 +384,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
     if (!app) {
         CONSOLE_PRINT("no QApplication");
         // TODO: add a code for the PaintProbe comm!
-        //ppCommClient->sendError("No QApplication in this window");
+        //ipCommClient->sendError("No QApplication in this window");
         return;
     }
 
@@ -392,8 +392,8 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
     ppWindowTemperature = true;
 
     // tell that the operation has started
-    ppCommClient->sendCustom(Inspector::Internal::Channel_Painting, 1);
-    ppCommClient->sendInteger(Inspector::Internal::Channel_Painting, 3, 1);
+    ipCommClient->sendCustom(Inspector::Internal::Channel_Painting, 1);
+    ipCommClient->sendInteger(Inspector::Internal::Channel_Painting, 3, 1);
 
     // vars
     struct timeval tv1, tv2;
@@ -434,7 +434,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
         if (consoleDebug)
             CONSOLE_PRINT("send snapshot");
 
-        ppCommClient->sendImage(Inspector::Internal::Channel_Painting, 4, baseImage);
+        ipCommClient->sendImage(Inspector::Internal::Channel_Painting, 4, baseImage);
 
         QImage testImage(wW, wH, QImage::Format_ARGB32);
         testImage.fill(0);
@@ -472,7 +472,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
                 if (percCycle >= percStep) {
                     int percent = (percProgress * 100) / percTotal;
                     percCycle = 0;
-                    ppCommClient->sendInteger(Inspector::Internal::Channel_Painting, 3, percent);
+                    ipCommClient->sendInteger(Inspector::Internal::Channel_Painting, 3, percent);
                     if (consoleDebug)
                         CONSOLE_PRINT("%d done", percent);
                 }
@@ -480,7 +480,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
         }
 
         // tell that we reached 100%
-        ppCommClient->sendInteger(Inspector::Internal::Channel_Painting, 3, 100);
+        ipCommClient->sendInteger(Inspector::Internal::Channel_Painting, 3, 100);
         if (consoleDebug)
             CONSOLE_PRINT("100 done");
 
@@ -530,7 +530,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
             CONSOLE_PRINT("done painting");
 
         // send out the result
-        ppCommClient->sendImage(Inspector::Internal::Channel_Painting, 5, baseImage);
+        ipCommClient->sendImage(Inspector::Internal::Channel_Painting, 5, baseImage);
         if (consoleDebug)
             CONSOLE_PRINT("done sending colorized image");
     }
@@ -539,7 +539,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
     ppWindowTemperature = false;
 
     // tell that the operation has finished
-    ppCommClient->sendCustom(Inspector::Internal::Channel_Painting, 2);
+    ipCommClient->sendCustom(Inspector::Internal::Channel_Painting, 2);
 
     // run event loop, to flush out the localsocket - FIXME - avoid this - DOESN'T WORK ANYWAY
     //app->processEvents();
