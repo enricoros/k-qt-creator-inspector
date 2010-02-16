@@ -108,6 +108,13 @@ InspectorRunControl::InspectorRunControl(Debugger::DebuggerManager *manager,
     m_startParameters->useTerminal = false;
 }
 
+void InspectorRunControl::setInspectorParams(const QString &serverName, int activationFlags)
+{
+    m_startParameters->inspectorHelpersEnabled = true;
+    m_startParameters->inspectorServerName = serverName;
+    m_startParameters->inspectorActivationFlags = activationFlags;
+}
+
 void InspectorRunControl::init()
 {
     connect(m_manager, SIGNAL(debuggingFinished()),

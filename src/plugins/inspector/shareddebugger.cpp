@@ -46,6 +46,8 @@ SharedDebugger::SharedDebugger(QObject *parent)
 {
     m_debuggerManager = Debugger::DebuggerManager::instance();
     connect(m_debuggerManager, SIGNAL(stateChanged(int)), this, SLOT(slotDmStateChanged(int)));
+    connect(m_debuggerManager, SIGNAL(debuggingFinished()), this, SLOT(slotDmDebuggingFinished()));
+    connect(m_debuggerManager, SIGNAL(inferiorPidChanged(qint64)), this, SLOT(slotDmInferiorPidChanged(qint64)));
 
     // sync inital state
     slotDmStateChanged(m_debuggerManager->state());
@@ -76,9 +78,9 @@ void SharedDebugger::release()
         m_debuggerManager->exitDebugger();
 }
 
-bool SharedDebugger::startTarget(const InspectionTarget &target)
+bool SharedDebugger::startTarget(const InspectionTarget &target, const QString &localServerName)
 {
-    ProjectExplorer::RunControl *runControl = 0;
+    InspectorRunControl *runControl = 0;
 
     switch (target.type) {
     case InspectionTarget::StartLocalRunConfiguration:
@@ -99,6 +101,9 @@ bool SharedDebugger::startTarget(const InspectionTarget &target)
         return false;
     }
 
+    QTC_ASSERT(!localServerName.isNull(), return false);
+    runControl->setInspectorParams(localServerName, 0);
+
     ProjectExplorer::ProjectExplorerPlugin::instance()->startRunControl(runControl, ProjectExplorer::Constants::DEBUGMODE);
     return true;
 }
@@ -106,6 +111,10 @@ bool SharedDebugger::startTarget(const InspectionTarget &target)
 void SharedDebugger::callProbeFunction(const QString &name, const QVariantList &args)
 {
     m_debuggerManager->callFunction(name, args);
+}
+
+void SharedDebugger::slotDmDebuggingFinished()
+{
 }
 
 void SharedDebugger::slotDmStateChanged(int state)
@@ -135,6 +144,11 @@ void SharedDebugger::slotDmStateChanged(int state)
         setRunning(true);
         break;
     }
+}
+
+void SharedDebugger::slotDmInferiorPidChanged(qint64 pid)
+{
+    Q_UNUSED(pid);
 }
 
 void SharedDebugger::setRunning(bool running)

@@ -55,7 +55,7 @@ public:
     bool acquire();
     void release();
 
-    bool startTarget(const InspectionTarget &);
+    bool startTarget(const InspectionTarget &, const QString &localServerName);
 
     void callProbeFunction(const QString &name, const QVariantList &args);
 
@@ -63,7 +63,9 @@ signals:
     void acquirableChanged(bool);
 
 private slots:
+    void slotDmDebuggingFinished();
     void slotDmStateChanged(int);
+    void slotDmInferiorPidChanged(qint64 pid);
 
 private:
     void setRunning(bool);

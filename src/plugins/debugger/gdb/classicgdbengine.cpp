@@ -545,7 +545,6 @@ void GdbEngine::tryLoadDebuggingHelpersClassic()
     postCommand("sharedlibrary " + dotEscape(dlopenLib));
 #endif
     tryQueryDebuggingHelpersClassic();
-    tryActivateInspectorHelpersClassic();
 }
 
 void GdbEngine::tryQueryDebuggingHelpersClassic()
@@ -555,40 +554,21 @@ void GdbEngine::tryQueryDebuggingHelpersClassic()
     postCommand("call (void*)qDumpObjectData440(1,0,0,0,0,0,0,0)");
     postCommand("p (char*)&qDumpOutBuffer",
         CB(handleQueryDebuggingHelperClassic));
+    tryActivateInspectorHelpersClassic();
 }
 
 void GdbEngine::tryActivateInspectorHelpersClassic()
 {
-#if 0
-    // get the listening socket name
-    Inspector::Instance *inspInstance = Inspector::defaultInstance();
-    Inspector::InstanceModel *instanceModel = inspInstance->instanceModel();
-    if (!instanceModel->instanceEnabled()) {
-        qWarning("GdbEngine::tryActivateInspectorHelpersClassic: performance helpers not enabled, skipping.");
-        instanceModel->setProbeInjected(false);
-        instanceModel->setProbeActive(false);
+    // only activate inspector stuff if runned by the InspectorRunControl
+    if (!startParameters().inspectorHelpersEnabled)
         return;
-    }
-    QString serverName = instanceModel->localServerName();
-    int activationFlags = instanceModel->probeActivationFlags();
-
-    // disable the inspector plugin if no server name
-    if (serverName.isNull()) {
-        qWarning("GdbEngine::tryActivateInspectorHelpersClassic: server is not listening, skipping probe injection");
-        instanceModel->setProbeInjected(false);
-        instanceModel->setProbeActive(false);
-        return;
-    }
 
     // TODO: use entry point checks + GUI checks
-    //postCommand(_("p qPerfActivate"), CB(handleDebuggingHelperInspector));
+    //postCommand(_("p qInspectorActivate"), CB(handleDebuggingHelperInspector));
 
-    callFunction(_("qPerfActivate"), QVariantList() << serverName << activationFlags);
-    instanceModel->setProbeInjected(true);  // FIXME
-    instanceModel->setProbeActive(true);    // check this too
-#else
-    qWarning("GdbEngine::tryActivateInspectorHelpersClassic: restore this");
-#endif
+    QString serverName = startParameters().inspectorServerName;
+    int activationFlags = startParameters().inspectorActivationFlags;
+    callFunction(_("qInspectorActivate"), QVariantList() << serverName << activationFlags);
 }
 
 void GdbEngine::recheckDebuggingHelperAvailabilityClassic()

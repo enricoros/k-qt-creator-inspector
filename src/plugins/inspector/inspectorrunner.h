@@ -49,6 +49,8 @@ public:
     InspectorRunControl(Debugger::DebuggerManager *manager,
                         const Debugger::DebuggerStartParametersPtr &startParameters);
 
+    void setInspectorParams(const QString &serverName, int activationFlags);
+
     // ProjectExplorer::RunControl
     virtual void start();
     virtual void stop();
