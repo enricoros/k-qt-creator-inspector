@@ -123,6 +123,12 @@ public:
     QString remoteDumperLib;
     QString qtInstallPath;
 
+    //BEGIN added for Inspector
+    bool inspectorHelpersEnabled;
+    QString inspectorServerName;
+    int inspectorActivationFlags;
+    //END added for Inspector
+
     QString dumperLibrary;
     QStringList dumperLibraryLocations;
     DebuggerStartMode startMode;

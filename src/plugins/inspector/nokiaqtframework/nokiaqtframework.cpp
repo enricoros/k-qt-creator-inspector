@@ -71,7 +71,12 @@ LocalCommServer *NokiaQtFramework::commServer() const
 
 bool NokiaQtFramework::startInspection(const InspectionTarget &target)
 {
-    return m_sharedDebugger->startTarget(target);
+    QString localServerName = m_model->localServerName();
+    if (localServerName.isEmpty()) {
+        qWarning("NokiaQtFramework::startInspection: local server is not listening, won't start the inspection");
+        return false;
+    }
+    return m_sharedDebugger->startTarget(target, localServerName);
 }
 
 int NokiaQtFramework::infoModuleUid() const

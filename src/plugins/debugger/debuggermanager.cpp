@@ -231,6 +231,8 @@ DebuggerStartParameters::DebuggerStartParameters()
   : attachPID(-1),
     useTerminal(false),
     toolChainType(ProjectExplorer::ToolChain::UNKNOWN),
+    inspectorHelpersEnabled(false),
+    inspectorActivationFlags(0),
     startMode(NoStartMode)
 {}
 
