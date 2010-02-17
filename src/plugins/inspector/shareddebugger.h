@@ -32,17 +32,18 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QVariantList>
-#include "inspectiontarget.h"
-
-namespace Debugger {
-class DebuggerManager;
-}
 
 namespace Inspector {
 namespace Internal {
 
+class ProbeInjectingDebugger;
+
 /**
-  \brief Controls Creator's Debugger Manager (single instanced by default)
+  \brief Thin wrapper over ProbeInjectingDebugger that allows up to one instance
+
+  Note: the whole SharedDebugger/ProbeInjectingDebugger stuff is done
+  because creator allows only one instance of the debugger so we have
+  to model some sort of (single) resource locking.
 */
 class SharedDebugger : public QObject
 {
@@ -52,26 +53,19 @@ public:
     SharedDebugger(QObject *parent = 0);
 
     bool acquirable() const;
-    bool acquire();
-    void release();
-
-    bool startTarget(const InspectionTarget &, const QString &localServerName);
-
-    void callProbeFunction(const QString &name, const QVariantList &args);
+    ProbeInjectingDebugger *acquireProbeInjectingDebugger();
+    void releaseProbeInjectingDebugger();
 
 signals:
     void acquirableChanged(bool);
 
 private slots:
-    void slotDmDebuggingFinished();
-    void slotDmStateChanged(int);
-    void slotDmInferiorPidChanged(qint64 pid);
+    void slotAcquiredDestroyed();
+    void slotManagerStateChanged(int);
 
 private:
-    void setRunning(bool);
-    Debugger::DebuggerManager *m_debuggerManager;
-    bool m_acquired;
-    bool m_running;
+    bool m_dmRunning;
+    ProbeInjectingDebugger *m_acquired;
 };
 
 } // namespace Internal

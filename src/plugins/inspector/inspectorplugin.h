@@ -58,10 +58,7 @@ public:
 
     static InspectorPlugin *instance();
 
-    // shared debugger
-    bool debuggerAcquirable() const;
-    SharedDebugger *acquireDebugger();
-    bool releaseDebugger();
+    SharedDebugger *sharedDebugger();
 
     QList<Inspection *> inspections() const;
     void addInspection(Inspection *);
@@ -72,7 +69,6 @@ public:
     void extensionsInitialized();
 
 signals:
-    void debuggerAcquirableChanged(bool);
     void inspectionAdded(Inspection *);
     void inspectionRemoved(Inspection *);
 

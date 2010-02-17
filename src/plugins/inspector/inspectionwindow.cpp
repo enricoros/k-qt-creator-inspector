@@ -34,9 +34,28 @@
 #include "inspection.h"
 #include "panelcontainerwidget.h"
 #include "statusbarwidget.h"
+#include <QtGui/QLabel>
+#include <QtGui/QPainter>
 #include <QtGui/QVBoxLayout>
 
 using namespace Inspector::Internal;
+
+class Inspector::Internal::MessageLabel : public QLabel {
+public:
+    MessageLabel(QWidget *parent = 0)
+      : QLabel(parent)
+    {
+        setContentsMargins(10, 10, 10, 10);
+    }
+
+    void paintEvent(QPaintEvent *event)
+    {
+        QPainter p(this);
+        p.fillRect(rect(), QColor(255, 255, 200));
+        p.fillRect(0, height() - 1, width(), 1, Qt::black);
+        QLabel::paintEvent(event);
+    }
+};
 
 InspectionWindow::InspectionWindow(Inspection *inspection, QWidget *parent)
   : QWidget(parent)
@@ -50,6 +69,10 @@ InspectionWindow::InspectionWindow(Inspection *inspection, QWidget *parent)
     m_menuWidget->setTitle(tr("Select a Test:"));
     connect(m_menuWidget, SIGNAL(pathSelected(QStringList,QVariant)), this, SLOT(slotMenuChanged(QStringList,QVariant)));
     layout->addWidget(m_menuWidget);
+
+    m_messageLabel = new MessageLabel;
+    m_messageLabel->setText(tr("Waiting for connection..."));
+    layout->addWidget(m_messageLabel);
 
     m_panelContainer = new PanelContainerWidget(this);
     layout->addWidget(m_panelContainer);
@@ -91,11 +114,23 @@ void InspectionWindow::slotSetCurrentPanel(int moduleUid, int panelId)
     emit requestInspectionDisplay();
 }
 
+void InspectionWindow::slotFrameworkConnected()
+{
+    m_messageLabel->setText(QString());
+    m_messageLabel->hide();
+}
+
+void InspectionWindow::slotFrameworkDisconnected()
+{
+    m_messageLabel->setText(tr("Target disconnected."));
+    m_messageLabel->show();
+}
+
 void InspectionWindow::setInspection(Inspection *inspection)
 {
     // remove previous references
     if (m_inspection) {
-        disconnect(m_inspection, 0, this, 0);
+        disconnect(m_inspection->framework(), 0, this, 0);
         m_menuWidget->clear();
         m_panelContainer->setPanel(new QWidget);
         m_statusbarWidget->setInspection(0);
@@ -106,7 +141,14 @@ void InspectionWindow::setInspection(Inspection *inspection)
 
     if (m_inspection) {
         // connect it
-        connect(m_inspection->framework(), SIGNAL(requestPanelDisplay(int,int)), this, SLOT(slotSetCurrentPanel(int,int)));
+        connect(m_inspection->framework(), SIGNAL(requestPanelDisplay(int,int)),
+                this, SLOT(slotSetCurrentPanel(int,int)));
+        connect(m_inspection->framework(), SIGNAL(targetConnected()),
+                this, SLOT(slotFrameworkConnected()));
+        connect(m_inspection->framework(), SIGNAL(targetDisconnected()),
+                this, SLOT(slotFrameworkDisconnected()));
+        if (m_inspection->framework()->targetIsConnected())
+            slotFrameworkConnected();
 
         // menu: add all entries by the plugged modules
         ModuleMenuEntries entries = m_inspection->framework()->menuEntries();

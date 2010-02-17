@@ -31,12 +31,14 @@
 #define INSPECTIONWINDOW_H
 
 #include <QtGui/QWidget>
+class QLabel;
 
 namespace Inspector {
 namespace Internal {
 
 class ComboTreeWidget;
 class Inspection;
+class MessageLabel;
 class PanelContainerWidget;
 class StatusBarWidget;
 
@@ -55,12 +57,15 @@ signals:
 private slots:
     void slotMenuChanged(const QStringList &path, const QVariant &data);
     void slotSetCurrentPanel(int moduleUid, int panelId);
+    void slotFrameworkConnected();
+    void slotFrameworkDisconnected();
 
 private:
     void setInspection(Inspection *inspection);
     void showPanel(int moduleUid, int panelId);
-    Inspection *              m_inspection;
+    Inspection *            m_inspection;
     ComboTreeWidget *       m_menuWidget;
+    MessageLabel *          m_messageLabel;
     PanelContainerWidget *  m_panelContainer;
     StatusBarWidget *       m_statusbarWidget;
 };

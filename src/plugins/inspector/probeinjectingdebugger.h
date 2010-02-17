@@ -27,68 +27,66 @@
 **
 **************************************************************************/
 
-#ifndef NOKIAQTFRAMEWORK_H
-#define NOKIAQTFRAMEWORK_H
+#ifndef PROBEINJECTINGDEBUGGER_H
+#define PROBEINJECTINGDEBUGGER_H
 
-#include "iframework.h"
+#include <QtCore/QObject>
 #include <QtCore/QVariantList>
+#include "inspectiontarget.h"
+
+namespace Debugger {
+class DebuggerManager;
+}
 
 namespace Inspector {
 namespace Internal {
 
-class LocalCommServer;
-class NokiaQtFrameworkFactory;
-class NokiaQtInspectionModel;
-class ProbeInjectingDebugger;
+class InspectorRunControl;
+class SharedDebugger;
 
+/**
+  \brief Debugger based probe injection and control (using Creator's DebuggerManager)
 
-class NokiaQtFramework : public IFramework
+  This class uses DebuggerManager directly (since it's the only exposed
+  symbol in the debug module) and implements some logic to load the
+  'Probe' just after the degger begins its operation.
+
+  DebuggerManager could be changed to allow loading of libraries (symbols)
+  and the calling of functions.
+*/
+class ProbeInjectingDebugger : public QObject
 {
     Q_OBJECT
 
 public:
-    ~NokiaQtFramework();
+    ~ProbeInjectingDebugger();
 
-    // probe communication server
-    LocalCommServer *commServer() const;
+    bool setInspectionTarget(const InspectionTarget &, const QString &localServerName);
+    void closeInspection();
+    bool inspecting() const;
 
-    // ::IFramework
-    bool startInspection(const InspectionTarget &);
-    bool targetIsConnected() const;
-    int infoModuleUid() const;
-
-    // ### move this
     void callProbeFunction(const QString &name, const QVariantList &args);
 
+signals:
+    void inspectionStarted();
+    void inspectionEnded();
+
 private slots:
-    void slotInspectionStarted();
-    void slotInspectionEnded();
+    void slotDmStateChanged(int);
+    void slotRunControlStarted();
+    void slotRunControlFinished();
+    void slotRunControlDestroyed();
 
 private:
-    friend class NokiaQtFrameworkFactory;
-    NokiaQtFramework(NokiaQtInspectionModel *, ProbeInjectingDebugger *, QObject *parent = 0);
-    LocalCommServer *m_commServer;
-    ProbeInjectingDebugger *m_debugger;
-    NokiaQtInspectionModel *m_model;
-};
-
-
-class NokiaQtFrameworkFactory : public IFrameworkFactory
-{
-    Q_OBJECT
-
-public:
-    // ::IFrameworkFactory
-    QString displayName() const;
-    QIcon icon() const;
-    bool isConfigurable() const;
-    void configure();
-
-    bool available(const InspectionTarget &) const;
-    IFramework *createFramework(const InspectionTarget &);
+    friend class SharedDebugger;
+    ProbeInjectingDebugger(QObject *parent = 0);
+    void initInspection();
+    void uninitInspection();
+    Debugger::DebuggerManager *m_debuggerManager;
+    InspectorRunControl *m_inspectorRunControl;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // NOKIAQTFRAMEWORK_H
+#endif // PROBEINJECTINGDEBUGGER_H
