@@ -32,6 +32,7 @@
 
 #include <QtCore/QList>
 #include <extensionsystem/iplugin.h>
+#include <coreplugin/icorelistener.h>
 
 namespace Inspector {
 namespace Internal {
@@ -58,11 +59,13 @@ public:
 
     static InspectorPlugin *instance();
 
-    SharedDebugger *sharedDebugger();
+    SharedDebugger *sharedDebugger() const;
+    QWidget *containerWindow() const;
 
     QList<Inspection *> inspections() const;
     void addInspection(Inspection *);
     void deleteInspection(Inspection *);
+    void closeInspections();
 
     // ::ExtensionSystem::IPlugin
     bool initialize(const QStringList &arguments, QString *error_message);
@@ -82,6 +85,17 @@ private:
     SharedDebugger *m_sharedDebugger;
     InspectorContainer *m_container;
     QList<Inspection *> m_inspections;
+};
+
+/**
+  \brief Filters application close events
+*/
+class InspectorCoreListener : public Core::ICoreListener
+{
+    Q_OBJECT
+public:
+    explicit InspectorCoreListener(QObject *parent = 0);
+    bool coreAboutToClose();
 };
 
 } // namespace Internal
