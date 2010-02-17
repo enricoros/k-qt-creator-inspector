@@ -703,6 +703,10 @@ RunningInspectionWidget::RunningInspectionWidget(Inspection *inspection, QWidget
     label1->setText(tr("# %1.").arg(inspection->inspectionModel()->monotonicId()));
     lay->addWidget(label1);
 
+    m_connLabel = new QLabel;
+    m_connLabel->setFixedSize(16, 16);
+    lay->addWidget(m_connLabel);
+
     QLabel *label2 = new QLabel;
     label2->setMinimumWidth(160);
     label2->setText(tr("<a href='see'>%1</a>").arg(inspection->inspectionModel()->displayName()));
@@ -710,9 +714,9 @@ RunningInspectionWidget::RunningInspectionWidget(Inspection *inspection, QWidget
             this, SLOT(slotDisplayClicked()));
     lay->addWidget(label2);
 
-    TasksScroller *tasksWidget = new TasksScroller(this);
-    tasksWidget->setTasksModel(inspection->tasksModel());
-    lay->addWidget(tasksWidget);
+    m_tasksWidget = new TasksScroller(this);
+    m_tasksWidget->setTasksModel(inspection->tasksModel());
+    lay->addWidget(m_tasksWidget);
 
     lay->addStretch(10);
 
@@ -723,6 +727,15 @@ RunningInspectionWidget::RunningInspectionWidget(Inspection *inspection, QWidget
     connect(b, SIGNAL(clicked()),
             this, SLOT(slotCloseClicked()));
     lay->addWidget(b);
+
+    connect(inspection->framework(), SIGNAL(targetConnected()),
+            this, SLOT(slotFrameworkConnected()));
+    connect(inspection->framework(), SIGNAL(targetDisconnected()),
+            this, SLOT(slotFrameworkDisconnected()));
+    if (inspection->framework()->targetIsConnected())
+        slotFrameworkConnected();
+    else
+        slotFrameworkDisconnected();
 }
 
 void RunningInspectionWidget::paintEvent(QPaintEvent *)
@@ -735,6 +748,18 @@ void RunningInspectionWidget::paintEvent(QPaintEvent *)
     } else {
         InspectorStyle::drawCoolGradient(&p, rect(), QColor(192, 192, 192, 64));
     }
+}
+
+void RunningInspectionWidget::slotFrameworkConnected()
+{
+    m_connLabel->setPixmap(QPixmap(":/qt4projectmanager/images/connected.png"));
+    m_tasksWidget->show();
+}
+
+void RunningInspectionWidget::slotFrameworkDisconnected()
+{
+    m_connLabel->setPixmap(QPixmap(":/qt4projectmanager/images/notconnected.png"));
+    m_tasksWidget->hide();
 }
 
 void RunningInspectionWidget::slotDisplayClicked()
