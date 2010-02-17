@@ -1575,6 +1575,11 @@ void GdbEngine::handleShowVersion(const GdbResponse &response)
 
 void GdbEngine::handleHasPython(const GdbResponse &response)
 {
+    // enrico - Inspector: disable the python debuggers because they don't offer probe injection
+    if (startParameters().inspectorHelpersEnabled) {
+        m_hasPython = false;
+        return;
+    }
     if (response.resultClass == GdbResultDone) {
         m_hasPython = true;
     } else {
