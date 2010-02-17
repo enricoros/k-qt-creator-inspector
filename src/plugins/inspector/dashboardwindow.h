@@ -54,6 +54,7 @@ class DevicesComboBox;
 class FrameworksComboBox;
 class ProjectsComboBox;
 class RunconfComboBox;
+class TasksScroller;
 
 /**
   \brief The Dashboard of Inspector. Can start Inspections
@@ -232,11 +233,15 @@ protected:
     void paintEvent(QPaintEvent *);
 
 private slots:
+    void slotFrameworkConnected();
+    void slotFrameworkDisconnected();
     void slotDisplayClicked();
     void slotCloseClicked();
 
 private:
     Inspection *m_inspection;
+    QLabel *m_connLabel;
+    TasksScroller *m_tasksWidget;
 };
 
 } // namespace Internal
