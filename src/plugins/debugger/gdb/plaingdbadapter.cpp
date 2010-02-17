@@ -60,6 +60,10 @@ PlainGdbAdapter::PlainGdbAdapter(GdbEngine *engine, QObject *parent)
 
 AbstractGdbAdapter::DumperHandling PlainGdbAdapter::dumperHandling() const
 {
+    // enrico - Inspector: use standard loading (not preloading)
+    if (m_engine->startParameters().inspectorHelpersEnabled)
+        return DumperLoadedByGdb;
+
     // LD_PRELOAD fails for System-Qt on Mac.
 #if defined(Q_OS_WIN) || defined(Q_OS_MAC)
     return DumperLoadedByGdb;

@@ -693,8 +693,10 @@ void GdbEngine::handleStackListLocalsClassic(const GdbResponse &response)
 bool GdbEngine::checkDebuggingHelpersClassic()
 {
     PRECONDITION;
-    if (!manager()->qtDumperLibraryEnabled())
-        return false;
+    // enrico - Inspector: auto-enable helpers (because they actually contain the probe)
+    if (!startParameters().inspectorHelpersEnabled)
+        if (!manager()->qtDumperLibraryEnabled())
+            return false;
     const QString lib = qtDumperLibraryName();
     //qDebug() << "DUMPERLIB:" << lib;
     const QFileInfo fi(lib);
