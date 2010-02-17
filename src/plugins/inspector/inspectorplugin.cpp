@@ -56,7 +56,6 @@ InspectorPlugin::InspectorPlugin()
   : ExtensionSystem::IPlugin()
   , m_sharedDebugger(0)
   , m_container(0)
-  , m_pluginEnabled(true)
 {
     // reference the plugin (for static accessors)
     s_pluginInstance = this;
@@ -101,7 +100,6 @@ void InspectorPlugin::addInspection(Inspection * inspection)
         return;
     }
 
-    inspection->inspectionModel()->setInspectionEnabled(m_pluginEnabled);
     m_inspections.append(inspection);
     emit inspectionAdded(inspection);
 }
@@ -152,38 +150,16 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
 
     // create the Menu and add it to the Debug menu
     Core::ActionManager *am = core->actionManager();
-    Core::ActionContainer *inspContainer = am->createMenu("Inspector.Container");
-    QMenu *inspMenu = inspContainer->menu();
-    inspMenu->setTitle(tr("&Inspector"));
-    inspMenu->setIcon(QIcon(":/inspector/images/menu-display.png"));
-    Core::ActionContainer *debugContainer = am->actionContainer(ProjectExplorer::Constants::M_DEBUG);
-    debugContainer->addMenu(inspContainer);
-
-    QAction *enableAction = new QAction(tr("Enable"), this);
-    enableAction->setCheckable(true);
-    enableAction->setChecked(m_pluginEnabled);
-    connect(enableAction, SIGNAL(toggled(bool)), this, SLOT(slotSetPluginEnabled(bool)));
-    Core::Command *command = am->registerAction(enableAction, "Inspector.Enable", ourContext);
-    inspContainer->addAction(command);
 
     QAction *showAction = new QAction(tr("Show Inspector"), this);
     connect(showAction, SIGNAL(triggered()), this, SLOT(slotDisplayWindow()));
-    command = am->registerAction(showAction, "Inspector.ShowInspection", ourContext);
-    inspContainer->addAction(command);
+    am->registerAction(showAction, "Inspector.ShowInspection", ourContext);
 
     return true;
 }
 
 void InspectorPlugin::extensionsInitialized()
 {
-}
-
-void InspectorPlugin::slotSetPluginEnabled(bool enabled)
-{
-    // enable/disable all Inspections
-    m_pluginEnabled = enabled;
-    foreach (Inspection * inspection, m_inspections)
-        inspection->inspectionModel()->setInspectionEnabled(enabled);
 }
 
 void InspectorPlugin::slotDisplayWindow()
@@ -194,7 +170,7 @@ void InspectorPlugin::slotDisplayWindow()
 
 void InspectorPlugin::parseArguments(const QStringList &arguments)
 {
-    m_pluginEnabled = !arguments.contains("-inspectoroff", Qt::CaseInsensitive);
+    Q_UNUSED(arguments);
 }
 
 Q_EXPORT_PLUGIN(InspectorPlugin)

@@ -51,12 +51,10 @@ public:
     QString targetName() const;
     QString frameworkName() const;
     int monotonicId() const;
-    bool inspectionEnabled() const;
 
 public slots:
     void setTargetName(const QString &);
     void setFrameworkName(const QString &);
-    void setInspectionEnabled(bool);
 };
 
 } // namespace Internal

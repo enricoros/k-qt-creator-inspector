@@ -76,6 +76,7 @@ signals:
     void targetDisconnected();
 
 protected:
+    void setModuleActivationEnabled(bool);
     void addModule(IFrameworkModule *);
     void removeModule(IFrameworkModule *);
     IFrameworkModule *moduleForUid(int moduleUid) const;
@@ -83,6 +84,7 @@ protected:
 private:
     IInspectionModel *m_inspectionModel;
     TasksModel *m_taskModel;
+    bool m_moduleActivationEnabled;
     QList<IFrameworkModule *> m_modules;
     QList<IFrameworkModule *> m_activeModules;
 

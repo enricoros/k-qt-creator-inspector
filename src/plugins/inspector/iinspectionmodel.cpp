@@ -38,7 +38,6 @@ Row 'InspectionStatus_Row': Inspection Status
   0: targetName             string
   1: frameworkName          string
   2: monotonicId            int
-  3: enabled                ###remove?
 */
 
 IInspectionModel::IInspectionModel(QObject *parent)
@@ -49,7 +48,6 @@ IInspectionModel::IInspectionModel(QObject *parent)
     setItemValue(InspectionStatus_Row, 1, QString("no framework"));
     static int s_monotonicId = 0;
     setItemValue(InspectionStatus_Row, 2, (++s_monotonicId));
-    setItemValue(InspectionStatus_Row, 3, true);
 }
 
 QString IInspectionModel::displayName() const
@@ -72,11 +70,6 @@ int IInspectionModel::monotonicId() const
     return itemValue(InspectionStatus_Row, 2).toInt();
 }
 
-bool IInspectionModel::inspectionEnabled() const
-{
-    return itemValue(InspectionStatus_Row, 3).toBool();
-}
-
 void IInspectionModel::setTargetName(const QString &name)
 {
     setItemValue(InspectionStatus_Row, 0, name);
@@ -85,9 +78,4 @@ void IInspectionModel::setTargetName(const QString &name)
 void IInspectionModel::setFrameworkName(const QString &name)
 {
     setItemValue(InspectionStatus_Row, 1, name);
-}
-
-void IInspectionModel::setInspectionEnabled(bool value)
-{
-    setItemValue(InspectionStatus_Row, 3, value);
 }

@@ -106,6 +106,7 @@ void NokiaQtFramework::slotInspectionStarted()
 
 void NokiaQtFramework::slotInspectionEnded()
 {
+    setModuleActivationEnabled(false);
     emit targetDisconnected();
 }
 

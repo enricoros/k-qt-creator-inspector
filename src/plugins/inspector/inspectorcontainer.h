@@ -31,6 +31,7 @@
 #define INSPECTORCONTAINER_H
 
 #include <QtCore/QList>
+#include <QtGui/QPixmap>
 #include <QtGui/QWidget>
 class QStackedWidget;
 
@@ -42,7 +43,21 @@ class InspectionWindow;
 class Inspection;
 class SingleTabWidget;
 
-class InspectorContainer : public QWidget
+
+class WatermarkedWidget : public QWidget
+{
+public:
+    WatermarkedWidget(QWidget *parent = 0);
+
+protected:
+    void paintEvent(QPaintEvent *);
+
+private:
+    QPixmap m_watermarkPixmap;
+};
+
+
+class InspectorContainer : public WatermarkedWidget
 {
     Q_OBJECT
 
