@@ -140,7 +140,8 @@ ComboTreeWidget::ComboTreeWidget(QWidget *parent)
 {
     setPalette(InspectorStyle::invertedPalette());
     setAutoFillBackground(true);
-    setFixedHeight(InspectorStyle::defaultBarHeight());
+    setFixedHeight(InspectorStyle::defaultBarHeight() + 1);
+    setContentsMargins(0, 0, 0, 1);
 
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->setContentsMargins(MARGIN, 0, 0, 0);
@@ -282,6 +283,7 @@ void ComboTreeWidget::paintEvent(QPaintEvent *)
     QRect r = rect();
     r.setTop(r.bottom() - 4);
     InspectorStyle::drawVerticalShadow(&p, r, QColor(50, 50, 50), false);
+    p.fillRect(0, height() - 1, width(), 1, Qt::white);
 }
 
 void ComboTreeWidget::slotComboIndexChanged(int comboIndex)

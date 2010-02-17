@@ -32,14 +32,16 @@
 
 #include <QtCore/QList>
 #include <QtGui/QPalette>
-class QWidget;
+#include <QtGui/QPixmap>
+#include <QtGui/QWidget>
 
 namespace Inspector {
 namespace Internal {
 
 class OnePixelBlackLine;
 
-class InspectorStyle {
+class InspectorStyle
+{
 public:
     static int defaultComboHeight();
     static int defaultBarHeight();
@@ -50,8 +52,21 @@ public:
 
     static void drawVerticalShadow(QPainter *, int width, int height, const QColor &, bool topToBottom = true);
     static void drawVerticalShadow(QPainter *, const QRect &rect, const QColor &, bool topToBottom = true);
+    static void drawCoolGradient(QPainter *, const QRect &rect, const QColor &);
 
     static QWidget *createOnePixelBlackLine(QWidget *parent = 0);
+};
+
+class WatermarkedWidget : public QWidget
+{
+public:
+    WatermarkedWidget(QWidget *parent = 0);
+
+protected:
+    void paintEvent(QPaintEvent *);
+
+private:
+    QPixmap m_watermarkPixmap;
 };
 
 } // namespace Internal

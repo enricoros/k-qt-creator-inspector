@@ -31,8 +31,7 @@
 #define INSPECTORCONTAINER_H
 
 #include <QtCore/QList>
-#include <QtGui/QPixmap>
-#include <QtGui/QWidget>
+#include "inspectorstyle.h"
 class QStackedWidget;
 
 namespace Inspector {
@@ -42,20 +41,6 @@ class DashboardWindow;
 class InspectionWindow;
 class Inspection;
 class SingleTabWidget;
-
-
-class WatermarkedWidget : public QWidget
-{
-public:
-    WatermarkedWidget(QWidget *parent = 0);
-
-protected:
-    void paintEvent(QPaintEvent *);
-
-private:
-    QPixmap m_watermarkPixmap;
-};
-
 
 class InspectorContainer : public WatermarkedWidget
 {
@@ -71,7 +56,7 @@ private slots:
     void slotInspectionAdded(Inspection *);
     void slotInspectionRemoved(Inspection *);
 
-    void slotDisplayDashboardWindow();
+    void slotDisplayInspection(Inspection *);
     void slotDisplayInspectionWindow();
 
 private:

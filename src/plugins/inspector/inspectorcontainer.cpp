@@ -38,51 +38,9 @@
 #include <QtGui/QPaintEvent>
 #include <QtGui/QStackedWidget>
 #include <QtGui/QVBoxLayout>
-#include <QtSvg/QSvgRenderer>
 
 using namespace Inspector::Internal;
 
-//
-// WatermarkedWidget
-//
-WatermarkedWidget::WatermarkedWidget(QWidget *parent)
-  : QWidget(parent)
-{
-    QSvgRenderer wmRender(QString(":/inspector/images/inspector-watermark.svg"));
-    if (wmRender.isValid()) {
-        m_watermarkPixmap = QPixmap(wmRender.defaultSize());
-        m_watermarkPixmap.fill(Qt::transparent);
-        QPainter wmPainter(&m_watermarkPixmap);
-        wmRender.render(&wmPainter);
-    }
-}
-
-void WatermarkedWidget::paintEvent(QPaintEvent *event)
-{
-    // draw a light gradient as the background
-    QPainter p(this);
-#if 0
-    QLinearGradient bg(0, 0, 0, 1);
-    bg.setCoordinateMode(QGradient::StretchToDeviceMode);
-    bg.setColorAt(0.0, QColor(247, 247, 247));
-    bg.setColorAt(1.0, QColor(215, 215, 215));
-    p.setCompositionMode(QPainter::CompositionMode_Source);
-    p.fillRect(event->rect(), bg);
-    p.setCompositionMode(QPainter::CompositionMode_SourceOver);
-#endif
-
-    // draw the watermark
-    if (!m_watermarkPixmap.isNull()) {
-        QRect wmRect(isLeftToRight() ? (width() - m_watermarkPixmap.width()) : 0, 30,
-                     m_watermarkPixmap.width(), m_watermarkPixmap.height());
-        if (event->rect().intersects(wmRect))
-            p.drawPixmap(wmRect.topLeft(), m_watermarkPixmap);
-    }
-}
-
-//
-// InspectorContainer
-//
 InspectorContainer::InspectorContainer(QWidget *parent)
   : WatermarkedWidget(parent)
 {
@@ -105,8 +63,8 @@ InspectorContainer::InspectorContainer(QWidget *parent)
     connect(m_topbarWidget, SIGNAL(currentIndexChanged(int)),
             m_centralWidget, SLOT(setCurrentIndex(int)));
 
-    connect(m_dashboardWindow, SIGNAL(requestDisplay()),
-            this, SLOT(slotDisplayDashboardWindow()));
+    connect(m_dashboardWindow, SIGNAL(requestInspectionDisplay(Inspection*)),
+            this, SLOT(slotDisplayInspection(Inspection*)));
 
     InspectorPlugin *plugin = InspectorPlugin::instance();
     foreach (Inspection *inspection, plugin->inspections())
@@ -140,7 +98,7 @@ void InspectorContainer::slotInspectionAdded(Inspection *inspection)
 
     // enforce re-display because the debugger window steals
     // the focus here
-    slotDisplayInspectionWindow();
+    emit requestWindowDisplay();
 }
 
 void InspectorContainer::slotInspectionRemoved(Inspection *inspection)
@@ -160,18 +118,23 @@ void InspectorContainer::slotInspectionRemoved(Inspection *inspection)
     }
 }
 
-void InspectorContainer::slotDisplayDashboardWindow()
+void InspectorContainer::slotDisplayInspection(Inspection *inspection)
 {
-    // show myself
-    emit requestWindowDisplay();
+    int tabIndex = 1;   // 0 is the 'Dashboard' label
+    foreach (InspectionWindow *inspectionWindow, m_inspections) {
+        if (inspectionWindow->inspection() == inspection) {
+            m_topbarWidget->setCurrentIndex(tabIndex);
+            return;
+        }
+        ++tabIndex;
+    }
 }
 
 void InspectorContainer::slotDisplayInspectionWindow()
 {
     // switch to the InspectionWindow
-    InspectionWindow *inspectionWindow = dynamic_cast<InspectionWindow *>(sender());
-    if (inspectionWindow)
-        m_centralWidget->setCurrentWidget(inspectionWindow);
+    if (InspectionWindow *inspectionWindow = dynamic_cast<InspectionWindow *>(sender()))
+        slotDisplayInspection(inspectionWindow->inspection());
 
     // show myself
     emit requestWindowDisplay();

@@ -34,6 +34,7 @@
 #include "inspectorstyle.h"
 #include "runcontrolwatcher.h"
 #include "shareddebugger.h"
+#include "tasksscroller.h"
 #include <extensionsystem/pluginmanager.h>
 #include <projectexplorer/applicationrunconfiguration.h>
 #include <projectexplorer/projectexplorerconstants.h>
@@ -341,6 +342,8 @@ void DashboardWindow::slotInspectionAdded(Inspection *inspection)
     // create the RunningInspectionWidget
     m_inspections.append(inspection);
     RunningInspectionWidget *r = new RunningInspectionWidget(inspection);
+    connect(r, SIGNAL(displayInspection(Inspection*)),
+            this, SIGNAL(requestInspectionDisplay(Inspection*)));
     connect(r, SIGNAL(closeInspection(Inspection*)),
             this, SLOT(slotCloseInspection(Inspection*)));
     m_inspectionWidgets.append(r);
@@ -690,30 +693,56 @@ RunningInspectionWidget::RunningInspectionWidget(Inspection *inspection, QWidget
   : QWidget(parent)
   , m_inspection(inspection)
 {
+    setAttribute(Qt::WA_Hover, true);
+
     QHBoxLayout *lay = new QHBoxLayout(this);
-    lay->setMargin(0);
+    lay->setMargin(3);
 
     QLabel *label1 = new QLabel;
-    label1->setText(inspection->inspectionModel()->displayName());
+    label1->setMinimumWidth(30);
+    label1->setText(tr("# %1.").arg(inspection->inspectionModel()->monotonicId()));
     lay->addWidget(label1);
+
+    QLabel *label2 = new QLabel;
+    label2->setMinimumWidth(160);
+    label2->setText(tr("<a href='see'>%1</a>").arg(inspection->inspectionModel()->displayName()));
+    connect(label2, SIGNAL(linkActivated(QString)),
+            this, SLOT(slotDisplayClicked()));
+    lay->addWidget(label2);
+
+    TasksScroller *tasksWidget = new TasksScroller(this);
+    tasksWidget->setTasksModel(inspection->tasksModel());
+    lay->addWidget(tasksWidget);
 
     lay->addStretch(10);
 
-    QLabel *label2 = new QLabel;
-    label2->setText(tr("#%1").arg(inspection->inspectionModel()->monotonicId()));
-    lay->addWidget(label2);
-
-    lay->addStretch(100);
-
     QPushButton *b = new QPushButton;
     b->setMaximumHeight(InspectorStyle::defaultComboHeight());
-    b->setText(tr("Stop"));
+    b->setText(tr("Close"));
     b->setIcon(QIcon(":/projectexplorer/images/stop.png"));
-    connect(b, SIGNAL(clicked()), this, SLOT(slotRemoveClicked()));
+    connect(b, SIGNAL(clicked()),
+            this, SLOT(slotCloseClicked()));
     lay->addWidget(b);
 }
 
-void RunningInspectionWidget::slotRemoveClicked()
+void RunningInspectionWidget::paintEvent(QPaintEvent *)
+{
+    QPainter p(this);
+    if (underMouse()) {
+        QColor color = palette().color(QPalette::Highlight);
+        color.setAlpha(200);
+        InspectorStyle::drawCoolGradient(&p, rect(), color);
+    } else {
+        InspectorStyle::drawCoolGradient(&p, rect(), QColor(192, 192, 192, 64));
+    }
+}
+
+void RunningInspectionWidget::slotDisplayClicked()
+{
+    emit displayInspection(m_inspection);
+}
+
+void RunningInspectionWidget::slotCloseClicked()
 {
     emit closeInspection(m_inspection);
 }
