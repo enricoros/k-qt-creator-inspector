@@ -22,6 +22,7 @@ HEADERS += \
     inspectorcontainer.h \
     inspectorplugin.h \
     inspectorrunner.h \
+    inspectorstyle.h \
     panelcontainerwidget.h \
     plotgrid.h \
     probeinjectingdebugger.h \
@@ -47,6 +48,7 @@ SOURCES += \
     inspectorcontainer.cpp \
     inspectorplugin.cpp \
     inspectorrunner.cpp \
+    inspectorstyle.cpp \
     panelcontainerwidget.cpp \
     plotgrid.cpp \
     probeinjectingdebugger.cpp \

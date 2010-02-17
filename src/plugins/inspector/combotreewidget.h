@@ -30,10 +30,10 @@
 #ifndef COMBOTREEWIDGET_H
 #define COMBOTREEWIDGET_H
 
-#include <utils/styledbar.h>
-#include <QIcon>
-#include <QStringList>
-#include <QVariant>
+#include <QtCore/QStringList>
+#include <QtCore/QVariant>
+#include <QtGui/QIcon>
+#include <QtGui/QWidget>
 class QComboBox;
 class QLabel;
 
@@ -67,7 +67,7 @@ class NodesComboBox;
     At any time one leaf (path) is selected. Note that a leaf can not have
     children (otherwise the user interaction needs to be re-though)
 */
-class ComboTreeWidget : public Utils::StyledBar
+class ComboTreeWidget : public QWidget
 {
     Q_OBJECT
 
@@ -92,6 +92,9 @@ public:
 signals:
     void treeChanged();
     void pathSelected(const QStringList &path, const QVariant &userData);
+
+protected:
+    void paintEvent(QPaintEvent *);
 
 private slots:
     void slotComboIndexChanged(int index);

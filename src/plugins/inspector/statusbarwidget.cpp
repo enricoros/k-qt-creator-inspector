@@ -29,17 +29,16 @@
 
 #include "statusbarwidget.h"
 #include "inspection.h"
+#include "inspectorstyle.h"
 #include "tasksscroller.h"
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPaintEvent>
 #include <QPainter>
-#include <QPalette>
 #include <QPixmap>
 #include <QStyleOption>
 #include <QToolButton>
 
-#include <utils/stylehelper.h>
 
 //#define DRAW_STYLED
 
@@ -74,20 +73,14 @@ StatusBarWidget::StatusBarWidget(QWidget *parent)
   , m_taskScroller(0)
   , m_layout(0)
 {
-    QPalette pal;
-     pal.setBrush(QPalette::Window, QColor(100, 100, 100));
-     pal.setBrush(QPalette::WindowText, Qt::white);
-     pal.setBrush(QPalette::Button, Qt::darkGray);
-     pal.setBrush(QPalette::ButtonText, Qt::white);
-     pal.setBrush(QPalette::Base, Qt::transparent);
-    setPalette(pal);
+    setPalette(InspectorStyle::invertedPalette());
 #if defined(DRAW_STYLED)
     setProperty("panelwidget", true);
     setProperty("panelwidget_singlerow", true);
 #else
     setAutoFillBackground(true);
 #endif
-    setFixedHeight(Utils::StyleHelper::navigationWidgetHeight());
+    setFixedHeight(InspectorStyle::defaultBarHeight());
 
     m_tasksLabel = new QLabel(this);
     updateLabels();
@@ -118,16 +111,6 @@ void StatusBarWidget::setInspection(Inspection *inspection)
     m_taskScroller->setTasksModel(model);
 }
 
-static void drawVerticalShadow(QPainter * painter, int width, int height)
-{
-    QLinearGradient lg( 0, 0, 0, height );
-    lg.setColorAt( 0.0, QColor( 0, 0, 0, 128 ) );
-    lg.setColorAt( 0.4, QColor( 0, 0, 0, 32 ) );
-    lg.setColorAt( 0.7, QColor( 0, 0, 0, 10 ) );
-    lg.setColorAt( 1.0, QColor( 0, 0, 0, 0 ) );
-    painter->fillRect( 0, 0, width, height, lg );
-}
-
 void StatusBarWidget::paintEvent(QPaintEvent * event)
 {
     if (event->rect().top() >= 10)
@@ -138,10 +121,10 @@ void StatusBarWidget::paintEvent(QPaintEvent * event)
         m_shadowTile = new QPixmap(64, 10);
         m_shadowTile->fill(Qt::transparent);
         QPainter shadowPainter(m_shadowTile);
-        drawVerticalShadow(&shadowPainter, 64, 10);
+        InspectorStyle::drawVerticalShadow(&shadowPainter, 64, 10, Qt::black);
     }
 
-    // draw styled background (as
+    // draw styled background
     QPainter p(this);
 #if defined(DRAW_STYLED)
     QStyleOption option;

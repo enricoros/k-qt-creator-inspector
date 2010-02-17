@@ -53,6 +53,7 @@ InspectorRunControl::InspectorRunControl(Debugger::DebuggerManager *manager,
     init();
     if (!runConfiguration)
         return;
+    m_name = runConfiguration->displayName();
 
     m_startParameters->startMode = Debugger::StartInternal;
     m_startParameters->executable = runConfiguration->executable();
@@ -102,6 +103,8 @@ InspectorRunControl::InspectorRunControl(Debugger::DebuggerManager *manager,
   , m_running(false)
 {
     init();
+
+    m_name = tr("Attached Pid %1").arg(m_startParameters->attachPID);
 
     if (m_startParameters->environment.empty())
         m_startParameters->environment = ProjectExplorer::Environment::Environment().toStringList();
@@ -173,5 +176,5 @@ bool InspectorRunControl::isRunning() const
 
 QString InspectorRunControl::displayName() const
 {
-    return tr("Under Inspection");
+    return m_name;
 }

@@ -1,5 +1,7 @@
 #include "singletabwidget.h"
 
+#include "inspectorstyle.h"
+
 #include <utils/stylehelper.h>
 
 #include <QtCore/QRect>
@@ -17,7 +19,7 @@ namespace Internal {
 static const int MIN_LEFT_MARGIN = 50;
 static const int MARGIN = 12;
 static const int OTHER_HEIGHT = 38;
-static const int OVERFLOW_DROPDOWN_WIDTH = Utils::StyleHelper::navigationWidgetHeight();
+static const int OVERFLOW_DROPDOWN_WIDTH = InspectorStyle::defaultBarHeight();
 
 static void drawFirstLevelSeparator(QPainter *painter, QPoint top, QPoint bottom)
 {
@@ -51,7 +53,7 @@ void SingleTabWidget::setTitle(const QString &title)
 
 QSize SingleTabWidget::minimumSizeHint() const
 {
-    return QSize(0, Utils::StyleHelper::navigationWidgetHeight());
+    return QSize(0, InspectorStyle::defaultBarHeight());
 }
 
 void SingleTabWidget::addTab(const QString &name)
@@ -146,7 +148,7 @@ void SingleTabWidget::paintEvent(QPaintEvent *event)
     QRect r = rect();
 
     // draw top level tab bar
-    r.setHeight(Utils::StyleHelper::navigationWidgetHeight());
+    r.setHeight(InspectorStyle::defaultBarHeight());
 
     QPoint offset = window()->mapToGlobal(QPoint(0, 0)) - mapToGlobal(r.topLeft());
     QRect gradientSpan = QRect(offset, window()->size());
@@ -240,14 +242,16 @@ void SingleTabWidget::paintEvent(QPaintEvent *event)
         int actualIndex = m_currentTabIndices.at(i);
         QString tabName = m_tabs.at(actualIndex);
         if (actualIndex == m_currentIndex) {
+            QColor bgColor = actualIndex ? InspectorStyle::invertedBackColor() : palette().color(QPalette::Window);
             painter.setPen(Utils::StyleHelper::borderColor());
             painter.drawLine(x - 1, 0, x - 1, r.height() - 1);
             painter.fillRect(QRect(x, 0,
                                    2 * MARGIN + fm.width(tabName),
                                    r.height() + 1),
-                             grad);
+                             bgColor);
             x += MARGIN;
-            painter.setPen(Qt::black);
+            QColor textColor = actualIndex ? InspectorStyle::invertedTextColor() : Qt::black;
+            painter.setPen(textColor);
             painter.drawText(x, baseline, tabName);
             x += nameWidth.at(actualIndex);
             x += MARGIN;

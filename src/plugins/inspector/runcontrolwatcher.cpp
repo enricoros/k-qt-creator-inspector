@@ -32,7 +32,6 @@
 #include <debugger/debuggerdialogs.h>
 #include <projectexplorer/projectexplorer.h>
 #include <projectexplorer/runconfiguration.h>
-#include <utils/stylehelper.h>
 #include <QtGui/QButtonGroup>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QLabel>
@@ -68,6 +67,12 @@ RunningTargetSelectorWidget::RunningTargetSelectorWidget(QWidget *parent)
     //    slotAddRunControl(rc);
     connect(pep, SIGNAL(aboutToStartRunControl(ProjectExplorer::RunControl*)),
             this, SLOT(slotRunControlAdded(ProjectExplorer::RunControl*)));
+}
+
+void RunningTargetSelectorWidget::deselect()
+{
+    if (QAbstractButton *button = m_buttonGroup->checkedButton())
+        button->setChecked(false);
 }
 
 void RunningTargetSelectorWidget::slotRunControlAdded(ProjectExplorer::RunControl *rc)

@@ -31,6 +31,7 @@
 #include "iframework.h"
 #include "inspection.h"
 #include "inspectorplugin.h"
+#include "inspectorstyle.h"
 #include "runcontrolwatcher.h"
 #include "shareddebugger.h"
 #include <extensionsystem/pluginmanager.h>
@@ -40,7 +41,6 @@
 #include <projectexplorer/project.h>
 #include <projectexplorer/session.h>
 #include <utils/qtcassert.h>
-#include <utils/stylehelper.h>
 #include <QtGui/QComboBox>
 #include <QtGui/QGridLayout>
 #include <QtGui/QHeaderView>
@@ -59,24 +59,6 @@ const int ABOVE_HEADING_MARGIN(10);
 const int ABOVE_CONTENTS_MARGIN(4);
 const int BELOW_CONTENTS_MARGIN(16);
 const int LEFT_MARGIN(16);
-
-class OnePixelBlackLine : public QWidget
-{
-public:
-    OnePixelBlackLine(QWidget *parent)
-        : QWidget(parent)
-    {
-        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-        setFixedHeight(1);
-    }
-    void paintEvent(QPaintEvent *e)
-    {
-        Q_UNUSED(e);
-        QPainter p(this);
-        p.fillRect(contentsRect(), QBrush(Utils::StyleHelper::borderColor()));
-    }
-};
-
 
 DashboardWindow::DashboardWindow(QWidget *parent)
   : QScrollArea(parent)
@@ -142,7 +124,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
          runLayout->addWidget(new QLabel(tr("framework")));
          runLayout->addStretch();
         m_newRunButton = new QPushButton;
-        m_newRunButton->setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
+        m_newRunButton->setMaximumHeight(InspectorStyle::defaultComboHeight());
         m_newRunButton->setText(tr("Start"));
         m_newRunButton->setIcon(QIcon(":/projectexplorer/images/run_small.png"));
         connect(m_newRunButton, SIGNAL(clicked()),
@@ -182,12 +164,14 @@ DashboardWindow::DashboardWindow(QWidget *parent)
          acLayout->addWidget(new QLabel(tr("framework")));
          acLayout->addStretch();
         m_attButton = new QPushButton;
-        m_attButton->setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
+        m_attButton->setMaximumHeight(InspectorStyle::defaultComboHeight());
         m_attButton->setText(tr("Attach"));
         m_attButton->setIcon(QIcon(":/projectexplorer/images/debugger_start_small.png"));
         m_attButton->setEnabled(false);
         connect(m_attButton, SIGNAL(clicked()),
-                 this, SLOT(slotStartExistingTarget()));
+               this, SLOT(slotStartExistingTarget()));
+        connect(m_attButton, SIGNAL(clicked()),
+               rcList, SLOT(deselect()));
          acLayout->addWidget(m_attButton);
          attLayout->addWidget(acPanel);
 
@@ -420,7 +404,7 @@ void DashboardWindow::appendWrappedWidget(const QString &title, const QIcon &ico
 
     // line:
     const int lineRow(headerRow + 1);
-    m_layout->addWidget(new OnePixelBlackLine(m_root), lineRow, 1);
+    m_layout->addWidget(InspectorStyle::createOnePixelBlackLine(m_root), lineRow, 1);
 
     // add the widget:
     const int widgetRow(lineRow + 1);
@@ -479,7 +463,7 @@ void DashboardWindow::appendSubWidget(QGridLayout *layout, QWidget *widget,
 ProjectsComboBox::ProjectsComboBox(QWidget *parent)
   : QComboBox(parent)
 {
-    setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
+    setMaximumHeight(InspectorStyle::defaultComboHeight());
     connect(this, SIGNAL(currentIndexChanged(int)),
             this, SIGNAL(currentProjectChanged()));
 
@@ -535,7 +519,7 @@ DevicesComboBox::DevicesComboBox(QWidget *parent)
   : QComboBox(parent)
   , m_project(0)
 {
-    setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
+    setMaximumHeight(InspectorStyle::defaultComboHeight());
     connect(this, SIGNAL(currentIndexChanged(int)),
             this, SIGNAL(currentDeviceChanged()));
 }
@@ -607,7 +591,7 @@ RunconfComboBox::RunconfComboBox(QWidget *parent)
   : QComboBox(parent)
   , m_device(0)
 {
-    setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
+    setMaximumHeight(InspectorStyle::defaultComboHeight());
     connect(this, SIGNAL(currentIndexChanged(int)),
             this, SIGNAL(currentRunconfChanged()));
 }
@@ -678,7 +662,7 @@ void RunconfComboBox::updateDisplayName()
 FrameworksComboBox::FrameworksComboBox(QWidget *parent)
   : QComboBox(parent)
 {
-    setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
+    setMaximumHeight(InspectorStyle::defaultComboHeight());
     foreach (IFrameworkFactory *factory, allFactories())
         addItem(factory->displayName());
     connect(this, SIGNAL(currentIndexChanged(int)),
@@ -722,7 +706,7 @@ RunningInspectionWidget::RunningInspectionWidget(Inspection *inspection, QWidget
     lay->addStretch(100);
 
     QPushButton *b = new QPushButton;
-    b->setMaximumHeight(Utils::StyleHelper::navigationWidgetHeight() - 2);
+    b->setMaximumHeight(InspectorStyle::defaultComboHeight());
     b->setText(tr("Stop"));
     b->setIcon(QIcon(":/projectexplorer/images/stop.png"));
     connect(b, SIGNAL(clicked()), this, SLOT(slotRemoveClicked()));
