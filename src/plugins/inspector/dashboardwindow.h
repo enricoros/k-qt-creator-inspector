@@ -68,7 +68,7 @@ public:
     void newInspection(const InspectionTarget &, IFrameworkFactory *);
 
 signals:
-    void requestDisplay();
+    void requestInspectionDisplay(Inspection *);
 
 private slots:
     void slotProjectChanged();
@@ -225,10 +225,15 @@ public:
     RunningInspectionWidget(Inspection *, QWidget *parent = 0);
 
 signals:
+    void displayInspection(Inspection *);
     void closeInspection(Inspection *);
 
+protected:
+    void paintEvent(QPaintEvent *);
+
 private slots:
-    void slotRemoveClicked();
+    void slotDisplayClicked();
+    void slotCloseClicked();
 
 private:
     Inspection *m_inspection;

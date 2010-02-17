@@ -32,6 +32,7 @@
 #include <QtGui/QGradient>
 #include <QtGui/QPainter>
 #include <QtGui/QPaintEvent>
+#include <QtSvg/QSvgRenderer>
 #include <QtGui/QWidget>
 
 using namespace Inspector::Internal;
@@ -87,6 +88,20 @@ void InspectorStyle::drawVerticalShadow(QPainter *painter, const QRect &rect, co
     painter->fillRect(rect, lg);
 }
 
+void InspectorStyle::drawCoolGradient(QPainter *painter, const QRect &rect, const QColor &baseColor)
+{
+    QLinearGradient lg(rect.left(), rect.top(), rect.left(), rect.bottom());
+    lg.setColorAt(0.0, baseColor.light(121));
+    lg.setColorAt(0.49, baseColor);
+    lg.setColorAt(0.50, baseColor.dark(150));
+    lg.setColorAt(1.0, baseColor);
+    QColor penColor = baseColor;
+    penColor.setAlpha(128);
+    painter->setPen(penColor);
+    painter->setBrush(lg);
+    painter->drawRoundedRect(rect.adjusted(0, 0, -1, -1), 4, 4);
+}
+
 class Inspector::Internal::OnePixelBlackLine : public QWidget
 {
 public:
@@ -107,4 +122,43 @@ public:
 QWidget *InspectorStyle::createOnePixelBlackLine(QWidget *parent)
 {
     return new Inspector::Internal::OnePixelBlackLine(parent);
+}
+
+
+//
+// WatermarkedWidget
+//
+WatermarkedWidget::WatermarkedWidget(QWidget *parent)
+  : QWidget(parent)
+{
+    QSvgRenderer wmRender(QString(":/inspector/images/inspector-watermark.svg"));
+    if (wmRender.isValid()) {
+        m_watermarkPixmap = QPixmap(wmRender.defaultSize());
+        m_watermarkPixmap.fill(Qt::transparent);
+        QPainter wmPainter(&m_watermarkPixmap);
+        wmRender.render(&wmPainter);
+    }
+}
+
+void WatermarkedWidget::paintEvent(QPaintEvent *event)
+{
+    // draw a light gradient as the background
+    QPainter p(this);
+#if 0
+    QLinearGradient bg(0, 0, 0, 1);
+    bg.setCoordinateMode(QGradient::StretchToDeviceMode);
+    bg.setColorAt(0.0, QColor(247, 247, 247));
+    bg.setColorAt(1.0, QColor(215, 215, 215));
+    p.setCompositionMode(QPainter::CompositionMode_Source);
+    p.fillRect(event->rect(), bg);
+    p.setCompositionMode(QPainter::CompositionMode_SourceOver);
+#endif
+
+    // draw the watermark
+    if (!m_watermarkPixmap.isNull()) {
+        QRect wmRect(isLeftToRight() ? (width() - m_watermarkPixmap.width()) : 0, 30,
+                     m_watermarkPixmap.width(), m_watermarkPixmap.height());
+        if (event->rect().intersects(wmRect))
+            p.drawPixmap(wmRect.topLeft(), m_watermarkPixmap);
+    }
 }
