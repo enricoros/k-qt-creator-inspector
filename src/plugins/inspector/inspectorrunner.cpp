@@ -139,7 +139,7 @@ void InspectorRunControl::start()
     if (m_manager->checkDebugConfiguration(m_startParameters->toolChainType, &errorMessage,
                                            &settingsCategory, &settingsPage)) {
         m_manager->startNewDebugger(m_startParameters);
-        //m_manager->continueExec();
+        emit started();
     } else {
         error(this, errorMessage);
         emit finished();
@@ -169,4 +169,9 @@ void InspectorRunControl::debuggingFinished()
 bool InspectorRunControl::isRunning() const
 {
     return m_running;
+}
+
+QString InspectorRunControl::displayName() const
+{
+    return tr("Under Inspection");
 }

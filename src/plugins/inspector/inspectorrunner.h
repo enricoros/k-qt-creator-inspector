@@ -55,6 +55,7 @@ public:
     virtual void start();
     virtual void stop();
     virtual bool isRunning() const;
+    virtual QString displayName() const;
 
 signals:
     void stopRequested();

@@ -24,6 +24,7 @@ HEADERS += \
     inspectorrunner.h \
     panelcontainerwidget.h \
     plotgrid.h \
+    probeinjectingdebugger.h \
     runcontrolwatcher.h \
     shareddebugger.h \
     singletabwidget.h \
@@ -48,6 +49,7 @@ SOURCES += \
     inspectorrunner.cpp \
     panelcontainerwidget.cpp \
     plotgrid.cpp \
+    probeinjectingdebugger.cpp \
     runcontrolwatcher.cpp \
     shareddebugger.cpp \
     singletabwidget.cpp \

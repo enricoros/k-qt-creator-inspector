@@ -61,6 +61,7 @@ public:
 
     // may be reimplemented by subclasses
     virtual bool startInspection(const InspectionTarget &) { return false; }
+    virtual bool targetIsConnected() const { return false; }
     virtual int infoModuleUid() const { return 0; }
 
     // modules: menu entries and panel creation
@@ -71,6 +72,8 @@ public:
 signals:
     void modulesChanged();
     void requestPanelDisplay(int moduleUid, int panelId);
+    void targetConnected();
+    void targetDisconnected();
 
 protected:
     void addModule(IFrameworkModule *);

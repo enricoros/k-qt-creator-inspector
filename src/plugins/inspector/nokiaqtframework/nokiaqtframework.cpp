@@ -31,6 +31,7 @@
 #include "inspectorplugin.h"
 #include "localcommserver.h"
 #include "nokiaqtinspectionmodel.h"
+#include "probeinjectingdebugger.h"
 #include "shareddebugger.h"
 
 #include "blueprint/blueprintmodule.h"
@@ -45,12 +46,15 @@ using namespace Inspector::Internal;
 //
 // NokiaQtFramework
 //
-NokiaQtFramework::NokiaQtFramework(NokiaQtInspectionModel *model, SharedDebugger *sd, QObject *parent)
+NokiaQtFramework::NokiaQtFramework(NokiaQtInspectionModel *model, ProbeInjectingDebugger *debugger, QObject *parent)
   : IFramework(model, parent)
-  , m_sharedDebugger(sd)
+  , m_debugger(debugger)
   , m_model(model)
 {
     m_commServer = new LocalCommServer(m_model);
+
+    connect(m_debugger, SIGNAL(inspectionStarted()), this, SLOT(slotInspectionStarted()));
+    connect(m_debugger, SIGNAL(inspectionEnded()), this, SLOT(slotInspectionEnded()));
 
     addModule(new InfoModule(this));
     addModule(new PaintingModule(this));
@@ -60,7 +64,7 @@ NokiaQtFramework::NokiaQtFramework(NokiaQtInspectionModel *model, SharedDebugger
 
 NokiaQtFramework::~NokiaQtFramework()
 {
-    InspectorPlugin::instance()->releaseDebugger();
+    InspectorPlugin::instance()->sharedDebugger()->releaseProbeInjectingDebugger();
     delete m_commServer;
 }
 
@@ -76,7 +80,12 @@ bool NokiaQtFramework::startInspection(const InspectionTarget &target)
         qWarning("NokiaQtFramework::startInspection: local server is not listening, won't start the inspection");
         return false;
     }
-    return m_sharedDebugger->startTarget(target, localServerName);
+    return m_debugger->setInspectionTarget(target, localServerName);
+}
+
+bool NokiaQtFramework::targetIsConnected() const
+{
+    return m_debugger->inspecting();
 }
 
 int NokiaQtFramework::infoModuleUid() const
@@ -87,7 +96,17 @@ int NokiaQtFramework::infoModuleUid() const
 void NokiaQtFramework::callProbeFunction(const QString &name, const QVariantList &args)
 {
     qWarning("NokiaQtFramework::callProbeFunction: %s(...)", qPrintable(name));
-    m_sharedDebugger->callProbeFunction(name, args);
+    m_debugger->callProbeFunction(name, args);
+}
+
+void NokiaQtFramework::slotInspectionStarted()
+{
+    emit targetConnected();
+}
+
+void NokiaQtFramework::slotInspectionEnded()
+{
+    emit targetDisconnected();
 }
 
 
@@ -127,19 +146,21 @@ bool NokiaQtFrameworkFactory::available(const InspectionTarget &target) const
         !target.runConfiguration)
         return false;
 
-    // good: shareddebugger free
-    return InspectorPlugin::instance()->debuggerAcquirable();
+    // good: inspectingdebugger free
+    return InspectorPlugin::instance()->sharedDebugger()->acquirable();
 }
 
 IFramework *NokiaQtFrameworkFactory::createFramework(const InspectionTarget &target)
 {
-    SharedDebugger *sharedDebugger = InspectorPlugin::instance()->acquireDebugger();
-    if (!sharedDebugger)
+    ProbeInjectingDebugger *debugger = InspectorPlugin::instance()->sharedDebugger()->acquireProbeInjectingDebugger();
+    if (!debugger) {
+        qWarning("NokiaQtFrameworkFactory::createFramework: can't acquire the ProbeInjectingDebugger");
         return 0;
+    }
 
     NokiaQtInspectionModel *model = new NokiaQtInspectionModel;
     model->setTargetName(target.displayName);
     model->setFrameworkName(displayName());
 
-    return new NokiaQtFramework(model, sharedDebugger);
+    return new NokiaQtFramework(model, debugger);
 }

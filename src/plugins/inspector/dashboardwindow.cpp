@@ -32,6 +32,7 @@
 #include "inspection.h"
 #include "inspectorplugin.h"
 #include "runcontrolwatcher.h"
+#include "shareddebugger.h"
 #include <extensionsystem/pluginmanager.h>
 #include <projectexplorer/applicationrunconfiguration.h>
 #include <projectexplorer/projectexplorerconstants.h>
@@ -198,7 +199,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
                 this, SLOT(slotEvaluateExistingTarget()));
 
         // monitor shareddebugger state changes for changing the gui
-        connect(plugin, SIGNAL(debuggerAcquirableChanged(bool)),
+        connect(plugin->sharedDebugger(), SIGNAL(acquirableChanged(bool)),
                 this, SLOT(slotUpdateActionStatus()));
         slotUpdateActionStatus();
     }

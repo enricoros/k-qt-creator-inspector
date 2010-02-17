@@ -84,24 +84,9 @@ InspectorPlugin *InspectorPlugin::instance()
     return s_pluginInstance;
 }
 
-bool InspectorPlugin::debuggerAcquirable() const
+SharedDebugger *InspectorPlugin::sharedDebugger()
 {
-    return m_sharedDebugger->acquirable();
-}
-
-SharedDebugger *InspectorPlugin::acquireDebugger()
-{
-    if (!m_sharedDebugger->acquire()) {
-        qWarning("InspectorPlugin::acquireDebugger: acquiring while taken or unavailable");
-        return 0;
-    }
     return m_sharedDebugger;
-}
-
-bool InspectorPlugin::releaseDebugger()
-{
-    m_sharedDebugger->release();
-    return true;
 }
 
 QList<Inspection *> InspectorPlugin::inspections() const
@@ -150,8 +135,6 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     addAutoReleasedObject(new NvidiaCudaFrameworkFactory());
 
     m_sharedDebugger = new SharedDebugger;
-    connect(m_sharedDebugger, SIGNAL(acquirableChanged(bool)),
-            this, SIGNAL(debuggerAcquirableChanged(bool)));
 
     m_container = new InspectorContainer;
     connect(m_container, SIGNAL(requestWindowDisplay()),
