@@ -68,7 +68,7 @@ private:
     friend class NokiaQtFrameworkFactory;
     NokiaQtFramework(NokiaQtInspectionModel *, ProbeInjectingDebugger *, QObject *parent = 0);
     LocalCommServer *m_commServer;
-    ProbeInjectingDebugger *m_debugger;
+    ProbeInjectingDebugger *m_piDebugger;
     NokiaQtInspectionModel *m_model;
 };
 

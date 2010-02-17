@@ -48,13 +48,13 @@ using namespace Inspector::Internal;
 //
 NokiaQtFramework::NokiaQtFramework(NokiaQtInspectionModel *model, ProbeInjectingDebugger *debugger, QObject *parent)
   : IFramework(model, parent)
-  , m_debugger(debugger)
+  , m_piDebugger(debugger)
   , m_model(model)
 {
     m_commServer = new LocalCommServer(m_model);
 
-    connect(m_debugger, SIGNAL(inspectionStarted()), this, SLOT(slotInspectionStarted()));
-    connect(m_debugger, SIGNAL(inspectionEnded()), this, SLOT(slotInspectionEnded()));
+    connect(m_piDebugger, SIGNAL(inspectionStarted()), this, SLOT(slotInspectionStarted()));
+    connect(m_piDebugger, SIGNAL(inspectionEnded()), this, SLOT(slotInspectionEnded()));
 
     addModule(new InfoModule(this));
     addModule(new PaintingModule(this));
@@ -80,12 +80,12 @@ bool NokiaQtFramework::startInspection(const InspectionTarget &target)
         qWarning("NokiaQtFramework::startInspection: local server is not listening, won't start the inspection");
         return false;
     }
-    return m_debugger->setInspectionTarget(target, localServerName);
+    return m_piDebugger->setInspectionTarget(target, localServerName);
 }
 
 bool NokiaQtFramework::targetIsConnected() const
 {
-    return m_debugger->inspecting();
+    return m_piDebugger->inspecting();
 }
 
 int NokiaQtFramework::infoModuleUid() const
@@ -96,7 +96,7 @@ int NokiaQtFramework::infoModuleUid() const
 void NokiaQtFramework::callProbeFunction(const QString &name, const QVariantList &args)
 {
     qWarning("NokiaQtFramework::callProbeFunction: %s(...)", qPrintable(name));
-    m_debugger->callProbeFunction(name, args);
+    m_piDebugger->callProbeFunction(name, args);
 }
 
 void NokiaQtFramework::slotInspectionStarted()

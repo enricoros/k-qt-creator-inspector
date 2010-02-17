@@ -27,52 +27,34 @@
 **
 **************************************************************************/
 
-#ifndef INSPECTORRUNNER_H
-#define INSPECTORRUNNER_H
+#ifndef INSPECTORSTYLE_H
+#define INSPECTORSTYLE_H
 
-#include <debugger/debuggermanager.h>
-#include <projectexplorer/runconfiguration.h>
-#include <projectexplorer/applicationrunconfiguration.h>
+#include <QtCore/QList>
+#include <QtGui/QPalette>
+class QWidget;
 
 namespace Inspector {
 namespace Internal {
 
+class OnePixelBlackLine;
 
-// This is a job description
-class InspectorRunControl : public ProjectExplorer::RunControl
-{
-    Q_OBJECT
-
+class InspectorStyle {
 public:
-    InspectorRunControl(Debugger::DebuggerManager *manager,
-                        ProjectExplorer::LocalApplicationRunConfiguration *runConfiguration);
-    InspectorRunControl(Debugger::DebuggerManager *manager,
-                        const Debugger::DebuggerStartParametersPtr &startParameters);
+    static int defaultComboHeight();
+    static int defaultBarHeight();
 
-    void setInspectorParams(const QString &serverName, int activationFlags);
+    static QPalette invertedPalette();
+    static QColor invertedBackColor();
+    static QColor invertedTextColor();
 
-    // ProjectExplorer::RunControl
-    virtual void start();
-    virtual void stop();
-    virtual bool isRunning() const;
-    virtual QString displayName() const;
+    static void drawVerticalShadow(QPainter *, int width, int height, const QColor &, bool topToBottom = true);
+    static void drawVerticalShadow(QPainter *, const QRect &rect, const QColor &, bool topToBottom = true);
 
-signals:
-    void stopRequested();
-
-private slots:
-    void debuggingFinished();
-    void slotAddToOutputWindowInline(const QString &output);
-
-private:
-    void init();
-    Debugger::DebuggerStartParametersPtr m_startParameters;
-    Debugger::DebuggerManager *m_manager;
-    QString m_name;
-    bool m_running;
+    static QWidget *createOnePixelBlackLine(QWidget *parent = 0);
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // INSPECTORRUNNER_H
+#endif // INSPECTORSTYLE_H

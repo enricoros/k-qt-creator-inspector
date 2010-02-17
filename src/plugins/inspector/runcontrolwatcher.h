@@ -57,6 +57,9 @@ public:
     //void setRunControlAttached(ProjectExplorer::RunControl *rc, bool attached);
     //bool runControlAttached(ProjectExplorer::RunControl *rc) const;
 
+public slots:
+    void deselect();
+
 signals:
     void inspectionTargetSelected(const InspectionTarget &);
 

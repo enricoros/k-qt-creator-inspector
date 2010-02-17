@@ -28,6 +28,7 @@
 **************************************************************************/
 
 #include "combotreewidget.h"
+#include "inspectorstyle.h"
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -77,6 +78,7 @@ public:
       : QComboBox(parent)
       , m_level(level)
     {
+        setFixedHeight(InspectorStyle::defaultComboHeight());
         setItemDelegate(new NodesDelegate);
     }
 
@@ -133,9 +135,13 @@ struct MenuNode {
 
 
 ComboTreeWidget::ComboTreeWidget(QWidget *parent)
-  : Utils::StyledBar(parent)
+  : QWidget(parent)
   , m_rootNode(new MenuNode)
 {
+    setPalette(InspectorStyle::invertedPalette());
+    setAutoFillBackground(true);
+    setFixedHeight(InspectorStyle::defaultBarHeight());
+
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->setContentsMargins(MARGIN, 0, 0, 0);
     layout->setSpacing(MARGIN);
@@ -268,6 +274,14 @@ QVariant ComboTreeWidget::currentData() const
     if (m_nodePath.isEmpty())
         return QVariant();
     return m_nodePath.last()->data;
+}
+
+void ComboTreeWidget::paintEvent(QPaintEvent *)
+{
+    QPainter p(this);
+    QRect r = rect();
+    r.setTop(r.bottom() - 4);
+    InspectorStyle::drawVerticalShadow(&p, r, QColor(50, 50, 50), false);
 }
 
 void ComboTreeWidget::slotComboIndexChanged(int comboIndex)

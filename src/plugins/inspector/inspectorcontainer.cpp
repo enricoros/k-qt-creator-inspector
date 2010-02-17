@@ -61,6 +61,7 @@ void WatermarkedWidget::paintEvent(QPaintEvent *event)
 {
     // draw a light gradient as the background
     QPainter p(this);
+#if 0
     QLinearGradient bg(0, 0, 0, 1);
     bg.setCoordinateMode(QGradient::StretchToDeviceMode);
     bg.setColorAt(0.0, QColor(247, 247, 247));
@@ -68,10 +69,11 @@ void WatermarkedWidget::paintEvent(QPaintEvent *event)
     p.setCompositionMode(QPainter::CompositionMode_Source);
     p.fillRect(event->rect(), bg);
     p.setCompositionMode(QPainter::CompositionMode_SourceOver);
+#endif
 
     // draw the watermark
     if (!m_watermarkPixmap.isNull()) {
-        QRect wmRect(isLeftToRight() ? (width() - m_watermarkPixmap.width()) : 0, 50,
+        QRect wmRect(isLeftToRight() ? (width() - m_watermarkPixmap.width()) : 0, 30,
                      m_watermarkPixmap.width(), m_watermarkPixmap.height());
         if (event->rect().intersects(wmRect))
             p.drawPixmap(wmRect.topLeft(), m_watermarkPixmap);
