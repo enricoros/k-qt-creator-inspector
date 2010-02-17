@@ -216,9 +216,9 @@ class InspCommClient {
             m_fencing = true;
             const QByteArray marshalled = Inspector::Internal::marshallMessage(channel, code1, data);
             m_sock->write(marshalled);
-            m_sock->flush();
             if (!m_sock->waitForBytesWritten(5000))
                 printError("error in waitForBytesWritten!");
+            m_sock->flush();
             m_fencing = false;
             return true;
         }
