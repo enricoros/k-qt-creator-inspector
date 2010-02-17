@@ -37,6 +37,7 @@ using namespace Inspector::Internal;
 IFramework::IFramework(IInspectionModel *inspectionModel, QObject *parent)
   : QObject(parent)
   , m_inspectionModel(inspectionModel)
+  , m_moduleActivationEnabled(true)
 {
     m_taskModel = new TasksModel(this);
     connect(m_taskModel, SIGNAL(itemChanged(QStandardItem*)),
@@ -91,6 +92,16 @@ AbstractPanel *IFramework::createPanel(int moduleUid, int panelId) const
     return module->createPanel(panelId);
 }
 
+void IFramework::setModuleActivationEnabled(bool enabled)
+{
+    m_moduleActivationEnabled = enabled;
+    // if disabled, quit active modules
+    if (!m_moduleActivationEnabled) {
+        foreach (IFrameworkModule *module, m_activeModules)
+            module->controlDeactivate();
+    }
+}
+
 void IFramework::addModule(IFrameworkModule * module)
 {
     if (!module) {
@@ -142,6 +153,11 @@ void IFramework::slotModulePanelDisplayRequested(int panelId)
 
 void IFramework::slotModuleActivationRequested(const QString &text)
 {
+    if (!m_moduleActivationEnabled) {
+        qWarning("IFramework::slotModuleActivationRequested: module activation disabled");
+        return;
+    }
+
     IFrameworkModule *module = static_cast<IFrameworkModule *>(sender());
 
     // update the model

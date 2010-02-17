@@ -31,7 +31,6 @@
 #define PANELCONTAINERWIDGET_H
 
 #include <QWidget>
-#include <QPixmap>
 
 namespace Inspector {
 namespace Internal {
@@ -46,11 +45,7 @@ public:
     void setPanel(QWidget * widget);
     //void setDisableWidget(bool disabled);
 
-protected:
-    void paintEvent(QPaintEvent * event);
-
 private:
-    QPixmap m_watermarkPixmap;
     QWidget * m_widget;
     bool m_disabled;
     //QLabel * m_disabledLabel;

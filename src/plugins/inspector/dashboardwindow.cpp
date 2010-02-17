@@ -92,6 +92,8 @@ DashboardWindow::DashboardWindow(QWidget *parent)
     setWidget(m_root);
     setFrameStyle(QFrame::NoFrame);
     setWidgetResizable(true);
+    m_root->setAutoFillBackground(false);
+    viewport()->setAutoFillBackground(false);
 
     InspectorPlugin *plugin = InspectorPlugin::instance();
 

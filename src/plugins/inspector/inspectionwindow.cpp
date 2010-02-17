@@ -46,6 +46,7 @@ public:
       : QLabel(parent)
     {
         setContentsMargins(10, 10, 10, 10);
+        setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     }
 
     void paintEvent(QPaintEvent *event)

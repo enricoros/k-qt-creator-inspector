@@ -63,7 +63,6 @@ InfoPanel::InfoPanel(IFrameworkModule *parentModule)
     slotRefreshInspectionData();
 
     // link controls to the model
-    connect(enaButton, SIGNAL(toggled(bool)), parentFramework()->inspectionModel(), SLOT(setInspectionEnabled(bool)));
     connect(paintBox, SIGNAL(toggled(bool)), parentFramework()->inspectionModel(), SLOT(setDebugPaint(bool)));
 }
 
@@ -71,7 +70,6 @@ void InfoPanel::slotRefreshInspectionData()
 {
     NokiaQtInspectionModel *model = static_cast<NokiaQtInspectionModel *>(parentFramework()->inspectionModel());
 
-    setFieldState(enaButton,        model->inspectionEnabled());
     setFieldState(paintBox,         model->debugPaint());
 
     int _debugEnabled = model->itemValue(NokiaQtInspectionModel::ProbeStatus_Row, 1).toInt();

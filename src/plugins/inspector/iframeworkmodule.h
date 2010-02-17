@@ -77,6 +77,8 @@ public:
     //virtual QList<int> cmdClasses() const = 0;
     //virtual * createCommSession(int cmdClass) = 0;
 
+    //virtual void frameworkStarted();
+
     // useful references
     IFramework *parentFramework() const;
 

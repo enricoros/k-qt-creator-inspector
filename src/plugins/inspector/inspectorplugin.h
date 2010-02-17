@@ -80,9 +80,8 @@ private:
     void parseArguments(const QStringList & arguments);
     static InspectorPlugin *s_pluginInstance;
     SharedDebugger *m_sharedDebugger;
-    Internal::InspectorContainer *m_container;
+    InspectorContainer *m_container;
     QList<Inspection *> m_inspections;
-    bool m_pluginEnabled;
 };
 
 } // namespace Internal

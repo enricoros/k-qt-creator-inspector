@@ -28,11 +28,7 @@
 **************************************************************************/
 
 #include "panelcontainerwidget.h"
-#include <QGradient>
-#include <QPainter>
-#include <QPaintEvent>
-#include <QSvgRenderer>
-#include <QVBoxLayout>
+#include <QtGui/QVBoxLayout>
 
 using namespace Inspector::Internal;
 
@@ -42,15 +38,6 @@ PanelContainerWidget::PanelContainerWidget(QWidget * parent)
   , m_disabled(false)
   //, m_disabledLabel(0)
 {
-    // precache watermark pixmap
-    QSvgRenderer wmRender(QString(":/inspector/images/inspector-watermark.svg"));
-    if (wmRender.isValid()) {
-        m_watermarkPixmap = QPixmap(wmRender.defaultSize());
-        m_watermarkPixmap.fill(Qt::transparent);
-        QPainter wmPainter(&m_watermarkPixmap);
-        wmRender.render(&wmPainter);
-    }
-
     // create the disabled warning lable
     //m_disabledLabel = new QLabel(tr("This panel is disabled. Probably the panel is not available in the current state."), this);
     //m_disabledLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
@@ -86,21 +73,4 @@ void PanelContainerWidget::setPanel(QWidget * widget)
         //if (m_disabled)
         //    widget->setEnabled(false);
     }
-}
-
-void PanelContainerWidget::paintEvent(QPaintEvent * event)
-{
-    // draw a light gradient as the background
-    QPainter p(this);
-    QLinearGradient bg(0, 0, 0, 1);
-    bg.setCoordinateMode(QGradient::StretchToDeviceMode);
-    bg.setColorAt(0.0, QColor(247, 247, 247));
-    bg.setColorAt(1.0, QColor(215, 215, 215));
-    p.setCompositionMode(QPainter::CompositionMode_Source);
-    p.fillRect(event->rect(), bg);
-    p.setCompositionMode(QPainter::CompositionMode_SourceOver);
-
-    // draw the watermark
-    if (!m_watermarkPixmap.isNull())
-        p.drawPixmap(isLeftToRight() ? (width() - m_watermarkPixmap.width()) : 0, 0, m_watermarkPixmap);
 }
