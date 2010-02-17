@@ -41,6 +41,7 @@
 #include <coreplugin/uniqueidmanager.h>
 #include <debugger/debuggerconstants.h>
 #include <projectexplorer/projectexplorerconstants.h>
+#include <QtCore/QCoreApplication>
 #include <QtCore/QDebug>
 #include <QtCore/QtPlugin>
 #include <QtGui/QAction>
@@ -52,6 +53,36 @@ using namespace Inspector::Internal;
 
 InspectorPlugin *Inspector::Internal::InspectorPlugin::s_pluginInstance = 0;
 
+//
+// InspectorCoreListener
+//
+InspectorCoreListener::InspectorCoreListener(QObject *parent) :
+    Core::ICoreListener(parent)
+{
+}
+
+bool InspectorCoreListener::coreAboutToClose()
+{
+    InspectorPlugin *plugin = InspectorPlugin::instance();
+    if (!plugin || plugin->inspections().isEmpty())
+        return true;
+    // Ask to terminate the session.
+    const QString title = tr("Close Inspection Session");
+    const QString question =
+        tr("An inspection session is still in progress.\nWould you like to terminate it?");
+    QMessageBox::StandardButton answer = QMessageBox::question(plugin->containerWindow(),
+                                         title, question,
+                                         QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
+    if (answer != QMessageBox::Yes)
+        return false;
+    plugin->closeInspections();
+    QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+    return true;
+}
+
+//
+// InspectorPlugin
+//
 InspectorPlugin::InspectorPlugin()
   : ExtensionSystem::IPlugin()
   , m_sharedDebugger(0)
@@ -64,8 +95,7 @@ InspectorPlugin::InspectorPlugin()
 InspectorPlugin::~InspectorPlugin()
 {
     // delete inspections
-    while (!m_inspections.isEmpty())
-        deleteInspection(m_inspections.last());
+    closeInspections();
 
     // goodbye plugin
     s_pluginInstance = 0;
@@ -83,9 +113,14 @@ InspectorPlugin *InspectorPlugin::instance()
     return s_pluginInstance;
 }
 
-SharedDebugger *InspectorPlugin::sharedDebugger()
+SharedDebugger *InspectorPlugin::sharedDebugger() const
 {
     return m_sharedDebugger;
+}
+
+QWidget *InspectorPlugin::containerWindow() const
+{
+    return m_container;
 }
 
 QList<Inspection *> InspectorPlugin::inspections() const
@@ -114,6 +149,12 @@ void InspectorPlugin::deleteInspection(Inspection * inspection)
     m_inspections.removeAll(inspection);
     emit inspectionRemoved(inspection);
     inspection->deleteLater();
+}
+
+void InspectorPlugin::closeInspections()
+{
+    while (!m_inspections.isEmpty())
+        deleteInspection(m_inspections.last());
 }
 
 bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_message)
@@ -147,6 +188,8 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     inspectorMode->setWidget(m_container);
     inspectorMode->setContext(ourContext);
     addAutoReleasedObject(inspectorMode);
+
+    addAutoReleasedObject(new InspectorCoreListener);
 
     // create the Menu and add it to the Debug menu
     Core::ActionManager *am = core->actionManager();
