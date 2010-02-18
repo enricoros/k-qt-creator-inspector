@@ -95,10 +95,6 @@ void InspectorContainer::slotInspectionAdded(Inspection *inspection)
 
     // switch to that
     m_topbarWidget->setCurrentIndex(m_topbarWidget->tabCount() - 1);
-
-    // enforce re-display because the debugger window steals
-    // the focus here
-    emit requestWindowDisplay();
 }
 
 void InspectorContainer::slotInspectionRemoved(Inspection *inspection)

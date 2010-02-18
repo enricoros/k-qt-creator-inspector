@@ -1051,7 +1051,10 @@ void DebuggerManager::startNewDebugger(const DebuggerStartParametersPtr &sp)
         ? d->m_startParameters->attachPID : 0;
     const QString toolChainName = ProjectExplorer::ToolChain::toolChainName(static_cast<ProjectExplorer::ToolChain::ToolChainType>(d->m_startParameters->toolChainType));
 
-    emit debugModeRequested();
+    // enrico - inspector - don't switch from the inspector window while inspecting
+    if (!d->m_startParameters->inspectorHelpersEnabled)
+        emit debugModeRequested();
+
     showDebuggerOutput(LogStatus,
         tr("Starting debugger for tool chain '%1'...").arg(toolChainName));
     showDebuggerOutput(LogDebug, DebuggerSettings::instance()->dump());
@@ -1456,8 +1459,11 @@ void DebuggerManager::gotoLocation(const Debugger::Internal::StackFrame &frame, 
             emit resetLocationRequested();
         d->m_disassemblerViewAgent.setFrame(frame);
     } else {
-        // Connected to the plugin.
-        emit gotoLocationRequested(frame.file, frame.line, setMarker);
+        // enrico - inspector - disable activation of the Edit mode when Inspecting
+        if (!d->m_startParameters->inspectorHelpersEnabled) {
+            // Connected to the plugin.
+            emit gotoLocationRequested(frame.file, frame.line, setMarker);
+        }
     }
 }
 

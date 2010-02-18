@@ -71,8 +71,11 @@ RunningTargetSelectorWidget::RunningTargetSelectorWidget(QWidget *parent)
 
 void RunningTargetSelectorWidget::deselect()
 {
-    if (QAbstractButton *button = m_buttonGroup->checkedButton())
+    if (QAbstractButton *button = m_buttonGroup->checkedButton()) {
+        m_buttonGroup->setExclusive(false);
         button->setChecked(false);
+        m_buttonGroup->setExclusive(true);
+    }
 }
 
 void RunningTargetSelectorWidget::slotRunControlAdded(ProjectExplorer::RunControl *rc)

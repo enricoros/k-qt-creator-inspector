@@ -137,6 +137,9 @@ void InspectorPlugin::addInspection(Inspection * inspection)
 
     m_inspections.append(inspection);
     emit inspectionAdded(inspection);
+
+    if (m_inspections.count() == 1)
+        Core::ICore::instance()->addAdditionalContext(m_runningContextId);
 }
 
 void InspectorPlugin::deleteInspection(Inspection * inspection)
@@ -149,6 +152,9 @@ void InspectorPlugin::deleteInspection(Inspection * inspection)
     m_inspections.removeAll(inspection);
     emit inspectionRemoved(inspection);
     inspection->deleteLater();
+
+    if (m_inspections.isEmpty())
+        Core::ICore::instance()->removeAdditionalContext(m_runningContextId);
 }
 
 void InspectorPlugin::closeInspections()
@@ -168,7 +174,9 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     Core::ICore *core = Core::ICore::instance();
     QList<int> ourContext;
     ourContext << Core::Constants::C_GLOBAL_ID;
-    ourContext << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::GDBRUNNING);
+    ourContext << core->uniqueIDManager()->uniqueIdentifier(C_INSPECTOR);
+    ourContext << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::C_GDBDEBUGGER);
+    m_runningContextId = core->uniqueIDManager()->uniqueIdentifier(C_INSPECTOR_RUNNING);
 
     addAutoReleasedObject(new NokiaQtFrameworkFactory());
     addAutoReleasedObject(new NvidiaCudaFrameworkFactory());
