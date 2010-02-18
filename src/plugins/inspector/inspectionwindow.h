@@ -38,7 +38,7 @@ namespace Internal {
 
 class ComboTreeWidget;
 class Inspection;
-class MessageLabel;
+class IWMessageLabel;
 class PanelContainerWidget;
 class StatusBarWidget;
 
@@ -55,6 +55,7 @@ signals:
     void requestInspectionDisplay();
 
 private slots:
+    void slotCloseInspection();
     void slotMenuChanged(const QStringList &path, const QVariant &data);
     void slotSetCurrentPanel(int moduleUid, int panelId);
     void slotFrameworkConnected();
@@ -65,7 +66,7 @@ private:
     void showPanel(int moduleUid, int panelId);
     Inspection *            m_inspection;
     ComboTreeWidget *       m_menuWidget;
-    MessageLabel *          m_messageLabel;
+    IWMessageLabel *        m_messageLabel;
     PanelContainerWidget *  m_panelContainer;
     StatusBarWidget *       m_statusbarWidget;
 };

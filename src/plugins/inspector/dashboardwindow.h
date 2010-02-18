@@ -230,6 +230,9 @@ signals:
     void closeInspection(Inspection *);
 
 protected:
+    void enterEvent(QEvent *);
+    void leaveEvent(QEvent *);
+    void mousePressEvent(QMouseEvent *);
     void paintEvent(QPaintEvent *);
 
 private slots:

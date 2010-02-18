@@ -72,6 +72,12 @@ void TasksScroller::setTasksModel(TasksModel *model)
     }
 }
 
+void TasksScroller::setTransparentBackground(bool transparent)
+{
+    setAutoFillBackground(!transparent);
+    viewport()->setAutoFillBackground(!transparent);
+}
+
 QSize TasksScroller::sizeHint() const
 {
     return minimumSizeHint();
