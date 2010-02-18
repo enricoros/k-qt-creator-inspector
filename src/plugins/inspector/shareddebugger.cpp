@@ -81,32 +81,7 @@ void SharedDebugger::slotAcquiredDestroyed()
 
 void SharedDebugger::slotManagerStateChanged(int state)
 {
-    bool running = false;
-    switch ((Debugger::DebuggerState)state) {
-    case Debugger::DebuggerNotReady:
-        running = false;
-        break;
-    case Debugger::EngineStarting:
-    case Debugger::AdapterStarting:
-    case Debugger::AdapterStarted:
-    case Debugger::AdapterStartFailed:
-    case Debugger::InferiorUnrunnable:
-    case Debugger::InferiorStarting:
-    case Debugger::InferiorStartFailed:
-    case Debugger::InferiorRunningRequested:
-    case Debugger::InferiorRunningRequested_Kill:
-    case Debugger::InferiorRunning:
-    case Debugger::InferiorStopping:
-    case Debugger::InferiorStopping_Kill:
-    case Debugger::InferiorStopped:
-    case Debugger::InferiorStopFailed:
-    case Debugger::InferiorShuttingDown:
-    case Debugger::InferiorShutDown:
-    case Debugger::InferiorShutdownFailed:
-    case Debugger::EngineShuttingDown:
-        running = true;
-        break;
-    }
+    bool running = state != Debugger::DebuggerNotReady;
     if (running != m_dmRunning) {
         m_dmRunning = running;
         emit acquirableChanged(acquirable());

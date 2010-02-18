@@ -42,8 +42,12 @@ class Inspection;
 class SharedDebugger;
 
 // constants
-const char * const MODE_INSPECTOR   = "Inspect";
-const int          P_MODE_INSPECTOR = 5;
+const char * const MODE_INSPECTOR       = "Inspect";
+const int          P_MODE_INSPECTOR     = 5;
+
+// contexts
+const char * const C_INSPECTOR          = "Inspector";
+const char * const C_INSPECTOR_RUNNING  = "Inspector.Running";
 
 /**
     \brief QtCreator plugin for Runtime Inspection
@@ -85,6 +89,7 @@ private:
     SharedDebugger *m_sharedDebugger;
     InspectorContainer *m_container;
     QList<Inspection *> m_inspections;
+    int m_runningContextId;
 };
 
 /**
