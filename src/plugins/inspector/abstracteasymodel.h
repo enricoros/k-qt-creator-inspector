@@ -48,6 +48,7 @@ public:
     // low-level value access
     void setItemValue(int row, int column, const QVariant &value, int role = Qt::DisplayRole);
     QVariant itemValue(int row, int column = 0, int role = Qt::DisplayRole) const;
+    int incrementIntValue(int row, int column);
 
 protected:
     void openDebugWidget(const QModelIndex &root = QModelIndex());

@@ -66,9 +66,10 @@ public:
         lay->addWidget(closeButton);
     }
 
-    void paintEvent(QPaintEvent *event)
+    void paintEvent(QPaintEvent *)
     {
         QPainter p(this);
+        p.setCompositionMode(QPainter::CompositionMode_Source);
         p.fillRect(rect(), QColor(255, 255, 200));
         p.fillRect(0, height() - 1, width(), 1, Qt::black);
     }

@@ -64,6 +64,13 @@ QVariant AbstractEasyModel::itemValue(int row, int column, int role) const
     return it ? it->data(role) : QVariant();
 }
 
+int AbstractEasyModel::incrementIntValue(int row, int column)
+{
+    int value = itemValue(row, column).toInt() + 1;
+    setItemValue(row, column, value);
+    return value;
+}
+
 void AbstractEasyModel::openDebugWidget(const QModelIndex &root)
 {
     if (!m_debugView) {

@@ -70,10 +70,10 @@ public:
     AbstractPanel *createPanel(int moduleUid, int panelId) const;
 
 signals:
-    void modulesChanged();
-    void requestPanelDisplay(int moduleUid, int panelId);
     void targetConnected();
     void targetDisconnected();
+    void modulesChanged();
+    void requestPanelDisplay(int moduleUid, int panelId);
 
 protected:
     void setModuleActivationEnabled(bool);

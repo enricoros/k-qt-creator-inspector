@@ -43,7 +43,7 @@ namespace Internal {
 class IFramework;
 
 /**
-  \brief A thin wrapper over a configured Framework instance
+  \brief A thin wrapper over a Framework (already attached to a Target)
 */
 class Inspection : public QObject
 {

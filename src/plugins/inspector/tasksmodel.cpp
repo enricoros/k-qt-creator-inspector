@@ -152,6 +152,7 @@ TasksModel::TasksModel(QObject *parent)
     setItemValue(Tasks_Row, 0, 0);
     setItemValue(Tasks_Row, 1, 0);
     setItemValue(Tasks_Row, 2, "tasks");
+    //openDebugWidget();
 }
 
 int TasksModel::totalTasksCount() const
@@ -195,12 +196,12 @@ bool TasksModel::addTask(quint32 tid, const QString &name, const QString &descri
     TaskItem *taskItem = new TaskItem(tid, name, description);
     tasksRoot()->insertRow(0, taskItem);
 
-    // refresh total taskss counter
+    // refresh total tasks counter
     setItemValue(Tasks_Row, 0, tasksRoot()->rowCount());
 
     // if task is already active, increment active count
     if (taskItem->isActive())
-        setItemValue(Tasks_Row, 1, itemValue(Tasks_Row, 1).toInt() + 1);
+        incrementIntValue(Tasks_Row, 1);
     return true;
 }
 

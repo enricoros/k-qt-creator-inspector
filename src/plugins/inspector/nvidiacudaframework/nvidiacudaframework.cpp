@@ -58,7 +58,7 @@ QString NvidiaCudaFrameworkFactory::displayName() const
 
 QIcon NvidiaCudaFrameworkFactory::icon() const
 {
-    return QIcon(/*FIXME*/);
+    return QIcon(":/inspector/nvidiacudaframework.png");
 }
 
 IFramework *NvidiaCudaFrameworkFactory::createFramework(const InspectionTarget &target)

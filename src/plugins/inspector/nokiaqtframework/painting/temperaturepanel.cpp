@@ -38,10 +38,9 @@
 #include <QPalette>
 #include <QStyledItemDelegate>
 
-namespace Inspector {
-namespace Internal {
+using namespace Inspector::Internal;
 
-class TemperatureResultsDelegate : public QStyledItemDelegate
+class Inspector::Internal::TemperatureResultsDelegate : public QStyledItemDelegate
 {
 public:
     TemperatureResultsDelegate(QObject *parent = 0)
@@ -112,7 +111,9 @@ public:
     }
 };
 
-
+//
+// TemperaturePanel
+//
 TemperaturePanel::TemperaturePanel(PaintingModule *parentModule)
   : AbstractPanel(parentModule)
 {
@@ -229,6 +230,3 @@ void TemperaturePanel::slotExportClicked()
     qint32 test[100];
     DataUtils::exportOctaveIntArray("test", "A", 13, 7, test);
 }
-
-} // namespace Internal
-} // namespace Inspector

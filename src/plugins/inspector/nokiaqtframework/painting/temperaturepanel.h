@@ -35,7 +35,9 @@
 
 namespace Inspector {
 namespace Internal {
+
 class PaintingModule;
+class TemperatureResultsDelegate;
 
 class TemperaturePanel : public AbstractPanel, public Ui::TemperaturePanel
 {
@@ -56,6 +58,7 @@ private slots:
 
     // results slots
     void slotResultActivated(const QModelIndex &index);
+    void slotExportClicked();
 };
 
 } // namespace Internal

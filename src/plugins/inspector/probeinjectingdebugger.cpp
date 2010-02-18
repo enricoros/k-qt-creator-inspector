@@ -49,6 +49,8 @@ ProbeInjectingDebugger::ProbeInjectingDebugger(QObject *parent)
   : QObject(parent)
   , m_debuggerManager(0)
   , m_inspectorRunControl(0)
+  , m_targetRunning(false)
+  , m_targetConnected(false)
   , m_runDelayTimer(0)
 {
     m_debuggerManager = Debugger::DebuggerManager::instance();
@@ -101,20 +103,30 @@ void ProbeInjectingDebugger::closeInspection()
     }
 }
 
-bool ProbeInjectingDebugger::inspecting() const
+bool ProbeInjectingDebugger::targetRunning() const
 {
-    return m_inspectorRunControl;
+    return m_targetRunning;
+}
+
+bool ProbeInjectingDebugger::targetConnected() const
+{
+    return m_targetConnected;
 }
 
 void ProbeInjectingDebugger::callProbeFunction(const QString &name, const QVariantList &args)
 {
     PRECONDITION;
+    if (!m_targetConnected)
+        qWarning("ProbeInjectingDebugger::callProbeFunction: target is not connected while calling '%s(..)'", qPrintable(name));
     m_debuggerManager->callFunction(name, args);
 }
 
 void ProbeInjectingDebugger::slotRunControlStarted()
 {
-    emit inspectionStarted();
+    if (!m_targetRunning) {
+        m_targetRunning = true;
+        emit targetRunningChanged(true);
+    }
 }
 
 void ProbeInjectingDebugger::slotRunControlFinished()
@@ -124,7 +136,7 @@ void ProbeInjectingDebugger::slotRunControlFinished()
 
 void ProbeInjectingDebugger::slotRunControlDestroyed()
 {
-    QTC_ASSERT(!m_inspectorRunControl, /**/);
+    QTC_ASSERT(!m_inspectorRunControl, /*This is here only to detect broken behaviors*/);
 }
 
 // from here on, avoid typing Debugger:: ..
@@ -135,7 +147,6 @@ void ProbeInjectingDebugger::slotDebuggerStateChanged(int nextState)
     PRECONDITION;
     m_prevState = m_state;
     m_state = nextState;
-    qWarning("changed to %s", DebuggerManager::stateName(m_state));
 
     // look for inferior presence
     if (m_state == InferiorStarting) {
@@ -179,18 +190,21 @@ void ProbeInjectingDebugger::slotDebuggerStateChanged(int nextState)
                 m_runDelayTimer->setSingleShot(true);
                 connect(m_runDelayTimer, SIGNAL(timeout()), this, SLOT(slotDebuggerRestartInferior()));
             }
-            m_runDelayTimer->start(500);
+            m_runDelayTimer->start(1000);
         }
         if (m_sManuallyStopped && m_state == InferiorStopped) {
             m_sQuirkDone = true;
             QTimer::singleShot(500, this, SLOT(slotDebuggerStartInferior()));
         }
     }
-}
 
-void ProbeInjectingDebugger::slotDebuggerStartInferior()
-{
-    m_debuggerManager->continueExec();
+    // Connected notification
+    if (m_state == InferiorRunning && m_sEmitNextRunning && !m_targetConnected) {
+        m_debuggerManager->setGotoLocationEnabled(true);
+        m_sEmitNextRunning = false;
+        m_targetConnected = true;
+        emit targetConnectedChanged(true);
+    }
 }
 
 void ProbeInjectingDebugger::slotDebuggerRestartInferior()
@@ -202,6 +216,13 @@ void ProbeInjectingDebugger::slotDebuggerRestartInferior()
     }
     m_sManuallyStopped = true;
     m_debuggerManager->interruptDebuggingRequest();
+}
+
+void ProbeInjectingDebugger::slotDebuggerStartInferior()
+{
+    if (m_sQuirkDone)
+        m_sEmitNextRunning = true;
+    m_debuggerManager->continueExec();
 }
 
 void ProbeInjectingDebugger::initInspection()
@@ -217,6 +238,9 @@ void ProbeInjectingDebugger::initInspection()
     m_sQuirkDone = false;
     m_sHaveInferior = false;
     m_sManuallyStopped = false;
+    m_sEmitNextRunning = false;
+
+    m_debuggerManager->setGotoLocationEnabled(false);
 
     ProjectExplorer::ProjectExplorerPlugin::instance()->
             startRunControl(m_inspectorRunControl, ProjectExplorer::Constants::DEBUGMODE);
@@ -225,8 +249,16 @@ void ProbeInjectingDebugger::initInspection()
 void ProbeInjectingDebugger::uninitInspection()
 {
     PRECONDITION;
+    if (m_targetConnected) {
+        m_targetConnected = false;
+        emit targetConnectedChanged(false);
+    }
     disconnect(m_inspectorRunControl, 0, this, 0);
     disconnect(m_debuggerManager, 0, this, 0);
+    m_debuggerManager->setGotoLocationEnabled(true);
     m_inspectorRunControl = 0;
-    emit inspectionEnded();
+    if (m_targetRunning) {
+        m_targetRunning = false;
+        emit targetRunningChanged(false);
+    }
 }
