@@ -46,6 +46,8 @@ class NokiaQtFramework : public IFramework
 {
     Q_OBJECT
 
+    friend class NokiaQtFrameworkFactory;
+    NokiaQtFramework(NokiaQtInspectionModel *, ProbeInjectingDebugger *, QObject *parent = 0);
 public:
     ~NokiaQtFramework();
 
@@ -61,12 +63,10 @@ public:
     void callProbeFunction(const QString &name, const QVariantList &args);
 
 private slots:
-    void slotInspectionStarted();
-    void slotInspectionEnded();
+    void slotTargetRunningChanged(bool running);
+    void slotTargetConnectedChanged(bool connected);
 
 private:
-    friend class NokiaQtFrameworkFactory;
-    NokiaQtFramework(NokiaQtInspectionModel *, ProbeInjectingDebugger *, QObject *parent = 0);
     LocalCommServer *m_commServer;
     ProbeInjectingDebugger *m_piDebugger;
     NokiaQtInspectionModel *m_model;

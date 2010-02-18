@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>654</width>
-    <height>403</height>
+    <width>652</width>
+    <height>401</height>
    </rect>
   </property>
   <layout class="QGridLayout" name="gridLayout">
@@ -214,7 +214,11 @@
         </widget>
        </item>
        <item row="10" column="1">
-        <widget class="QLineEdit" name="testNameLabel"/>
+        <widget class="QLineEdit" name="testNameLabel">
+         <property name="text">
+          <string notr="true">test</string>
+         </property>
+        </widget>
        </item>
        <item row="11" column="0" colspan="2">
         <widget class="QPushButton" name="runButton">
@@ -342,10 +346,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QToolButton" name="toolButton_2">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
+          <widget class="QToolButton" name="exportButton">
            <property name="text">
             <string>Export</string>
            </property>
@@ -386,8 +387,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>94</width>
-            <height>24</height>
+            <width>387</width>
+            <height>303</height>
            </rect>
           </property>
          </widget>
@@ -422,7 +423,6 @@
  </widget>
  <resources>
   <include location="../nokiaqtframework.qrc"/>
-  <include location="../inspector.qrc"/>
  </resources>
  <connections/>
 </ui>

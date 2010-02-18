@@ -53,8 +53,10 @@ NokiaQtFramework::NokiaQtFramework(NokiaQtInspectionModel *model, ProbeInjecting
 {
     m_commServer = new LocalCommServer(m_model);
 
-    connect(m_piDebugger, SIGNAL(inspectionStarted()), this, SLOT(slotInspectionStarted()));
-    connect(m_piDebugger, SIGNAL(inspectionEnded()), this, SLOT(slotInspectionEnded()));
+    connect(m_piDebugger, SIGNAL(targetRunningChanged(bool)),
+            this, SLOT(slotTargetRunningChanged(bool)));
+    connect(m_piDebugger, SIGNAL(targetConnectedChanged(bool)),
+            this, SLOT(slotTargetConnectedChanged(bool)));
 
     addModule(new InfoModule(this));
     addModule(new PaintingModule(this));
@@ -85,7 +87,7 @@ bool NokiaQtFramework::startInspection(const InspectionTarget &target)
 
 bool NokiaQtFramework::targetIsConnected() const
 {
-    return m_piDebugger->inspecting();
+    return m_piDebugger->targetConnected();
 }
 
 int NokiaQtFramework::infoModuleUid() const
@@ -95,19 +97,22 @@ int NokiaQtFramework::infoModuleUid() const
 
 void NokiaQtFramework::callProbeFunction(const QString &name, const QVariantList &args)
 {
-    qWarning("NokiaQtFramework::callProbeFunction: %s(...)", qPrintable(name));
     m_piDebugger->callProbeFunction(name, args);
 }
 
-void NokiaQtFramework::slotInspectionStarted()
+void NokiaQtFramework::slotTargetRunningChanged(bool running)
 {
-    emit targetConnected();
+    Q_UNUSED(running);
 }
 
-void NokiaQtFramework::slotInspectionEnded()
+void NokiaQtFramework::slotTargetConnectedChanged(bool connected)
 {
-    setModuleActivationEnabled(false);
-    emit targetDisconnected();
+    if (connected) {
+        emit targetConnected();
+    } else {
+        setModuleActivationEnabled(false);
+        emit targetDisconnected();
+    }
 }
 
 
@@ -121,7 +126,7 @@ QString NokiaQtFrameworkFactory::displayName() const
 
 QIcon NokiaQtFrameworkFactory::icon() const
 {
-    return QIcon(":/core/images/qtcreator_logo_32.png");
+    return QIcon(":/inspector/nokiaqtframework.png");
 }
 
 bool NokiaQtFrameworkFactory::isConfigurable() const

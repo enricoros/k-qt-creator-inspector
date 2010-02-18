@@ -177,6 +177,7 @@ RunControlWidget::RunControlWidget(QButtonGroup *group, ProjectExplorer::RunCont
         break;
     case InspectorRunning:
         radio->setText(tr("Inspecting: %1").arg(m_runControl->displayName()));
+        radio->setCheckable(false);
         break;
     }
     connect(radio, SIGNAL(toggled(bool)),
@@ -201,12 +202,16 @@ RunControlWidget::RunControlWidget(QButtonGroup *group, ProjectExplorer::RunCont
 
     lay->addStretch(2);
 
-    m_startLabel = new QLabel;
-    m_startLabel->setFont(italicFont);
-    m_startLabel->setText("<a href='start'>" + tr("start") + "</a>");
-    connect(m_startLabel, SIGNAL(linkActivated(QString)),
-            this, SLOT(slotStartClicked()));
-    lay->addWidget(m_startLabel);
+    if (m_rcType != InspectorRunning) {
+        m_startLabel = new QLabel;
+        m_startLabel->setFont(italicFont);
+        m_startLabel->setText("<a href='start'>" + tr("start") + "</a>");
+        connect(m_startLabel, SIGNAL(linkActivated(QString)),
+                this, SLOT(slotStartClicked()));
+        lay->addWidget(m_startLabel);
+    } else {
+        m_startLabel = 0;
+    }
 
     m_stopLabel = new QLabel;
     m_stopLabel->setFont(italicFont);
@@ -263,8 +268,11 @@ void RunControlWidget::slotToggled(bool checked)
 void RunControlWidget::updateActions()
 {
     m_debuggingLabel->setVisible(m_rcType == DebuggerRunning);
-    m_startLabel->setVisible(m_rcType != DebuggerRunning && !m_rcRunning);
+    if (m_startLabel)
+        m_startLabel->setVisible(m_rcType != DebuggerRunning && !m_rcRunning);
     m_stopLabel->setVisible(m_rcRunning);
+    if (m_rcType == InspectorRunning)
+        setEnabled(m_rcRunning);
 }
 
 //

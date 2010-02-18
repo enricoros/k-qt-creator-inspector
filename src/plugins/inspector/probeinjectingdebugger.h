@@ -66,13 +66,15 @@ public:
 
     bool setInspectionTarget(const InspectionTarget &, const QString &localServerName);
     void closeInspection();
-    bool inspecting() const;
+
+    bool targetRunning() const;
+    bool targetConnected() const;
 
     void callProbeFunction(const QString &name, const QVariantList &args);
 
 signals:
-    void inspectionStarted();
-    void inspectionEnded();
+    void targetRunningChanged(bool);
+    void targetConnectedChanged(bool);
 
 private slots:
     void slotRunControlStarted();
@@ -81,8 +83,8 @@ private slots:
 
     void slotDebuggerStateChanged(int);
 
-    void slotDebuggerStartInferior();
     void slotDebuggerRestartInferior();
+    void slotDebuggerStartInferior();
 
 private:
     void initInspection();
@@ -91,6 +93,8 @@ private:
     InspectionTarget m_target;
     Debugger::DebuggerManager *m_debuggerManager;
     InspectorRunControl *m_inspectorRunControl;
+    bool m_targetRunning;
+    bool m_targetConnected;
 
     // injection machine
     int m_state;
@@ -98,6 +102,7 @@ private:
     bool m_sQuirkDone;
     bool m_sHaveInferior;
     bool m_sManuallyStopped;
+    bool m_sEmitNextRunning;
     QTimer *m_runDelayTimer;
 };
 
