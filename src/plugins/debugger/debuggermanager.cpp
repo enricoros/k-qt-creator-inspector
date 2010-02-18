@@ -1577,6 +1577,9 @@ void DebuggerManager::reloadRegisters()
 
 bool DebuggerManager::qtDumperLibraryEnabled() const
 {
+    // enrico - inspector - force enabling when Inspecting
+    if (d->m_startParameters->inspectorHelpersEnabled)
+        return true;
     return theDebuggerBoolSetting(UseDebuggingHelpers);
 }
 

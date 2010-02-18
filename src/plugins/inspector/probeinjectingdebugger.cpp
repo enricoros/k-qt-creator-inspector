@@ -36,6 +36,8 @@
 #include <projectexplorer/projectexplorerconstants.h>
 #include <utils/qtcassert.h>
 
+#include <QtCore/QTimer>
+
 using namespace Inspector::Internal;
 
 #define PRECONDITION QTC_ASSERT(m_inspectorRunControl, return)
@@ -47,6 +49,7 @@ ProbeInjectingDebugger::ProbeInjectingDebugger(QObject *parent)
   : QObject(parent)
   , m_debuggerManager(0)
   , m_inspectorRunControl(0)
+  , m_runDelayTimer(0)
 {
     m_debuggerManager = Debugger::DebuggerManager::instance();
 }
@@ -81,6 +84,8 @@ bool ProbeInjectingDebugger::setInspectionTarget(const InspectionTarget &target,
         return false;
     }
 
+    m_target = target;
+
     QTC_ASSERT(!localServerName.isNull(), return false);
     m_inspectorRunControl->setInspectorParams(localServerName, 0);
 
@@ -107,14 +112,6 @@ void ProbeInjectingDebugger::callProbeFunction(const QString &name, const QVaria
     m_debuggerManager->callFunction(name, args);
 }
 
-void ProbeInjectingDebugger::slotDmStateChanged(int state)
-{
-    PRECONDITION;
-    switch (state) {
-
-    }
-}
-
 void ProbeInjectingDebugger::slotRunControlStarted()
 {
     emit inspectionStarted();
@@ -130,13 +127,96 @@ void ProbeInjectingDebugger::slotRunControlDestroyed()
     QTC_ASSERT(!m_inspectorRunControl, /**/);
 }
 
+// from here on, avoid typing Debugger:: ..
+using namespace Debugger;
+
+void ProbeInjectingDebugger::slotDebuggerStateChanged(int nextState)
+{
+    PRECONDITION;
+    m_prevState = m_state;
+    m_state = nextState;
+    qWarning("changed to %s", DebuggerManager::stateName(m_state));
+
+    // look for inferior presence
+    if (m_state == InferiorStarting) {
+        m_sHaveInferior = true;
+        return;
+    } else if (m_state == InferiorShuttingDown) {
+        m_sHaveInferior = false;
+        return;
+    }
+    if (!m_sHaveInferior)
+        return;
+
+    /* In case of 'Attach to PID', the debugger loads the inferior (InferiorStarting)
+       and immediately stops it, injecting the code too.
+
+       Here we detect the case and start running it back.
+    */
+    if (m_target.type == InspectionTarget::AttachToPid && !m_sQuirkDone) {
+        if (m_state == InferiorStopped && m_prevState == InferiorStarting) {
+            m_sQuirkDone = true;
+            // TODO: find a more predictable way to start the inferior
+            QTimer::singleShot(500, this, SLOT(slotDebuggerStartInferior()));
+            return;
+        }
+    }
+
+    /* In case of a normal 'Run', after InferiorStarting there is a RunRequest
+       immediately followed by a stop with some commands being done (...Requested
+        > ..Running > ..Stopping > ..Stopped) but the debugging helpers activation
+        code is not called.
+
+        This may be because it's not a stop request, but just a command execution
+        (break at main) that performs a light stop before running the command.
+
+        Here we detect the case, issue a real stop and then a real start.
+    */
+    if (m_target.type == InspectionTarget::StartLocalRunConfiguration && !m_sQuirkDone) {
+        if (m_state == InferiorRunning) {
+            if (!m_runDelayTimer) {
+                m_runDelayTimer = new QTimer(this);
+                m_runDelayTimer->setSingleShot(true);
+                connect(m_runDelayTimer, SIGNAL(timeout()), this, SLOT(slotDebuggerRestartInferior()));
+            }
+            m_runDelayTimer->start(500);
+        }
+        if (m_sManuallyStopped && m_state == InferiorStopped) {
+            m_sQuirkDone = true;
+            QTimer::singleShot(500, this, SLOT(slotDebuggerStartInferior()));
+        }
+    }
+}
+
+void ProbeInjectingDebugger::slotDebuggerStartInferior()
+{
+    m_debuggerManager->continueExec();
+}
+
+void ProbeInjectingDebugger::slotDebuggerRestartInferior()
+{
+    if (m_debuggerManager->state() != InferiorRunning) {
+        qWarning("ProbeInjectingDebugger::slotDebuggerRestartInferior: I wont't stop while in state '%s' because the program will close",
+                 DebuggerManager::stateName(m_debuggerManager->state()));
+        return;
+    }
+    m_sManuallyStopped = true;
+    m_debuggerManager->interruptDebuggingRequest();
+}
+
 void ProbeInjectingDebugger::initInspection()
 {
     connect(m_inspectorRunControl, SIGNAL(started()), this, SLOT(slotRunControlStarted()));
     connect(m_inspectorRunControl, SIGNAL(finished()), this, SLOT(slotRunControlFinished()));
     connect(m_inspectorRunControl, SIGNAL(destroyed()), this, SLOT(slotRunControlDestroyed()));
 
-    connect(m_debuggerManager, SIGNAL(stateChanged(int)), this, SLOT(slotDmStateChanged(int)));
+    connect(m_debuggerManager, SIGNAL(stateChanged(int)), this, SLOT(slotDebuggerStateChanged(int)));
+
+    m_state = 0;
+    m_prevState = 0;
+    m_sQuirkDone = false;
+    m_sHaveInferior = false;
+    m_sManuallyStopped = false;
 
     ProjectExplorer::ProjectExplorerPlugin::instance()->
             startRunControl(m_inspectorRunControl, ProjectExplorer::Constants::DEBUGMODE);

@@ -33,6 +33,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QVariantList>
 #include "inspectiontarget.h"
+class QTimer;
 
 namespace Debugger {
 class DebuggerManager;
@@ -58,6 +59,8 @@ class ProbeInjectingDebugger : public QObject
 {
     Q_OBJECT
 
+    friend class SharedDebugger;
+    ProbeInjectingDebugger(QObject *parent = 0);
 public:
     ~ProbeInjectingDebugger();
 
@@ -72,18 +75,30 @@ signals:
     void inspectionEnded();
 
 private slots:
-    void slotDmStateChanged(int);
     void slotRunControlStarted();
     void slotRunControlFinished();
     void slotRunControlDestroyed();
 
+    void slotDebuggerStateChanged(int);
+
+    void slotDebuggerStartInferior();
+    void slotDebuggerRestartInferior();
+
 private:
-    friend class SharedDebugger;
-    ProbeInjectingDebugger(QObject *parent = 0);
     void initInspection();
     void uninitInspection();
+
+    InspectionTarget m_target;
     Debugger::DebuggerManager *m_debuggerManager;
     InspectorRunControl *m_inspectorRunControl;
+
+    // injection machine
+    int m_state;
+    int m_prevState;
+    bool m_sQuirkDone;
+    bool m_sHaveInferior;
+    bool m_sManuallyStopped;
+    QTimer *m_runDelayTimer;
 };
 
 } // namespace Internal
