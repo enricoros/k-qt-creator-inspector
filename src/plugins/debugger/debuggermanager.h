@@ -204,6 +204,10 @@ public:
 
     QIcon locationMarkIcon() const;
 
+    // enrico - inspector - prevent mode stealing
+    void setGotoLocationEnabled(bool);
+    bool gotoLocationEnabled() const;
+
     static DebuggerManager *instance();
 
 public slots:

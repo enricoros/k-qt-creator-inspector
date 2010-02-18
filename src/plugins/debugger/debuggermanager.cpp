@@ -302,6 +302,7 @@ struct DebuggerManagerPrivate
     QTimer *m_statusTimer;
     QString m_lastPermanentStatusMessage;
     DisassemblerViewAgent m_disassemblerViewAgent;
+    bool m_gotoLocationEnabled;
 
     IDebuggerEngine *m_engine;
     DebuggerState m_state;
@@ -318,6 +319,7 @@ DebuggerManagerPrivate::DebuggerManagerPrivate(DebuggerManager *manager) :
    m_startParameters(new DebuggerStartParameters),
    m_inferiorPid(0),
    m_disassemblerViewAgent(manager),
+   m_gotoLocationEnabled(true),
    m_engine(0)
 {
     m_interruptIcon.addFile(":/debugger/images/debugger_interrupt.png");
@@ -1454,16 +1456,16 @@ void DebuggerManager::resetLocation()
 
 void DebuggerManager::gotoLocation(const Debugger::Internal::StackFrame &frame, bool setMarker)
 {
+    // enrico - inspector - may skip this function
+    if (!d->m_gotoLocationEnabled)
+        return;
     if (theDebuggerBoolSetting(OperateByInstruction) || !frame.isUsable()) {
         if (setMarker)
             emit resetLocationRequested();
         d->m_disassemblerViewAgent.setFrame(frame);
     } else {
-        // enrico - inspector - disable activation of the Edit mode when Inspecting
-        if (!d->m_startParameters->inspectorHelpersEnabled) {
-            // Connected to the plugin.
-            emit gotoLocationRequested(frame.file, frame.line, setMarker);
-        }
+        // Connected to the plugin.
+        emit gotoLocationRequested(frame.file, frame.line, setMarker);
     }
 }
 
@@ -1915,6 +1917,16 @@ void DebuggerManager::ensureLogVisible()
 QIcon DebuggerManager::locationMarkIcon() const
 {
     return d->m_locationMarkIcon;
+}
+
+void DebuggerManager::setGotoLocationEnabled(bool enabled)
+{
+    d->m_gotoLocationEnabled = enabled;
+}
+
+bool DebuggerManager::gotoLocationEnabled() const
+{
+    return d->m_gotoLocationEnabled;
 }
 
 QDebug operator<<(QDebug d, DebuggerState state)
