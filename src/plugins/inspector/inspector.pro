@@ -61,7 +61,8 @@ SOURCES += \
     nvidiacudaframework/nvidiacudaframework.cpp
 
 RESOURCES += \
-    inspector.qrc
+    inspector.qrc \
+    nvidiacudaframework/nvidiacudaframework.qrc
 
 include(nokiaqtframework/nokiaqtframework.pri)
 
