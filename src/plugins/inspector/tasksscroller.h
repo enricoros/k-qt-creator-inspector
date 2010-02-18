@@ -50,6 +50,7 @@ public:
     TasksScroller(QWidget *parent = 0);
 
     void setTasksModel(TasksModel *model);
+    void setTransparentBackground(bool);
 
     // ::QWidget
     QSize sizeHint() const;

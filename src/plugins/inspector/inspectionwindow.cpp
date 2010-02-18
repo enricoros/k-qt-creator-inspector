@@ -32,21 +32,38 @@
 #include "combotreewidget.h"
 #include "iframework.h"
 #include "inspection.h"
+#include "inspectorplugin.h"
+#include "inspectorstyle.h"
 #include "panelcontainerwidget.h"
 #include "statusbarwidget.h"
 #include <QtGui/QLabel>
 #include <QtGui/QPainter>
+#include <QtGui/QPushButton>
+#include <QtGui/QHBoxLayout>
 #include <QtGui/QVBoxLayout>
 
 using namespace Inspector::Internal;
 
-class Inspector::Internal::MessageLabel : public QLabel {
+class Inspector::Internal::IWMessageLabel : public QWidget {
 public:
-    MessageLabel(QWidget *parent = 0)
-      : QLabel(parent)
+    QLabel *label;
+    QPushButton *closeButton;
+
+    IWMessageLabel(QWidget *parent = 0)
+      : QWidget(parent)
     {
-        setContentsMargins(10, 10, 10, 10);
         setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+        QHBoxLayout *lay = new QHBoxLayout(this);
+        label = new QLabel;
+        lay->addWidget(label);
+        lay->addStretch(10);
+        closeButton = new QPushButton(this);
+        closeButton->setFlat(true);
+        closeButton->setMaximumHeight(InspectorStyle::defaultComboHeight());
+        closeButton->setText(tr("Close Inspection"));
+        closeButton->setIcon(QIcon(":/projectexplorer/images/stop.png"));
+        closeButton->hide();
+        lay->addWidget(closeButton);
     }
 
     void paintEvent(QPaintEvent *event)
@@ -54,7 +71,6 @@ public:
         QPainter p(this);
         p.fillRect(rect(), QColor(255, 255, 200));
         p.fillRect(0, height() - 1, width(), 1, Qt::black);
-        QLabel::paintEvent(event);
     }
 };
 
@@ -71,8 +87,10 @@ InspectionWindow::InspectionWindow(Inspection *inspection, QWidget *parent)
     connect(m_menuWidget, SIGNAL(pathSelected(QStringList,QVariant)), this, SLOT(slotMenuChanged(QStringList,QVariant)));
     layout->addWidget(m_menuWidget);
 
-    m_messageLabel = new MessageLabel;
-    m_messageLabel->setText(tr("Waiting for connection..."));
+    m_messageLabel = new IWMessageLabel;
+    m_messageLabel->label->setText(tr("Waiting for connection..."));
+    connect(m_messageLabel->closeButton, SIGNAL(clicked()),
+            this, SLOT(slotCloseInspection()), Qt::QueuedConnection);
     layout->addWidget(m_messageLabel);
 
     m_panelContainer = new PanelContainerWidget(this);
@@ -87,6 +105,11 @@ InspectionWindow::InspectionWindow(Inspection *inspection, QWidget *parent)
 Inspection *InspectionWindow::inspection() const
 {
     return m_inspection;
+}
+
+void InspectionWindow::slotCloseInspection()
+{
+    InspectorPlugin::instance()->deleteInspection(m_inspection);
 }
 
 void InspectionWindow::slotMenuChanged(const QStringList &/*path*/, const QVariant &data)
@@ -117,13 +140,15 @@ void InspectionWindow::slotSetCurrentPanel(int moduleUid, int panelId)
 
 void InspectionWindow::slotFrameworkConnected()
 {
-    m_messageLabel->setText(QString());
+    m_messageLabel->label->setText(QString());
+    m_messageLabel->closeButton->hide();
     m_messageLabel->hide();
 }
 
 void InspectionWindow::slotFrameworkDisconnected()
 {
-    m_messageLabel->setText(tr("Target disconnected."));
+    m_messageLabel->label->setText(tr("Target disconnected."));
+    m_messageLabel->closeButton->show();
     m_messageLabel->show();
 }
 

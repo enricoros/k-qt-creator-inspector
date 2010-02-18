@@ -42,11 +42,13 @@
 #include <projectexplorer/project.h>
 #include <projectexplorer/session.h>
 #include <utils/qtcassert.h>
+#include <QtGui/QApplication>
 #include <QtGui/QComboBox>
 #include <QtGui/QGridLayout>
 #include <QtGui/QHeaderView>
 #include <QtGui/QIcon>
 #include <QtGui/QLabel>
+#include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QPushButton>
 #include <QtGui/QTableWidget>
@@ -693,8 +695,6 @@ RunningInspectionWidget::RunningInspectionWidget(Inspection *inspection, QWidget
   : QWidget(parent)
   , m_inspection(inspection)
 {
-    setAttribute(Qt::WA_Hover, true);
-
     QHBoxLayout *lay = new QHBoxLayout(this);
     lay->setMargin(3);
 
@@ -709,13 +709,14 @@ RunningInspectionWidget::RunningInspectionWidget(Inspection *inspection, QWidget
 
     QLabel *label2 = new QLabel;
     label2->setMinimumWidth(160);
-    label2->setText(tr("<a href='see'>%1</a>").arg(inspection->inspectionModel()->displayName()));
+    label2->setText(tr("%1").arg(inspection->inspectionModel()->displayName()));
     connect(label2, SIGNAL(linkActivated(QString)),
             this, SLOT(slotDisplayClicked()));
     lay->addWidget(label2);
 
     m_tasksWidget = new TasksScroller(this);
     m_tasksWidget->setTasksModel(inspection->tasksModel());
+    m_tasksWidget->setTransparentBackground(true);
     lay->addWidget(m_tasksWidget);
 
     lay->addStretch(10);
@@ -736,6 +737,28 @@ RunningInspectionWidget::RunningInspectionWidget(Inspection *inspection, QWidget
         slotFrameworkConnected();
     else
         slotFrameworkDisconnected();
+}
+
+void RunningInspectionWidget::enterEvent(QEvent *)
+{
+    QPalette pal;
+     pal.setBrush(QPalette::WindowText, QApplication::palette().color(QPalette::HighlightedText));
+     setPalette(pal);
+    update();
+}
+
+void RunningInspectionWidget::leaveEvent(QEvent *)
+{
+    QPalette pal;
+     pal.setBrush(QPalette::WindowText, QApplication::palette().color(QPalette::WindowText));
+     setPalette(pal);
+    update();
+}
+
+void RunningInspectionWidget::mousePressEvent(QMouseEvent *event)
+{
+    event->accept();
+    emit displayInspection(m_inspection);
 }
 
 void RunningInspectionWidget::paintEvent(QPaintEvent *)
