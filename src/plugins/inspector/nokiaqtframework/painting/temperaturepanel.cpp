@@ -28,6 +28,7 @@
 **************************************************************************/
 
 #include "temperaturepanel.h"
+#include "datautils.h"
 #include "iframework.h"
 #include "iinspectionmodel.h"
 #include "paintingmodel.h"
@@ -127,6 +128,7 @@ TemperaturePanel::TemperaturePanel(PaintingModule *parentModule)
     connect(heightBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckWeight()));
     connect(defaultsButton, SIGNAL(clicked()), this, SLOT(slotLoadDefaults()));
     connect(runButton, SIGNAL(clicked()), this, SLOT(slotTestClicked()));
+    connect(exportButton, SIGNAL(clicked()), this, SLOT(slotExportClicked()));
     imageScrollArea->setWidget(imageLabel);
 
     // wire-up the results listview
@@ -220,6 +222,12 @@ void TemperaturePanel::slotResultActivated(const QModelIndex &index)
     imageLabel->setPixmap(item->image());
     resultsTabWidget->setCurrentIndex(1);
     imageScrollArea->setFocus();
+}
+
+void TemperaturePanel::slotExportClicked()
+{
+    qint32 test[100];
+    DataUtils::exportOctaveIntArray("test", "A", 13, 7, test);
 }
 
 } // namespace Internal
