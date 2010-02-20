@@ -42,7 +42,7 @@
 #include <QTime>
 
 // for demarshalling communication with The Probe
-#include "../../../share/qtcreator/gdbmacros/perfunction.h"
+#include "../../../../share/qtcreator/gdbmacros/perfunction.h"
 
 using namespace Inspector::Internal;
 
@@ -79,6 +79,32 @@ LocalCommServer::~LocalCommServer()
     delete m_localServer;
 }
 
+bool LocalCommServer::decodeImage(QByteArray *data, QImage *image)
+{
+    QDataStream dataReader(data, QIODevice::ReadOnly);
+    QSize size;
+    quint32 format;
+    QByteArray contents;
+    dataReader >> size;
+    dataReader >> format;
+    dataReader >> contents;
+    if (size.isNull() || contents.isEmpty())
+        return false;
+    *image = QImage((const uchar *)contents.data(), size.width(), size.height(), (QImage::Format)format);
+    image->detach();
+    return !image->isNull();
+}
+
+bool LocalCommServer::decodeMesh(QByteArray *data, Inspector::Probe::RegularMeshRealData *mesh)
+{
+    QDataStream dataReader(data, QIODevice::ReadOnly);
+    dataReader >> mesh->physicalSize;
+    dataReader >> mesh->rows;
+    dataReader >> mesh->columns;
+    dataReader >> mesh->data;
+    return mesh->rows > 0 && mesh->columns > 0 && mesh->data.size() == (mesh->rows * mesh->columns);
+}
+
 void LocalCommServer::slotIncomingConnection()
 {
     while (m_localServer->hasPendingConnections()) {
@@ -112,14 +138,14 @@ void LocalCommServer::slotReadConnection()
     while (!m_incomingData.isEmpty()) {
 
         // partial/incomplete chunks: save for later
-        quint32 chunkSize = Inspector::Internal::messageLength(m_incomingData);
+        quint32 chunkSize = Inspector::Probe::messageLength(m_incomingData);
         if (!chunkSize || m_incomingData.length() < (int)chunkSize)
             break;
 
         // decode chunk
         quint32 channel, code1;
         QByteArray payload;
-        bool decoded = Inspector::Internal::demarshallMessage(m_incomingData, &channel, &code1, &payload);
+        bool decoded = Inspector::Probe::demarshallMessage(m_incomingData, &channel, &code1, &payload);
         if (!decoded)
             qWarning() << "CommServer::slotReadConnection: error decoding a message";
         else
@@ -151,7 +177,7 @@ bool LocalCommServer::processIncomingData(quint32 channel, quint32 code1, QByteA
     addMessageToModel(8, tr("%1:%2 (%3)").arg(channel).arg(code1).arg(data->size()));
 
     // Log Messages / Errors
-    if (channel == Inspector::Internal::Channel_General) {
+    if (channel == Inspector::Probe::Channel_General) {
         if (code1 == 0x00) {
             // TODO: handle the just received 'probe startup'
         } else if (code1 == 0x01) {

@@ -30,6 +30,7 @@
 #include "paintingmodule.h"
 #include "paintingmodel.h"
 #include "temperaturepanel.h"
+#include "../datautils.h"
 #include "../localcommserver.h"
 #include "../nokiaqtframework.h"
 
@@ -119,17 +120,14 @@ void PaintingModule::slotProcessIncomingData(quint32 channel, quint32 code1, QBy
     case 3:     // percent
         m_model->setPtProgress(qBound(0, QString(*data).toInt(), 100));
         break;
-    case 4:     // start image
-    case 5: {   // colored image
-        QDataStream dataReader(data, QIODevice::ReadOnly);
-        QSize size;
-        quint32 format;
-        QByteArray contents;
-        dataReader >> size;
-        dataReader >> format;
-        dataReader >> contents;
-        QImage image((uchar *)contents.data(), size.width(), size.height(), (QImage::Format)format);
-        m_model->addPtResult(QDateTime::currentDateTime(), 1.0, "description", "options", QPixmap::fromImage(image));
+    case 4:    // base image
+        LocalCommServer::decodeImage(data, &m_lastImage);
+        break;
+    case 5: {   // mesh data
+        Inspector::Probe::RegularMeshRealData mesh;
+        LocalCommServer::decodeMesh(data, &mesh);
+        DataUtils::paintMeshOverImage(&m_lastImage, &mesh, false);
+        m_model->addPtResult(QDateTime::currentDateTime(), 1.0, "description", "options", QPixmap::fromImage(m_lastImage));
         } break;
     default:
         qWarning("PaintingModule::slotProcessIncomingData: unhandled code1 %d", code1);

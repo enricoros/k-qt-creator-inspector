@@ -238,5 +238,5 @@ void TemperaturePanel::slotResultActivated(const QModelIndex &index)
 void TemperaturePanel::slotExportClicked()
 {
     qint32 test[100];
-    DataUtils::exportOctaveIntArray("test", "A", 13, 7, test);
+    DataUtils::exportOctaveArray<qint32>("test", "A", 13, 7, test);
 }
