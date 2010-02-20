@@ -75,7 +75,7 @@ bool InspectorCoreListener::coreAboutToClose()
                                          QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
     if (answer != QMessageBox::Yes)
         return false;
-    plugin->closeInspections();
+    plugin->deleteInspections();
     QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
     return true;
 }
@@ -95,7 +95,7 @@ InspectorPlugin::InspectorPlugin()
 InspectorPlugin::~InspectorPlugin()
 {
     // delete inspections
-    closeInspections();
+    deleteInspections();
 
     // goodbye plugin
     s_pluginInstance = 0;
@@ -151,13 +151,13 @@ void InspectorPlugin::deleteInspection(Inspection * inspection)
 
     m_inspections.removeAll(inspection);
     emit inspectionRemoved(inspection);
-    inspection->deleteLater();
+    delete inspection;
 
     if (m_inspections.isEmpty())
         Core::ICore::instance()->removeAdditionalContext(m_runningContextId);
 }
 
-void InspectorPlugin::closeInspections()
+void InspectorPlugin::deleteInspections()
 {
     while (!m_inspections.isEmpty())
         deleteInspection(m_inspections.last());

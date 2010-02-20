@@ -69,7 +69,7 @@ public:
     QList<Inspection *> inspections() const;
     void addInspection(Inspection *);
     void deleteInspection(Inspection *);
-    void closeInspections();
+    void deleteInspections();
 
     // ::ExtensionSystem::IPlugin
     bool initialize(const QStringList &arguments, QString *error_message);
