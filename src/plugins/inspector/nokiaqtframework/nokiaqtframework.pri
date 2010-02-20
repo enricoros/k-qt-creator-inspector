@@ -1,4 +1,5 @@
 HEADERS += \
+    $$PWD/datautils.h \
     $$PWD/localcommserver.h \
     $$PWD/nokiaqtframework.h \
     $$PWD/nokiaqtinspectionmodel.h \
@@ -12,6 +13,7 @@ HEADERS += \
     $$PWD/warnings/warningsmodule.h
 
 SOURCES += \
+    $$PWD/datautils.cpp \
     $$PWD/localcommserver.cpp \
     $$PWD/nokiaqtframework.cpp \
     $$PWD/nokiaqtinspectionmodel.cpp \
