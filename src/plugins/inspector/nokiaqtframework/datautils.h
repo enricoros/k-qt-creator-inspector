@@ -31,15 +31,27 @@
 #define DATAUTILS_H
 
 #include <QtCore/QString>
+class QImage;
+
+// include Probe data types
+#include "../../../../share/qtcreator/gdbmacros/perfunction.h"
 
 namespace Inspector {
 namespace Internal {
 
 class DataUtils {
 public:
-    static bool exportOctaveIntArray(const QString &fileName, const QString &varName,
-                                     int rows, int cols, qint32 *data);
-    //static bool exportOctaveRealArray(const QString &fileName, int rows, int cols, qreal *data);
+    // I/O functions
+    template<typename T>
+    static bool exportOctaveArray(const QString &fileName, const QString &varName,
+                                  int rows, int cols, T *data);
+    template<typename T>
+    static bool importOctaveArray(const QString &fileName, const QString &varName,
+                                  int *rows, int *cols, T *data);
+
+    // drawing functions
+    static void paintMeshOverImage(QImage *image, Inspector::Probe::RegularMeshRealData *mesh,
+                                   bool scaleToImage = false, bool showLegend = true);
 };
 
 } // namespace Internal
