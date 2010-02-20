@@ -46,7 +46,7 @@ QString InfoModule::name() const
 ModuleMenuEntries InfoModule::menuEntries() const
 {
     ModuleMenuEntries entries;
-    entries.append(ModuleMenuEntry(QStringList() << tr("Status"), Uid, 0, QIcon(":/inspector/info/menu-status.png")));
+    entries.append(ModuleMenuEntry(QStringList() << tr("Status"), UID_MODULE_INFO, 0, QIcon(":/inspector/info/menu-status.png")));
     return entries;
 }
 

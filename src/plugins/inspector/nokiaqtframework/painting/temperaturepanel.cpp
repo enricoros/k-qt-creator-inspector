@@ -34,7 +34,6 @@
 #include "paintingmodule.h"
 
 #include "../datautils.h"
-#include "../nokiaqtframework.h"
 
 #include <QtGui/QPainter>
 #include <QtGui/QPalette>
@@ -120,13 +119,14 @@ public:
 //
 // TemperaturePanel
 //
-TemperaturePanel::TemperaturePanel(PaintingModule *parentModule)
-  : AbstractPanel(parentModule)
+TemperaturePanel::TemperaturePanel(PaintingModule *module)
+  : AbstractPanel(module)
+  , m_paintingModule(module)
 {
     setupUi(this);
 
 #if defined(INSPECTOR_PAINTING_VTK)
-    Temperature3DView *tView = new Temperature3DView(parentModule);
+    Temperature3DView *tView = new Temperature3DView(m_paintingModule);
     resultsTabWidget->addTab(tView, tr("3D Comparison"));
 #endif
 
@@ -146,8 +146,8 @@ TemperaturePanel::TemperaturePanel(PaintingModule *parentModule)
     // wire-up the results listview
     connect(resultsView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(slotResultActivated(QModelIndex)));
     resultsView->setItemDelegate(new TemperatureResultsDelegate(resultsView));
-    resultsView->setModel(parentModule->model());
-    resultsView->setRootIndex(parentModule->model()->resultsTableIndex());
+    resultsView->setModel(m_paintingModule->model());
+    resultsView->setRootIndex(m_paintingModule->model()->resultsTableIndex());
 
     // change looks
     QFont smallerFont = samplesLabel->font();
@@ -170,7 +170,7 @@ TemperaturePanel::TemperaturePanel(PaintingModule *parentModule)
     slotLoadDefaults();
 
     // listen for model changes
-    connect(parentModule->model(), SIGNAL(itemChanged(QStandardItem*)),
+    connect(m_paintingModule->model(), SIGNAL(itemChanged(QStandardItem*)),
             this, SLOT(slotModelItemChanged()));
     slotModelItemChanged();
 }
@@ -209,11 +209,12 @@ void TemperaturePanel::slotLoadDefaults()
 
 void TemperaturePanel::slotTestClicked()
 {
-    // Build the args list: passes << headDrops << tailDrops << innerPasses << chunkWidth << chunkHeight << consoleDebug
-    QVariantList args;
-    args << passesBox->value() << lowBox->value() << highBox->value() << innerBox->value() << widthBox->value() << heightBox->value() << debugBox->isChecked();
-    static_cast<NokiaQtFramework *>(parentFramework())->
-            callProbeFunction("qWindowTemperature", args);
+    // Build the options list: passes, headDrops, tailDrops, innerPasses, chunkWidth, chunkHeight, consoleDebug
+    QVariantList options;
+    options << passesBox->value() << lowBox->value() << highBox->value() << innerBox->value() << widthBox->value() << heightBox->value() << debugBox->isChecked();
+
+    // start the test, we'll watch the results in the model
+    m_paintingModule->startTemperatureTest(testNameLabel->text(), options);
 }
 
 void TemperaturePanel::slotModelItemChanged()

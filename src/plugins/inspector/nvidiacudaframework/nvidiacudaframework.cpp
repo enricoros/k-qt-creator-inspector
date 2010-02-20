@@ -53,7 +53,7 @@ bool NvidiaCudaFramework::isTargetConnected() const
     return false;
 }
 
-int NvidiaCudaFramework::infoModuleUid() const
+int NvidiaCudaFramework::defaultModuleUid() const
 {
     return 0;
 }

@@ -30,14 +30,20 @@
 #include "blueprintmodule.h"
 #include "abstractpanel.h"
 #include "../nokiaqtframework.h"
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QPixmap>
+
+#include <QtGui/QHBoxLayout>
+#include <QtGui/QLabel>
+#include <QtGui/QPixmap>
+
+using namespace Inspector::Internal;
 
 namespace Inspector {
 namespace Internal {
-  
-class BlueprintPanel : public AbstractPanel {
+
+//
+// BlueprintPanel
+//
+class BlueprintPanel : public AbstractPanel{
 public:
     BlueprintPanel(IFrameworkModule *parentModule)
       : AbstractPanel(parentModule)
@@ -53,6 +59,12 @@ public:
     }
 };
 
+} // namespace Internal
+} // namespace Inspector
+
+//
+// BlueprintModule
+//
 BlueprintModule::BlueprintModule(NokiaQtFramework *framework, QObject *parent)
   : IFrameworkModule(framework, parent)
 {
@@ -66,7 +78,7 @@ QString BlueprintModule::name() const
 ModuleMenuEntries BlueprintModule::menuEntries() const
 {
     ModuleMenuEntries entries;
-    entries.append(ModuleMenuEntry(QStringList() << tr("Blueprint"), Uid, 1));
+    entries.append(ModuleMenuEntry(QStringList() << tr("Blueprint"), UID_MODULE_BLUEPRINT, 1));
     return entries;
 }
 
@@ -79,5 +91,3 @@ AbstractPanel *BlueprintModule::createPanel(int panelId)
     return new BlueprintPanel(this);
 }
 
-} // namespace Internal
-} // namespace Inspector

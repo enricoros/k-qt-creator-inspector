@@ -186,7 +186,7 @@ void InspectionWindow::setInspection(Inspection *inspection)
         m_statusbarWidget->setInspection(m_inspection);
 
         // show default panel
-        showPanel(m_inspection->framework()->infoModuleUid(), 0);
+        showPanel(m_inspection->framework()->defaultModuleUid(), 0);
     }
 }
 

@@ -57,7 +57,7 @@ public:
 
 private:
     friend class IFramework;
-    quint32 addTask(const QString &name, const QString &description);
+    bool addTask(quint32 tid, const QString &name, const QString &description = QString());
     bool startTask(quint32 tid);
     bool stopTask(quint32 tid);
     TaskItem *task(quint32 tid) const;

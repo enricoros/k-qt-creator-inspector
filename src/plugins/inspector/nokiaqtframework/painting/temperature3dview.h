@@ -48,7 +48,7 @@ class Temperature3DView : public QWidget
     Q_OBJECT
 
 public:
-    Temperature3DView(PaintingModule *parentModule, QWidget *parent = 0);
+    Temperature3DView(PaintingModule *, QWidget *parent = 0);
     ~Temperature3DView();
 
 private slots:

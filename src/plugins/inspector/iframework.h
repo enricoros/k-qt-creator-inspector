@@ -62,7 +62,7 @@ public:
     // IFramework description
     virtual bool startInspection(const InspectionTarget &) = 0;
     virtual bool isTargetConnected() const = 0;
-    virtual int infoModuleUid() const = 0;
+    virtual int defaultModuleUid() const = 0;
 
     // IFrameworkModule operations
     QStringList loadedModules() const;

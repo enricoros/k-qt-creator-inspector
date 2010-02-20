@@ -184,14 +184,16 @@ QString TasksModel::taskName(quint32 taskId) const
     return item ? item->name() : QString();
 }
 
-quint32 TasksModel::addTask(const QString &name, const QString &description)
+bool TasksModel::addTask(quint32 tid, const QString &name, const QString &description)
 {
-    // assign the task a number
-    static quint32 s_baseTaskId = 1;
-    quint32 tId = s_baseTaskId++;
+    // safety check
+    if (task(tid)) {
+        qWarning("TasksModel::addTask: already present %d", tid);
+        return false;
+    }
 
     // add item
-    TaskItem *taskItem = new TaskItem(tId, name, description);
+    TaskItem *taskItem = new TaskItem(tid, name, description);
     tasksRoot()->insertRow(0, taskItem);
 
     // refresh total tasks counter
@@ -200,7 +202,7 @@ quint32 TasksModel::addTask(const QString &name, const QString &description)
     // if task is already active, increment active count
     if (taskItem->isActive())
         incrementIntValue(Tasks_Row, 1);
-    return tId;
+    return true;
 }
 
 bool TasksModel::startTask(quint32 tid)

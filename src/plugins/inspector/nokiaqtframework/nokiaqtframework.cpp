@@ -90,9 +90,9 @@ bool NokiaQtFramework::isTargetConnected() const
     return m_piDebugger->isTargetConnected();
 }
 
-int NokiaQtFramework::infoModuleUid() const
+int NokiaQtFramework::defaultModuleUid() const
 {
-    return InfoModule::Uid;
+    return UID_MODULE_INFO;
 }
 
 void NokiaQtFramework::callProbeFunction(const QString &name, const QVariantList &args)
