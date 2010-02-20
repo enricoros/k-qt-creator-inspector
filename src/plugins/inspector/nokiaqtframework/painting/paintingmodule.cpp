@@ -64,8 +64,8 @@ QString PaintingModule::name() const
 ModuleMenuEntries PaintingModule::menuEntries() const
 {
     ModuleMenuEntries entries;
-    entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Temperature"), Uid, 1, QIcon(":/inspector/painting/menu-temperature.png")));
-    entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Pixel Energy"), Uid, 2, QIcon(":/inspector/painting/menu-energy.png")));
+    entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Temperature"), UID_MODULE_PAINTING, 1, QIcon(":/inspector/painting/menu-temperature.png")));
+    entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Pixel Energy"), UID_MODULE_PAINTING, 2, QIcon(":/inspector/painting/menu-energy.png")));
     return entries;
 }
 
@@ -81,29 +81,6 @@ AbstractPanel *PaintingModule::createPanel(int panelId)
     connect(panel, SIGNAL(destroyed()), this, SLOT(slotPanelDestroyed()));
     m_panels.append(panel);
     return panel;
-}
-
-void PaintingModule::slotActivate()
-{
-    qWarning("PaintingModule::slotActivate: ACTIVATED");
-}
-
-void PaintingModule::slotDeactivate()
-{
-    qWarning("PaintingModule::slotDeactivate: DEACTIVATED");
-    emit deactivated();
-}
-
-void PaintingModule::slotLock()
-{
-    foreach (AbstractPanel *panel, m_panels)
-        panel->setEnabled(false);
-}
-
-void PaintingModule::slotUnlock()
-{
-    foreach (AbstractPanel *panel, m_panels)
-        panel->setEnabled(true);
 }
 
 void PaintingModule::slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data)

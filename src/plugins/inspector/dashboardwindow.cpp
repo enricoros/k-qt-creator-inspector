@@ -729,14 +729,9 @@ RunningInspectionWidget::RunningInspectionWidget(Inspection *inspection, QWidget
             this, SLOT(slotCloseClicked()));
     lay->addWidget(b);
 
-    connect(inspection->framework(), SIGNAL(targetConnected()),
-            this, SLOT(slotFrameworkConnected()));
-    connect(inspection->framework(), SIGNAL(targetDisconnected()),
-            this, SLOT(slotFrameworkDisconnected()));
-    if (inspection->framework()->targetIsConnected())
-        slotFrameworkConnected();
-    else
-        slotFrameworkDisconnected();
+    connect(inspection->framework(), SIGNAL(targetConnected(bool)),
+            this, SLOT(slotFrameworkConnected(bool)));
+    slotFrameworkConnected(inspection->framework()->isTargetConnected());
 }
 
 void RunningInspectionWidget::enterEvent(QEvent *)
@@ -773,16 +768,13 @@ void RunningInspectionWidget::paintEvent(QPaintEvent *)
     }
 }
 
-void RunningInspectionWidget::slotFrameworkConnected()
+void RunningInspectionWidget::slotFrameworkConnected(bool connected)
 {
-    m_connLabel->setPixmap(QPixmap(":/qt4projectmanager/images/connected.png"));
-    m_tasksWidget->show();
-}
-
-void RunningInspectionWidget::slotFrameworkDisconnected()
-{
-    m_connLabel->setPixmap(QPixmap(":/qt4projectmanager/images/notconnected.png"));
-    m_tasksWidget->hide();
+    if (connected)
+        m_connLabel->setPixmap(QPixmap(":/qt4projectmanager/images/connected.png"));
+    else
+        m_connLabel->setPixmap(QPixmap(":/qt4projectmanager/images/notconnected.png"));
+    m_tasksWidget->setVisible(connected);
 }
 
 void RunningInspectionWidget::slotDisplayClicked()

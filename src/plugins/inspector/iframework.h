@@ -42,6 +42,7 @@ namespace Inspector {
 namespace Internal {
 
 class IInspectionModel;
+class IFrameworkTask;
 class TasksModel;
 
 /**
@@ -55,60 +56,71 @@ public:
     IFramework(IInspectionModel *, QObject *parent = 0);
     virtual ~IFramework();
 
-    // main objects
-    TasksModel *tasksModel() const;
     IInspectionModel *inspectionModel() const;
+    TasksModel *tasksModel() const;
 
-    // may be reimplemented by subclasses
-    virtual bool startInspection(const InspectionTarget &) { return false; }
-    virtual bool targetIsConnected() const { return false; }
-    virtual int infoModuleUid() const { return 0; }
+    // IFramework description
+    virtual bool startInspection(const InspectionTarget &) = 0;
+    virtual bool isTargetConnected() const = 0;
+    virtual int infoModuleUid() const = 0;
 
-    // modules: menu entries and panel creation
-    QStringList moduleNames() const;
-    ModuleMenuEntries menuEntries() const;
+    // IFrameworkModule operations
+    QStringList loadedModules() const;
+    ModuleMenuEntries menuItems() const;
     AbstractPanel *createPanel(int moduleUid, int panelId) const;
 
 signals:
-    void targetConnected();
-    void targetDisconnected();
-    void modulesChanged();
+    void targetConnected(bool connected);
     void requestPanelDisplay(int moduleUid, int panelId);
-
-protected:
-    void setModuleActivationEnabled(bool);
-    void addModule(IFrameworkModule *);
-    void removeModule(IFrameworkModule *);
-    IFrameworkModule *moduleForUid(int moduleUid) const;
 
 private:
     IInspectionModel *m_inspectionModel;
-    TasksModel *m_taskModel;
-    bool m_moduleActivationEnabled;
-    QList<IFrameworkModule *> m_modules;
-    QList<IFrameworkModule *> m_activeModules;
+
+// Modules
+signals:
+    void moduleListChanged();
+
+protected:
+    void addModule(IFrameworkModule *);
+    void takeModule(IFrameworkModule *);
+    IFrameworkModule *moduleForUid(int moduleUid) const;
 
 private slots:
     void slotModulePanelDisplayRequested(int panelId);
-    void slotModuleActivationRequested(const QString &text);
-    void slotModuleDeactivated();
     void slotModuleDestroyed();
-    void slotModelItemChanged(QStandardItem*);
+
+private:
+    QList<IFrameworkModule *> m_modules;
+
+// Tasks
+protected:
+    friend class IFrameworkTask;
+    void registerTask(IFrameworkTask *);
+    void unregisterTask(IFrameworkTask *);
+    void setTaskActivationEnabled(bool);
+
+private slots:
+    void slotTaskActivationRequested();
+    void slotTaskDeletionRequested();
+    void slotTaskModelItemChanged(QStandardItem*);
+
+private:
+    TasksModel *m_tasksModel;
+    QList<IFrameworkTask *> m_tasks;
+    bool m_taskActivationEnabled;
 };
 
 
 /**
-  \brief Describe, create (eventually restore) frameworks
+  \brief Describe, create (and eventually restore) Frameworks
  */
 class IFrameworkFactory : public QObject
 {
     Q_OBJECT
 
 public:
-    IFrameworkFactory()
-    { }
-    virtual ~IFrameworkFactory()
-    { }
+    IFrameworkFactory() { }
+    virtual ~IFrameworkFactory() { }
 
     virtual QString displayName() const = 0;
     virtual QIcon icon() const = 0;

@@ -29,14 +29,18 @@
 
 #include "warningsmodule.h"
 #include "notificationwidget.h"
-#include <coreplugin/icore.h>
-#include <coreplugin/modemanager.h>
+
 #include "../localcommserver.h"
 #include "../nokiaqtframework.h"
-#include <QTimer>
+
+#include <coreplugin/icore.h>
+#include <coreplugin/modemanager.h>
 
 using namespace Inspector::Internal;
 
+//
+// WarningsModule
+//
 WarningsModule::WarningsModule(NokiaQtFramework *framework, QObject *parent)
   : IFrameworkModule(framework, parent)
   , m_framework(framework)
@@ -47,8 +51,9 @@ WarningsModule::WarningsModule(NokiaQtFramework *framework, QObject *parent)
     m_notification->hide();
     Core::ICore::instance()->modeManager()->addWidget(m_notification);
 
-    // schedule auto-activation
-    QTimer::singleShot(0, this, SLOT(slotDelayedActivation()));
+    // auto-create the WarningTask when the framework gets connected
+    connect(framework, SIGNAL(targetConnected(bool)),
+            this, SLOT(slotFrameworkConnected(bool)));
 }
 
 WarningsModule::~WarningsModule()
@@ -64,28 +69,15 @@ QString WarningsModule::name() const
 ModuleMenuEntries WarningsModule::menuEntries() const
 {
     ModuleMenuEntries entries;
-    entries.append(ModuleMenuEntry(QStringList() << "Warnings", Uid, 0, QIcon(":/inspector/warnings/menu-warning.png")));
+    entries.append(ModuleMenuEntry(QStringList() << "Warnings", UID_MODULE_WARNINGS, 0, QIcon(":/inspector/warnings/menu-warning.png")));
     return entries;
 }
 
-AbstractPanel *WarningsModule::createPanel(int panelId)
+void WarningsModule::slotFrameworkConnected(bool connected)
 {
-    if (panelId == 0)
-        return 0;
-    return IFrameworkModule::createPanel(panelId);
-}
-
-void WarningsModule::slotDelayedActivation()
-{
-    emit requestActivation(tr("Automatic Warnings"));
-}
-
-void WarningsModule::slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data)
-{
-    Q_UNUSED(data);
-    if (channel == 0x03 && code1 == 0x01) {
-        m_notification->addWarning();
-        m_notification->show();
+    if (connected) {
+        WarningsTask *wt = new WarningsTask(m_framework);
+        connect(wt, SIGNAL(addWarning()), this, SLOT(slotTaskAddWarning()));
     }
 }
 
@@ -99,18 +91,42 @@ void WarningsModule::slotNotificationClicked()
     emit requestPanelDisplay(0);
 }
 
-void WarningsModule::slotActivate()
+void WarningsModule::slotTaskAddWarning()
 {
-    // read the data coming from the CommServer
-    connect(m_framework->commServer(), SIGNAL(incomingData(quint32,quint32,QByteArray*)),
+    m_notification->addWarning();
+    m_notification->show();
+}
+
+//
+// WarningsTask
+//
+WarningsTask::WarningsTask(NokiaQtFramework *framework, QObject *parent)
+  : IFrameworkTask(framework, parent)
+  , m_commServer(framework->commServer())
+{
+    emit requestActivation();
+}
+
+QString WarningsTask::displayName() const
+{
+    return tr("Auto-Warnings");
+}
+
+void WarningsTask::activateTask()
+{
+    connect(m_commServer, SIGNAL(incomingData(quint32,quint32,QByteArray*)),
             this, SLOT(slotProcessIncomingData(quint32,quint32,QByteArray*)));
 }
 
-void WarningsModule::slotDeactivate()
+void WarningsTask::deactivateTask()
 {
-    // disconnect from the CommServer
-    disconnect(m_framework->commServer(), 0, this, 0);
+    disconnect(m_commServer, 0, this, 0);
+    emit finished();
+}
 
-    // notify that we have been deactivated
-    emit deactivated();
+void WarningsTask::slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data)
+{
+    Q_UNUSED(data);
+    if (channel == 0x03 && code1 == 0x01)
+        emit addWarning();
 }

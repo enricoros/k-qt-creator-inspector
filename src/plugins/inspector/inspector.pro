@@ -16,8 +16,9 @@ HEADERS += \
     abstractpanel.h \
     combotreewidget.h \
     dashboardwindow.h \
-    iframeworkmodule.h \
     iframework.h \
+    iframeworkmodule.h \
+    iframeworktask.h \
     iinspectionmodel.h \
     inspection.h \
     inspectiontarget.h \
@@ -42,8 +43,9 @@ SOURCES += \
     abstractpanel.cpp \
     combotreewidget.cpp \
     dashboardwindow.cpp \
-    iframeworkmodule.cpp \
     iframework.cpp \
+    iframeworkmodule.cpp \
+    iframeworktask.cpp \
     iinspectionmodel.cpp \
     inspection.cpp \
     inspectiontarget.cpp \

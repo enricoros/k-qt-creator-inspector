@@ -47,7 +47,7 @@ InfoPanel::InfoPanel(IFrameworkModule *parentModule)
     connName->setFont(smallFont);
 
     // update Plugin data
-    modLabel->setText(parentFramework()->moduleNames().join(", "));
+    modLabel->setText(parentFramework()->loadedModules().join(", "));
 
     // update Inspection data
     connect(parentFramework()->inspectionModel(), SIGNAL(itemChanged(QStandardItem*)), this, SLOT(slotRefreshInspectionData()));

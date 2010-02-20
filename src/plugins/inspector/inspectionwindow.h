@@ -58,8 +58,7 @@ private slots:
     void slotCloseInspection();
     void slotMenuChanged(const QStringList &path, const QVariant &data);
     void slotSetCurrentPanel(int moduleUid, int panelId);
-    void slotFrameworkConnected();
-    void slotFrameworkDisconnected();
+    void slotFrameworkConnected(bool connected);
 
 private:
     void setInspection(Inspection *inspection);

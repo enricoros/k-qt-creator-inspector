@@ -27,42 +27,56 @@
 **
 **************************************************************************/
 
-#include "iframeworkmodule.h"
+#ifndef IFRAMEWORKTASK_H
+#define IFRAMEWORKTASK_H
 
-using namespace Inspector::Internal;
+#include <QtCore/QObject>
+#include <QtCore/QString>
 
-//
-// ModuleMenuEntry
-//
-ModuleMenuEntry::ModuleMenuEntry(const QStringList &path, int moduleUid, int panelId, const QIcon &icon)
-  : path(path)
-  , icon(icon)
-  , moduleUid(moduleUid)
-  , panelId(panelId)
+namespace Inspector {
+namespace Internal {
+
+class IFramework;
+
+/**
+  \brief An asynchronous/denyable/interruptible/finite time operation within a framework
+
+  How to implement a task:
+   * upon start emit 'requestActivation' and be ready to receive an
+     activation signal
+   * when it's done, emit 'finished' and the task will be deleted at
+     some point
+*/
+class IFrameworkTask : public QObject
 {
-}
+    Q_OBJECT
 
-//
-// IFrameworkModule
-//
-IFrameworkModule::IFrameworkModule(IFramework *framework, QObject *parent)
-  : QObject(parent)
-  , m_framework(framework)
-{
-}
+public:
+    IFrameworkTask(IFramework *, QObject *parent = 0);
+    virtual ~IFrameworkTask();
 
-ModuleMenuEntries IFrameworkModule::menuEntries() const
-{
-    return ModuleMenuEntries();
-}
+    virtual QString displayName() const = 0;
 
-AbstractPanel *IFrameworkModule::createPanel(int panelId)
-{
-    qWarning("IFrameworkModule::createPanel: module '%s' doesn't create panel %d", qPrintable(name()), panelId);
-    return 0;
-}
+protected slots:
+    virtual void activateTask() { }
+    virtual void deactivateTask() { emit finished(); }
+    virtual void lockTask() { }
+    virtual void unlockTask() { }
 
-IFramework *IFrameworkModule::parentFramework() const
-{
-    return m_framework;
-}
+signals:
+    void requestActivation();
+    void finished();
+
+private:
+    friend class IFramework;
+    void controlActivate();
+    void controlDeactivate();
+    void controlRefuse();
+    void controlWait();
+    class IFrameworkTaskPrivate *d;
+};
+
+} // namespace Internal
+} // namespace Inspector
+
+#endif // IFRAMEWORKTASK_H

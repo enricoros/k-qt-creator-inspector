@@ -236,8 +236,7 @@ protected:
     void paintEvent(QPaintEvent *);
 
 private slots:
-    void slotFrameworkConnected();
-    void slotFrameworkDisconnected();
+    void slotFrameworkConnected(bool connected);
     void slotDisplayClicked();
     void slotCloseClicked();
 

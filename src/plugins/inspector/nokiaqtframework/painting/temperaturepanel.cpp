@@ -28,11 +28,12 @@
 **************************************************************************/
 
 #include "temperaturepanel.h"
-#include "datautils.h"
 #include "iframework.h"
 #include "iinspectionmodel.h"
 #include "paintingmodel.h"
 #include "paintingmodule.h"
+
+#include "../datautils.h"
 #include "../nokiaqtframework.h"
 
 #include <QtGui/QPainter>

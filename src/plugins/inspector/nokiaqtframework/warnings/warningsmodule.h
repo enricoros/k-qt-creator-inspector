@@ -31,13 +31,22 @@
 #define WARNINGSMODULE_H
 
 #include "iframeworkmodule.h"
+#include "iframeworktask.h"
 
 namespace Inspector {
 namespace Internal {
 
+// constants
+const int UID_MODULE_WARNINGS = 3;
+
+class LocalCommServer;
 class NokiaQtFramework;
 class NotificationWidget;
+class WarningsTask;
 
+/**
+  \brief Automatic/Manual warnings on certain events
+*/
 class WarningsModule : public IFrameworkModule
 {
     Q_OBJECT
@@ -47,24 +56,43 @@ public:
     ~WarningsModule();
 
     // ::IFrameworkModule
-    enum { Uid = 0x03 };
-    int uid() const { return Uid; }
+    int uid() const { return UID_MODULE_WARNINGS; }
     QString name() const;
     ModuleMenuEntries menuEntries() const;
-    AbstractPanel *createPanel(int panelId);
 
 private slots:
-    void slotDelayedActivation();
-    void slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data);
+    void slotFrameworkConnected(bool connected);
     void slotNotificationClicked();
-
-    // ::IFrameworkModule
-    void slotActivate();
-    void slotDeactivate();
+    void slotTaskAddWarning();
 
 private:
     NokiaQtFramework *m_framework;
     NotificationWidget *m_notification;
+};
+
+/**
+  \brief Filters add incoming communication for warnings
+*/
+class WarningsTask : public IFrameworkTask
+{
+    Q_OBJECT
+
+public:
+    WarningsTask(NokiaQtFramework *, QObject *parent = 0);
+
+    // ::IFrameworkTask
+    QString displayName() const;
+    void activateTask();
+    void deactivateTask();
+
+signals:
+    void addWarning();
+
+private slots:
+    void slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data);
+
+private:
+    LocalCommServer *m_commServer;
 };
 
 } // namespace Internal
