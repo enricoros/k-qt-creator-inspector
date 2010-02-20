@@ -28,17 +28,19 @@
 **************************************************************************/
 
 #include "tasksscroller.h"
+#include "inspectorstyle.h"
 #include "tasksmodel.h"
-#include <QGraphicsItem>
-#include <QGraphicsSceneMouseEvent>
-#include <QGraphicsWidget>
-#include <QPalette>
-#include <QScrollBar>
+
+#include <QtGui/QGraphicsItem>
+#include <QtGui/QGraphicsSceneMouseEvent>
+#include <QtGui/QPalette>
+#include <QtGui/QScrollBar>
 
 using namespace Inspector::Internal;
 
-// the scene drawing the tasks
-
+//
+// TasksScroller
+//
 TasksScroller::TasksScroller(QWidget *parent)
   : QGraphicsView(parent)
   , m_tasksModel(0)
@@ -62,13 +64,17 @@ void TasksScroller::setTasksModel(TasksModel *model)
 
     // set new model
     m_tasksModel = model;
+    m_scene->setTasksModel(model);
 
     // handle new model's data
     if (m_tasksModel) {
         // use current model
-        connect(m_tasksModel, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(slotTasksChanged()));
-        connect(m_tasksModel, SIGNAL(rowsRemoved(QModelIndex,int,int)), this, SLOT(slotTasksChanged()));
-        connect(m_tasksModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(slotTasksChanged()));
+        connect(m_tasksModel, SIGNAL(rowsInserted(QModelIndex,int,int)),
+                this, SLOT(slotTasksChanged()));
+        connect(m_tasksModel, SIGNAL(rowsRemoved(QModelIndex,int,int)),
+                this, SLOT(slotTasksChanged()));
+        connect(m_tasksModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+                this, SLOT(slotTasksChanged()));
     }
 }
 
@@ -117,17 +123,79 @@ void TasksScroller::slotTasksChanged()
     }
 }
 
+//
+// TaskRectangle
+//
+TaskRectangle::TaskRectangle(quint32 taskId, int left, QGraphicsItem * parent)
+  : QGraphicsWidget(parent)
+  , m_taskId(taskId)
+{
+    setPos(left - 1, 2);
+    resize(2, TasksScene::fixedHeight() - 4);
+    m_brush = QColor::fromHsv(60 * (qrand() % 6), 255, 200, 128);
+}
+
+quint32 TaskRectangle::taskId() const
+{
+    return m_taskId;
+}
+
+void TaskRectangle::updateSize(int right, int currentPercent)
+{
+    resize(right - (int)x() + 1, TasksScene::fixedHeight() - 4);
+    m_percs.append(currentPercent);
+    update();
+}
+
+void TaskRectangle::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    Q_UNUSED(option);
+    Q_UNUSED(widget);
+    QRect rect = boundingRect().toRect().adjusted(0, 0, -1, -1);
+    if (rect.width() > 2) {
+        painter->setRenderHint(QPainter::Antialiasing, false);
+        painter->setPen(QPen(Qt::lightGray, 1));
+        painter->setBrush(m_brush);
+        painter->drawRect(rect);
+
+        // draw the percent polygon
+        int h = size().height();
+        int x = 0;
+        foreach (int val, m_percs) {
+            int y = h * (0.9 - 0.8*(qreal)val / 100.0);
+            painter->fillRect(++x, y, 1, h - y - 1, QColor(255, 255, 255, 64));
+        }
+
+        QRect r = rect.adjusted(2, 1, -2, 1);
+        if (r.width() > 2) {
+            QFont font = painter->font();
+            font.setPointSize(font.pointSize() - 2);
+            painter->setFont(font);
+            painter->setPen(Qt::black);
+            painter->setBrush(Qt::NoBrush);
+            painter->setRenderHint(QPainter::TextAntialiasing, true);
+            painter->drawText(r.adjusted(1, 1, 1, 1), Qt::AlignVCenter, tr("..."));
+            painter->setPen(Qt::white);
+            painter->drawText(r, Qt::AlignVCenter, tr("..."));
+        }
+    }
+}
+
+//
+// TasksScene
+//
 TasksScene::TasksScene(QObject * parent)
   : QGraphicsScene(parent)
   , m_scrollLocked(true)
   , m_pixelPerSecond(10)
+  , m_tasksModel(0)
 {
     m_updateTimer.start(100, this);
 }
 
 int TasksScene::fixedHeight()
 {
-    return 20;
+    return InspectorStyle::defaultComboHeight();
 }
 
 void TasksScene::clear()
@@ -154,6 +222,11 @@ void TasksScene::setScrollLocked(bool locked)
         if (m_scrollLocked)
             regenScene();
     }
+}
+
+void TasksScene::setTasksModel(TasksModel *model)
+{
+    m_tasksModel = model;
 }
 
 int TasksScene::pixelPerSecond() const
@@ -190,10 +263,8 @@ void TasksScene::timerEvent(QTimerEvent * event)
     if (event->timerId() != m_updateTimer.timerId())
         return QGraphicsScene::timerEvent(event);
 
-    if (m_startTime.isNull()) {
+    if (m_startTime.isNull())
         m_startTime.start();
-        return;
-    }
 
     updateCurrentScene();
 }
@@ -203,103 +274,57 @@ void TasksScene::regenScene()
 
 }
 
-class Inspector::Internal::TaskRectangle : public QGraphicsWidget
-{
-    public:
-        TaskRectangle(int start, QGraphicsItem * parent = 0)
-          : QGraphicsWidget(parent)
-        {
-            setPos(start - 1, 2);
-            resize(2, TasksScene::fixedHeight() - 4);
-            m_brush = QColor::fromHsv(60 * (qrand() % 6), 255, 200, 128);
-        }
-
-        void setEnd(int end)
-        {
-            resize(end - (int)x() + 1, TasksScene::fixedHeight() - 4);
-            int pInc = qrand() % 4;
-            if (m_percs.isEmpty())
-                m_percs.append(pInc);
-            else
-                m_percs.append(qMin(100, m_percs.last() + pInc));
-            update();
-        }
-
-        void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = 0)
-        {
-            Q_UNUSED(option);
-            Q_UNUSED(widget);
-            QRect rect = boundingRect().toRect().adjusted(0, 0, -1, -1);
-            if (rect.width() > 2) {
-                painter->setRenderHint(QPainter::Antialiasing, false);
-                painter->setPen(QPen(Qt::lightGray, 1));
-                painter->setBrush(m_brush);
-                painter->drawRect(rect);
-
-                // draw the percent polygon
-                int h = size().height();
-                int x = 0;
-                foreach (int val, m_percs) {
-                    int y = h * (0.9 - 0.8*(qreal)val / 100.0);
-                    painter->fillRect(++x, y, 1, h - y - 1, QColor(255, 255, 255, 64));
-                }
-
-                QRect r = rect.adjusted(2, 1, -2, 1);
-                if (r.width() > 2) {
-                    QFont font = painter->font();
-                    font.setPointSize(font.pointSize() - 2);
-                    painter->setFont(font);
-                    painter->setPen(Qt::black);
-                    painter->setBrush(Qt::NoBrush);
-                    painter->setRenderHint(QPainter::TextAntialiasing, true);
-                    painter->drawText(r.adjusted(1, 1, 1, 1), Qt::AlignVCenter, tr("..."));
-                    painter->setPen(Qt::white);
-                    painter->drawText(r, Qt::AlignVCenter, tr("..."));
-                }
-            }
-        }
-
-    private:
-        QBrush m_brush;
-        QList<int> m_percs;
-};
-
 void TasksScene::updateCurrentScene()
 {
     if (!m_startTime.isValid())
         return;
+
+    // update scene size based on pixels from start
     QList<QGraphicsView *> viewports = views();
-    int minWidth = viewports.isEmpty() ? 0 : viewports.first()->width();
+    int minWidth = viewports.isEmpty() ? 100 : viewports.first()->width();
     int contentsWidth = (m_startTime.elapsed() * m_pixelPerSecond) / 1000;
     setSceneRect(0, 0, qMax(contentsWidth, minWidth), fixedHeight());
     update();
 
     // if locked scrolling, update view's scrollbar too
     if (m_scrollLocked && !views().isEmpty()) {
-        TasksScroller * widget = dynamic_cast<TasksScroller *>(views().first());
-        widget->horizontalScrollBar()->setValue(contentsWidth);
+        if (TasksScroller * widget = qobject_cast<TasksScroller *>(views().first()))
+            widget->horizontalScrollBar()->setValue(contentsWidth);
     }
 
-    // ### HACK AHEAD
+    // SYNC TASKS
+    if (!m_tasksModel)
+        return;
 
-    // RANDOM TASK DELETION
-    if ((qrand() % 50) == 42 && !m_currentTasks.isEmpty()) {
-        TaskRectangle * i = m_currentTasks.takeAt(qrand() % m_currentTasks.size());
-        (void)i;
-        //removeItem(i);
-        //delete i;
-    }
+    QList<quint32> taskIds = m_tasksModel->activeTasksId();
+    foreach (quint32 taskId, taskIds) {
+        TaskItem *task = m_tasksModel->task(taskId);
 
-    // TASK UPDATE
-    foreach (TaskRectangle * item, m_currentTasks)
-        item->setEnd(contentsWidth);
+        // update if found
+        bool missing = true;
+        foreach (TaskRectangle *rect, m_currentTasks) {
+            if (rect->taskId() == taskId) {
+                missing = false;
 
-    // RANDOM TASK ACTIVATION
-    static bool first = true;
-    if (first || (qrand() % 70) == 42) {
-        first = false;
-        TaskRectangle * i = new TaskRectangle(contentsWidth);
-        addItem(i);
-        m_currentTasks.append(i);
+                // delete if expired
+                if (!task->isActive()) {
+                    m_currentTasks.removeAll(rect);
+                    delete rect;
+                }
+                // or update size
+                else {
+                    rect->updateSize(contentsWidth, task->progress());
+                }
+                break;
+            }
+        }
+
+        // create if missing
+        if (missing && task->isActive()) {
+            TaskRectangle * i = new TaskRectangle(taskId, contentsWidth);
+            addItem(i);
+            m_currentTasks.append(i);
+            continue;
+        }
     }
 }

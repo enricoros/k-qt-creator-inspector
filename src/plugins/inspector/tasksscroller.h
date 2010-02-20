@@ -30,10 +30,11 @@
 #ifndef TASKSSCROLLER_H
 #define TASKSSCROLLER_H
 
-#include <QBasicTimer>
-#include <QGraphicsScene>
-#include <QGraphicsView>
-#include <QTime>
+#include <QtCore/QBasicTimer>
+#include <QtCore/QTime>
+#include <QtGui/QGraphicsScene>
+#include <QtGui/QGraphicsView>
+#include <QtGui/QGraphicsWidget>
 
 namespace Inspector {
 namespace Internal {
@@ -72,9 +73,9 @@ private:
     TasksScene *m_scene;
 };
 
-/**
-  \brief The Scene to show scrolling tasks
-*/
+//
+// The Scene to show scrolling tasks
+//
 class TasksScene : public QGraphicsScene
 {
     Q_OBJECT
@@ -92,6 +93,8 @@ public:
     bool scrollLocked() const;
     void setScrollLocked(bool locked);
 
+    void setTasksModel(TasksModel *model);
+
 protected:
     // ::QGraphicsScene
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
@@ -101,11 +104,28 @@ protected:
 private:
     void regenScene();
     void updateCurrentScene();
+    TasksModel *m_tasksModel;
     QBasicTimer m_updateTimer;
     QTime m_startTime;
     bool m_scrollLocked;
     int m_pixelPerSecond;
     QList<TaskRectangle *> m_currentTasks;
+};
+
+class TaskRectangle : public QGraphicsWidget
+{
+public:
+    TaskRectangle(quint32 taskId, int left, QGraphicsItem * parent = 0);
+
+    quint32 taskId() const;
+    void updateSize(int right, int currentPercent);
+
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = 0);
+
+private:
+    quint32 m_taskId;
+    QBrush m_brush;
+    QList<int> m_percs;
 };
 
 } // namespace Internal

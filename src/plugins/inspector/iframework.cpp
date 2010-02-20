@@ -173,6 +173,9 @@ void IFramework::registerTask(IFrameworkTask *task)
     connect(task, SIGNAL(finished()),
             this, SLOT(slotTaskDeletionRequested()),
             Qt::QueuedConnection);
+    connect(task, SIGNAL(setProgress(int)),
+            this, SLOT(slotTaskSetProgress(int)),
+            Qt::DirectConnection);
 }
 
 void IFramework::unregisterTask(IFrameworkTask *task)
@@ -231,6 +234,12 @@ void IFramework::slotTaskDeletionRequested()
 
     // delete the task (deregistration will happen right away)
     task->deleteLater();
+}
+
+void IFramework::slotTaskSetProgress(int percent)
+{
+    if (IFrameworkTask *task = qobject_cast<IFrameworkTask *>(sender()))
+        m_tasksModel->setTaskProgress(task->taskUid(), percent);
 }
 
 void IFramework::slotTaskModelItemChanged(QStandardItem *item)

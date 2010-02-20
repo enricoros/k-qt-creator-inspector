@@ -83,8 +83,10 @@ bool TaskItem::setRequestStop()
 
 void TaskItem::setProgress(int progress)
 {
-    m_progress = progress;
-    emitDataChanged();
+    if (progress != m_progress) {
+        m_progress = progress;
+        emitDataChanged();
+    }
 }
 
 quint32 TaskItem::tid() const
@@ -247,6 +249,12 @@ bool TasksModel::stopTask(quint32 tid)
     if (stopped)
         setItemValue(Tasks_Row, 1, itemValue(Tasks_Row, 1).toInt() - 1);
     return true;
+}
+
+void TasksModel::setTaskProgress(quint32 tid, int percent)
+{
+    if (TaskItem *item = task(tid))
+        item->setProgress(percent);
 }
 
 bool TasksModel::requestStopTask(quint32 tid)
