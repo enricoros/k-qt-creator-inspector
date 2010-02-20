@@ -31,6 +31,7 @@
 #define PAINTINGMODULE_H
 
 #include "iframeworkmodule.h"
+#include <QtGui/QImage>
 
 namespace Inspector {
 namespace Internal {
@@ -63,6 +64,7 @@ public:
 private:
     PaintingModel *m_model;
     QList<AbstractPanel *> m_panels;
+    QImage m_lastImage;
 
 private slots:
     void slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data);

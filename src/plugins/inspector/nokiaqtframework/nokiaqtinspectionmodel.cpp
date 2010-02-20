@@ -29,7 +29,7 @@
 
 #include "nokiaqtinspectionmodel.h"
 
-#include "../../../share/qtcreator/gdbmacros/perfunction.h"
+#include "../../../../share/qtcreator/gdbmacros/perfunction.h"
 
 using namespace Inspector::Internal;
 
@@ -112,9 +112,9 @@ QString NokiaQtInspectionModel::localServerName() const
 int NokiaQtInspectionModel::probeActivationFlags() const
 {
     // flags are in perfunction.h
-    int flags = Inspector::Internal::AF_None;
+    int flags = Inspector::Probe::AF_None;
     if (debugPaint())
-        flags |= Inspector::Internal::AF_PaintDebug;
+        flags |= Inspector::Probe::AF_PaintDebug;
     return flags;
 }
 

@@ -157,8 +157,8 @@ DataSetTreeView::DataSetTreeView(PaintingModel *model, QWidget *parent)
 //
 Temperature3DView::Temperature3DView(PaintingModule *parentModule, QWidget *parent)
   : QWidget(parent)
-  , m_paintingModule(parentModule)
   , v(new VtkPrivate)
+  , m_paintingModule(parentModule)
 {
     QVBoxLayout *vLay = new QVBoxLayout(this);
     QSplitter *splitter = new QSplitter(Qt::Horizontal);

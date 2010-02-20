@@ -37,6 +37,11 @@
 class QLocalServer;
 
 namespace Inspector {
+
+namespace Probe {
+struct RegularMeshRealData;
+}
+
 namespace Internal {
 
 class NokiaQtInspectionModel;
@@ -48,6 +53,9 @@ class LocalCommServer : public QObject
 public:
     LocalCommServer(NokiaQtInspectionModel *, QObject *parent = 0);
     ~LocalCommServer();
+
+    static bool decodeImage(QByteArray *data, QImage *image);
+    static bool decodeMesh(QByteArray *data, Inspector::Probe::RegularMeshRealData *mesh);
 
 signals:
     void incomingData(quint32 channel, quint32 code1, QByteArray *data);

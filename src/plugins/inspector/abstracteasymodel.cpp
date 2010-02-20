@@ -52,6 +52,10 @@ AbstractEasyModel::~AbstractEasyModel()
 
 void AbstractEasyModel::setItemValue(int row, int column, const QVariant &value, int role)
 {
+    if (QStandardItem *it = item(row, column)) {
+        it->setData(value, role);
+        return;
+    }
     QStandardItem *item = new QStandardItem;
     item->setEditable(true);
     item->setData(value, role);
