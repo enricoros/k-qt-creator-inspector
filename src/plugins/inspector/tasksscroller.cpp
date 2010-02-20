@@ -54,6 +54,11 @@ TasksScroller::TasksScroller(QWidget *parent)
     setScene(m_scene);
 }
 
+TasksScroller::~TasksScroller()
+{
+    delete m_scene;
+}
+
 void TasksScroller::setTasksModel(TasksModel *model)
 {
     // clear previous model data
@@ -64,7 +69,7 @@ void TasksScroller::setTasksModel(TasksModel *model)
 
     // set new model
     m_tasksModel = model;
-    m_scene->setTasksModel(model);
+    m_scene->setTasksModel(m_tasksModel);
 
     // handle new model's data
     if (m_tasksModel) {
@@ -126,13 +131,21 @@ void TasksScroller::slotTasksChanged()
 //
 // TaskRectangle
 //
-TaskRectangle::TaskRectangle(quint32 taskId, int left, QGraphicsItem * parent)
+TaskRectangle::TaskRectangle(quint32 taskId, int left, const QColor &baseColor, QGraphicsItem *parent)
   : QGraphicsWidget(parent)
   , m_taskId(taskId)
 {
     setPos(left - 1, 2);
     resize(2, TasksScene::fixedHeight() - 4);
-    m_brush = QColor::fromHsv(60 * (qrand() % 6), 255, 200, 128);
+
+    QColor color = baseColor;
+    m_contourPen = QPen(color.dark(), 1);
+
+    color.setAlpha(128);
+    m_backBrush = color.dark();
+
+    color.setAlpha(200);
+    m_foreBrush = color.light();
 }
 
 quint32 TaskRectangle::taskId() const
@@ -151,33 +164,36 @@ void TaskRectangle::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
-    QRect rect = boundingRect().toRect().adjusted(0, 0, -1, -1);
-    if (rect.width() > 2) {
-        painter->setRenderHint(QPainter::Antialiasing, false);
-        painter->setPen(QPen(Qt::lightGray, 1));
-        painter->setBrush(m_brush);
-        painter->drawRect(rect);
+    QRect rect = boundingRect().toRect();
+    if (rect.width() < 2)
+        return;
 
-        // draw the percent polygon
-        int h = size().height();
-        int x = 0;
-        foreach (int val, m_percs) {
-            int y = h * (0.9 - 0.8*(qreal)val / 100.0);
-            painter->fillRect(++x, y, 1, h - y - 1, QColor(255, 255, 255, 64));
-        }
+    painter->setRenderHint(QPainter::Antialiasing, false);
+    painter->setPen(QPen(Qt::lightGray, 1));
+    painter->setBrush(m_backBrush);
+    painter->drawRect(rect.adjusted(0, 0, -1, -1));
 
-        QRect r = rect.adjusted(2, 1, -2, 1);
-        if (r.width() > 2) {
-            QFont font = painter->font();
-            font.setPointSize(font.pointSize() - 2);
-            painter->setFont(font);
-            painter->setPen(Qt::black);
-            painter->setBrush(Qt::NoBrush);
-            painter->setRenderHint(QPainter::TextAntialiasing, true);
-            painter->drawText(r.adjusted(1, 1, 1, 1), Qt::AlignVCenter, tr("..."));
-            painter->setPen(Qt::white);
-            painter->drawText(r, Qt::AlignVCenter, tr("..."));
-        }
+    // draw the percent polygon
+    painter->setBrush(m_foreBrush);
+    const int pH = rect.height() - 2;
+    int x = 1;
+    foreach (int val, m_percs) {
+        int y = (pH * val) / 100.0;
+        painter->fillRect(x, pH - y + 1, 1, y, m_foreBrush);
+        x++;
+    }
+
+    QRect r = rect.adjusted(2, 1, -2, 1);
+    if (r.width() > 2) {
+        QFont font = painter->font();
+        font.setPointSize(font.pointSize() - 2);
+        painter->setFont(font);
+        painter->setPen(Qt::black);
+        painter->setBrush(Qt::NoBrush);
+        painter->setRenderHint(QPainter::TextAntialiasing, true);
+        painter->drawText(r.adjusted(1, 1, 1, 1), Qt::AlignVCenter, tr("..."));
+        painter->setPen(Qt::white);
+        painter->drawText(r, Qt::AlignVCenter, tr("..."));
     }
 }
 
@@ -186,9 +202,9 @@ void TaskRectangle::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
 //
 TasksScene::TasksScene(QObject * parent)
   : QGraphicsScene(parent)
+  , m_tasksModel(0)
   , m_scrollLocked(true)
   , m_pixelPerSecond(10)
-  , m_tasksModel(0)
 {
     m_updateTimer.start(100, this);
 }
@@ -298,7 +314,7 @@ void TasksScene::updateCurrentScene()
 
     QList<quint32> taskIds = m_tasksModel->activeTasksId();
     foreach (quint32 taskId, taskIds) {
-        TaskItem *task = m_tasksModel->task(taskId);
+        const TaskItem *task = m_tasksModel->constTask(taskId);
 
         // update if found
         bool missing = true;
@@ -321,7 +337,7 @@ void TasksScene::updateCurrentScene()
 
         // create if missing
         if (missing && task->isActive()) {
-            TaskRectangle * i = new TaskRectangle(taskId, contentsWidth);
+            TaskRectangle * i = new TaskRectangle(taskId, contentsWidth, task->color());
             addItem(i);
             m_currentTasks.append(i);
             continue;

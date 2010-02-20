@@ -207,15 +207,19 @@ void IFramework::slotTaskActivationRequested()
         return;
     }
 
-    // TasksModel: create entry and start it
-    quint32 tId = task->taskUid();
-    QString taskName = tr("%1 (%2)").arg(task->displayName()).arg(tId);
-    if (!m_tasksModel->addTask(tId, taskName)) {
-        qWarning("IFramework::slotTaskActivationRequested: can't create the task %d", tId);
+    quint32 taskId = task->taskUid();
+    QString taskName = tr("%1 (%2)").arg(task->displayName()).arg(taskId);
+    QColor taskColor = QColor::fromHsv(60 * (qrand() % 6), 255, 200);
+
+    // create entry in the model
+    if (!m_tasksModel->addTask(taskId, taskName, taskColor)) {
+        qWarning("IFramework::slotTaskActivationRequested: can't create the task %d", taskId);
         return;
     }
-    if (!m_tasksModel->startTask(tId)) {
-        qWarning("IFramework::slotTaskActivationRequested: can't start the task %d", tId);
+
+    // mark as started
+    if (!m_tasksModel->startTask(taskId)) {
+        qWarning("IFramework::slotTaskActivationRequested: can't start the task %d", taskId);
         return;
     }
 
