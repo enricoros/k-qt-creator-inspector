@@ -46,7 +46,7 @@ public:
     // ::IFramework
     bool startInspection(const InspectionTarget &);
     bool isTargetConnected() const;
-    int infoModuleUid() const;
+    int defaultModuleUid() const;
 
 private:
     friend class NvidiaCudaFrameworkFactory;

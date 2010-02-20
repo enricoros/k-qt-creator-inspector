@@ -56,6 +56,7 @@ public:
     virtual ~IFrameworkTask();
 
     virtual QString displayName() const = 0;
+    quint32 taskUid() const;
 
 protected slots:
     virtual void activateTask() { }

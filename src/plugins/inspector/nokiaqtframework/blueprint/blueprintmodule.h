@@ -35,6 +35,9 @@
 namespace Inspector {
 namespace Internal {
 
+// constants
+const int UID_MODULE_BLUEPRINT = 4;
+
 class NokiaQtFramework;
 
 class BlueprintModule : public IFrameworkModule
@@ -45,8 +48,7 @@ public:
     BlueprintModule(NokiaQtFramework *, QObject *parent = 0);
 
     // ::IFrameworkModule
-    enum { Uid = 0x04 };
-    int uid() const { return Uid; }
+    int uid() const { return UID_MODULE_BLUEPRINT; }
     QString name() const;
     ModuleMenuEntries menuEntries() const;
     AbstractPanel *createPanel(int panelId);

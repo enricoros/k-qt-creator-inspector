@@ -86,6 +86,7 @@ class IFrameworkTaskPrivate
 public:
     IFramework *framework;
     QStateMachine stateMachine;
+    quint32 taskId;
 };
 
 } // namespace Internal
@@ -115,7 +116,9 @@ IFrameworkTask::IFrameworkTask(IFramework *framework, QObject *parent)
   : QObject(parent)
   , d(new IFrameworkTaskPrivate)
 {
+    static quint32 s_baseTaskId = 1;
     d->framework = framework;
+    d->taskId = s_baseTaskId++;
 
     // StateMachine configuration
 
@@ -132,6 +135,7 @@ IFrameworkTask::IFrameworkTask(IFramework *framework, QObject *parent)
     // 2. configure transitions
     sIdle->addTransition(new TestTransition(TestEvent::Wait, sWait));
     sIdle->addTransition(new TestTransition(TestEvent::Activate, sActive));
+    sIdle->addTransition(new TestTransition(TestEvent::Refuse, sDeactivate));
     sWait->addTransition(new TestTransition(TestEvent::Refuse, sIdle));
     sWait->addTransition(new TestTransition(TestEvent::Activate, sActive));
     sActive->addTransition(new TestTransition(TestEvent::Deactivate, sDeactivate));
@@ -154,6 +158,11 @@ IFrameworkTask::~IFrameworkTask()
     // unregisters this from the IFramework
     d->framework->unregisterTask(this);
     delete d;
+}
+
+quint32 IFrameworkTask::taskUid() const
+{
+    return d->taskId;
 }
 
 void IFrameworkTask::controlActivate()

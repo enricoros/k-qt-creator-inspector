@@ -57,7 +57,7 @@ public:
     // ::IFramework
     bool startInspection(const InspectionTarget &);
     bool isTargetConnected() const;
-    int infoModuleUid() const;
+    int defaultModuleUid() const;
 
     // ### move this
     void callProbeFunction(const QString &name, const QVariantList &args);

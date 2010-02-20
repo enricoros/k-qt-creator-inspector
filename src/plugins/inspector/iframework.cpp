@@ -197,18 +197,26 @@ void IFramework::setTaskActivationEnabled(bool enabled)
 void IFramework::slotTaskActivationRequested()
 {
     IFrameworkTask *task = qobject_cast<IFrameworkTask *>(sender());
-    if (!task || !m_taskActivationEnabled)
+    QTC_ASSERT(task, return);
+
+    if (!m_taskActivationEnabled) {
+        task->controlRefuse();
         return;
+    }
 
     // TasksModel: create entry and start it
-    quint32 tId = m_tasksModel->addTask(task->displayName(), "provide description here");
+    quint32 tId = task->taskUid();
+    QString taskName = tr("%1 (%2)").arg(task->displayName()).arg(tId);
+    if (!m_tasksModel->addTask(tId, taskName)) {
+        qWarning("IFramework::slotTaskActivationRequested: can't create the task %d", tId);
+        return;
+    }
     if (!m_tasksModel->startTask(tId)) {
-        qWarning("IFramework::slotTaskActivationRequested: can't start task %d", tId);
+        qWarning("IFramework::slotTaskActivationRequested: can't start the task %d", tId);
         return;
     }
 
     // activate Task
-    task->setProperty("tId", tId);
     task->controlActivate();
 }
 
@@ -216,11 +224,10 @@ void IFramework::slotTaskDeletionRequested()
 {
     IFrameworkTask *task = qobject_cast<IFrameworkTask *>(sender());
     QTC_ASSERT(task, return);
-    quint32 tId = task->property("tId").toUInt();
 
     // TasksModel: finish the task
-    if (!m_tasksModel->stopTask(tId))
-        qWarning("IFramework::slotTaskDeletionRequested: can't stop task %d", tId);
+    if (!m_tasksModel->stopTask(task->taskUid()))
+        qWarning("IFramework::slotTaskDeletionRequested: can't stop task %d", task->taskUid());
 
     // delete the task (deregistration will happen right away)
     task->deleteLater();
@@ -237,7 +244,7 @@ void IFramework::slotTaskModelItemChanged(QStandardItem *item)
     if (taskItem->requestStop()) {
         quint32 tId = taskItem->tid();
         foreach (IFrameworkTask *task, m_tasks)
-            if (task->property("tId").toUInt() == tId)
+            if (task->taskUid() == tId)
                 task->controlDeactivate();
     }
 }

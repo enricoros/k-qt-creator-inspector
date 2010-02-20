@@ -44,7 +44,7 @@ class TemperaturePanel : public AbstractPanel, public Ui::TemperaturePanel
     Q_OBJECT
 
 public:
-    TemperaturePanel(PaintingModule *parentModule);
+    TemperaturePanel(PaintingModule *);
 
 private slots:
     // 'new test' slots
@@ -59,6 +59,9 @@ private slots:
     // results slots
     void slotResultActivated(const QModelIndex &index);
     void slotExportClicked();
+
+private:
+    PaintingModule *m_paintingModule;
 };
 
 } // namespace Internal

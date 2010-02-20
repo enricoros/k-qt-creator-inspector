@@ -31,6 +31,8 @@
 #define PAINTINGMODULE_H
 
 #include "iframeworkmodule.h"
+#include "iframeworktask.h"
+#include <QtCore/QVariantList>
 #include <QtGui/QImage>
 
 namespace Inspector {
@@ -58,14 +60,43 @@ public:
     ModuleMenuEntries menuEntries() const;
     AbstractPanel *createPanel(int panelId);
 
+    void startTemperatureTest(const QString &testTitle, const QVariantList &options);
+
 private:
+    NokiaQtFramework *m_framework;
     PaintingModel *m_model;
-    QList<AbstractPanel *> m_panels;
-    QImage m_lastImage;
+};
+
+
+/**
+  \brief Handles a Painting Temperature test
+*/
+class PaintingTemperatureTask : public IFrameworkTask
+{
+    Q_OBJECT
+
+public:
+    PaintingTemperatureTask(NokiaQtFramework *,
+                            PaintingModel *,
+                            const QVariantList &options,
+                            const QString &testTitle,
+                            QObject *parent = 0);
+
+    // ::IFrameworkTask
+    QString displayName() const;
+    void activateTask();
+    void deactivateTask();
 
 private slots:
     void slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data);
-    void slotPanelDestroyed();
+
+private:
+    NokiaQtFramework *m_framework;
+    PaintingModel *m_model;
+    QVariantList m_options;
+    QString m_testTitle;
+
+    QImage m_lastImage;
 };
 
 } // namespace Internal
