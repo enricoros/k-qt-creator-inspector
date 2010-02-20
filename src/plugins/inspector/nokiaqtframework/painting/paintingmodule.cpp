@@ -128,10 +128,12 @@ void PaintingTemperatureTask::slotProcessIncomingData(quint32 channel, quint32 c
     case 2:     // end
         deactivateTask();
         break;
-    case 3:     // percent
-        m_model->setPtProgress(qBound(0, QString(*data).toInt(), 100));
-        break;
-    case 4:    // base image
+    case 3: {   // percent
+        int percent = qBound(0, QString(*data).toInt(), 100);
+        m_model->setPtProgress(percent);
+        setProgress(percent);
+        } break;
+    case 4:     // base image
         LocalCommServer::decodeImage(data, &m_lastImage);
         break;
     case 5: {   // mesh data

@@ -102,6 +102,7 @@ protected:
 private slots:
     void slotTaskActivationRequested();
     void slotTaskDeletionRequested();
+    void slotTaskSetProgress(int percent);
     void slotTaskModelItemChanged(QStandardItem*);
 
 private:

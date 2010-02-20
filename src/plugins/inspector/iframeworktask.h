@@ -66,6 +66,7 @@ protected slots:
 
 signals:
     void requestActivation();
+    void setProgress(int percent);
     void finished();
 
 private:

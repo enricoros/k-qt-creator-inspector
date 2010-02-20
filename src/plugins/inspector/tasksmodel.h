@@ -38,6 +38,7 @@ namespace Internal {
 
 class IFramework;
 class TaskItem;
+class TasksScene;
 
 class TasksModel : public AbstractEasyModel
 {
@@ -57,9 +58,11 @@ public:
 
 private:
     friend class IFramework;
+    friend class TasksScene; // Temp
     bool addTask(quint32 tid, const QString &name, const QString &description = QString());
     bool startTask(quint32 tid);
     bool stopTask(quint32 tid);
+    void setTaskProgress(quint32 tid, int percent);
     TaskItem *task(quint32 tid) const;
     QStandardItem *tasksRoot() const;
 };
