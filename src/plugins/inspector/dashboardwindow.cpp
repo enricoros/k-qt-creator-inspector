@@ -366,7 +366,7 @@ void DashboardWindow::slotInspectionRemoved(Inspection *removedInspection)
             m_inspections.removeAt(index);
             QWidget *iWidget = m_inspectionWidgets.takeAt(index);
             m_inspectionsLayout->removeWidget(iWidget);
-            iWidget->deleteLater();
+            delete iWidget;
             break;
         }
     }
