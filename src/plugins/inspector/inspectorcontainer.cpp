@@ -106,7 +106,7 @@ void InspectorContainer::slotInspectionRemoved(Inspection *inspection)
             m_inspections.removeAll(inspectionWindow);
             disconnect(inspectionWindow, 0, this, 0);
             m_centralWidget->removeWidget(inspectionWindow);
-            inspectionWindow->deleteLater();
+            delete inspectionWindow;
             m_topbarWidget->removeTab(tabIndex);
             return;
         }
