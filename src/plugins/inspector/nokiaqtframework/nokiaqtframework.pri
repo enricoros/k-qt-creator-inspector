@@ -30,3 +30,17 @@ FORMS += \
 
 RESOURCES += \
     $$PWD/nokiaqtframework.qrc
+
+contains(CONFIG, USE_VTK) {
+DEFINES += \
+    INSPECTOR_PAINTING_VTK
+
+HEADERS += \
+    $$PWD/painting/temperature3dview.h
+
+SOURCES += \
+    $$PWD/painting/temperature3dview.cpp
+
+INCLUDEPATH += /usr/include/vtk
+LIBS += -lQVTK
+}

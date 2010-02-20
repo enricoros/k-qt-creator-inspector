@@ -27,62 +27,56 @@
 **
 **************************************************************************/
 
-#ifndef PAINTINGMODEL_H
-#define PAINTINGMODEL_H
+#ifndef TEMPERATURE3DVIEW_H
+#define TEMPERATURE3DVIEW_H
 
-#include "abstracteasymodel.h"
-#include <QDateTime>
-#include <QPixmap>
-#include <QStandardItem>
+#include <QListView>
+#include <QWidget>
+class QLabel;
+class vtkCommand;
+class vtkObject;
 
 namespace Inspector {
 namespace Internal {
 
-class TemperatureItem : public QStandardItem
-{
-public:
-    TemperatureItem(const QDateTime &dt, qreal duration, const QString &desc, const QString &options, const QPixmap &image);
+class DataSetTreeView;
+class PaintingModel;
+class PaintingModule;
 
-    QDateTime date() const;
-    qreal duration() const;
-    QString description() const;
-    QString options() const;
-    QPixmap image() const;
-    QPixmap previewImage() const;
-
-    static const int previewWidth  = 80;
-    static const int previewHeight = 60;
-
-private:
-    QDateTime m_dateTime;
-    qreal m_duration;
-    QString m_description;
-    QString m_options;
-    QPixmap m_pixmap;
-    QPixmap m_previewPixmap;
-};
-
-class PaintingModel : public AbstractEasyModel
+class Temperature3DView : public QWidget
 {
     Q_OBJECT
 
 public:
-    PaintingModel(QObject *parent = 0);
-    ~PaintingModel();
+    Temperature3DView(PaintingModule *parentModule, QWidget *parent = 0);
+    ~Temperature3DView();
 
-    void addPtResult(const QDateTime &, qreal duration, const QString &description, const QString &options, const QPixmap &image);
-    QModelIndex resultsTableIndex() const;
-    const TemperatureItem *result(int row) const;
-
-    void setPtProgress(int progress);
-    int ptProgress() const;
+private slots:
+    void slotContextMenu(vtkObject *obj, unsigned long, void *client_data,
+                         void *, vtkCommand *command);
+    void slotContextAction(QAction *);
+    void slotUpdateCoords(vtkObject *);
 
 private:
-    void loadData();
-    void saveData();
+    class VtkPrivate;
+    VtkPrivate *v;
+
+    PaintingModule *m_paintingModule;
+    DataSetTreeView *m_dataSetView;
+    QLabel *m_coordLabel;
+};
+
+class DataSetTreeView : public QListView
+{
+    Q_OBJECT
+
+public:
+    DataSetTreeView(PaintingModel *model, QWidget *parent = 0);
+
+
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // PAINTINGMODEL_H
+#endif // TEMPERATUREPANEL_H

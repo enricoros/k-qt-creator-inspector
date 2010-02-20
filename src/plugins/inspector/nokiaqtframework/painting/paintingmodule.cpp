@@ -129,7 +129,7 @@ void PaintingModule::slotProcessIncomingData(quint32 channel, quint32 code1, QBy
         dataReader >> format;
         dataReader >> contents;
         QImage image((uchar *)contents.data(), size.width(), size.height(), (QImage::Format)format);
-        m_model->addResult(QDateTime::currentDateTime(), 1.0, "test", "test", QPixmap::fromImage(image));
+        m_model->addPtResult(QDateTime::currentDateTime(), 1.0, "description", "options", QPixmap::fromImage(image));
         } break;
     default:
         qWarning("PaintingModule::slotProcessIncomingData: unhandled code1 %d", code1);

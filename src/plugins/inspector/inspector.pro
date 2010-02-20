@@ -5,6 +5,9 @@ QT += gui \
     network \
     svg
 
+# experimental visualization using Vtk
+CONFIG += USE_VTK
+
 include(../../qtcreatorplugin.pri)
 include(inspector_dependencies.pri)
 
