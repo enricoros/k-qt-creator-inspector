@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>652</width>
-    <height>401</height>
+    <width>650</width>
+    <height>399</height>
    </rect>
   </property>
   <layout class="QGridLayout" name="gridLayout">
@@ -387,22 +387,14 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>387</width>
-            <height>303</height>
+            <width>367</width>
+            <height>298</height>
            </rect>
           </property>
          </widget>
         </widget>
        </item>
       </layout>
-     </widget>
-     <widget class="QWidget" name="comparisonPage">
-      <property name="autoFillBackground">
-       <bool>true</bool>
-      </property>
-      <attribute name="title">
-       <string>3D Comparison</string>
-      </attribute>
      </widget>
     </widget>
    </item>

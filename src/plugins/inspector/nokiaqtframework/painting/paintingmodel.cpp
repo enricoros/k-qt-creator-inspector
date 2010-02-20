@@ -112,10 +112,11 @@ PaintingModel::~PaintingModel()
     saveData();
 }
 
-void PaintingModel::addResult(const QDateTime &date, qreal duration, const QString &description, const QString &options, const QPixmap &image)
+void PaintingModel::addPtResult(const QDateTime &date, qreal duration, const QString &description, const QString &options, const QPixmap &image)
 {
     // add item
     TemperatureItem *resultItem = new TemperatureItem(date, duration, description, options, image);
+    resultItem->setCheckable(true);
     item(Results_Row, 1)->insertRow(0, resultItem);
 
     // refresh counter

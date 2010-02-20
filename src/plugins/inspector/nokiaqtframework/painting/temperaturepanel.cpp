@@ -34,9 +34,14 @@
 #include "paintingmodel.h"
 #include "paintingmodule.h"
 #include "../nokiaqtframework.h"
-#include <QPainter>
-#include <QPalette>
-#include <QStyledItemDelegate>
+
+#include <QtGui/QPainter>
+#include <QtGui/QPalette>
+#include <QtGui/QStyledItemDelegate>
+
+#if defined(INSPECTOR_PAINTING_VTK)
+#include "temperature3dview.h"
+#endif
 
 using namespace Inspector::Internal;
 
@@ -118,6 +123,11 @@ TemperaturePanel::TemperaturePanel(PaintingModule *parentModule)
   : AbstractPanel(parentModule)
 {
     setupUi(this);
+
+#if defined(INSPECTOR_PAINTING_VTK)
+    Temperature3DView *tView = new Temperature3DView(parentModule);
+    resultsTabWidget->addTab(tView, tr("3D Comparison"));
+#endif
 
     // wire-up controls
     connect(passesBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckIterations()));
