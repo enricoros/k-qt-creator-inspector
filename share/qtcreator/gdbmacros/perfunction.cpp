@@ -29,24 +29,23 @@
 
 #include "perfunction.h"
 
-#include <QCoreApplication>
-#include <QObject>
+#include <QtCore/QCoreApplication>
+#include <QtCore/QObject>
+#include <QtCore/QMetaMethod>
 
-#include <QLocalSocket>
+#include <QtNetwork/QLocalSocket>
+
+#include <QtGui/QApplication>
+#include <QtGui/QFont>
+#include <QtGui/QPainter>
+#include <QtGui/QPaintEvent>
+#include <QtGui/QWidget>
 
 #if 0
-#include <QTime>
+#include <QtCore/QTime>
 #else
 #include <sys/time.h>
 #endif
-
-#include <QMetaMethod>
-
-#include <QApplication>
-#include <QPainter>
-#include <QPaintEvent>
-#include <QWidget>
-#include <QFont>
 
 #define IP_NAME "QtCreator Inspector Plugin"
 
@@ -137,109 +136,127 @@ EventNotify Activation, qcoreapplication.cpp:
 #endif
 #define CONSOLE_PRINT(...) do {fprintf(stderr, "%s:%d %s: ", __FILE__, __LINE__, PF_PRETTY_FUNCTION); fprintf(stderr, __VA_ARGS__); fprintf(stderr,"\n");} while(0)
 
+namespace Inspector {
+namespace Probe {
 
-class InspCommClient {
-    public:
-        InspCommClient(const char * serverName)
-            : m_fencing(false)
-        {
-            m_sock = new QLocalSocket();
-            m_sock->connectToServer(serverName, QIODevice::WriteOnly | QIODevice::Unbuffered);
-            m_connected = m_sock->waitForConnected(10000);
-            if (!m_connected)
-                printError("can't establish connection to the Inspector server");
-        }
+class CommClient {
+public:
+    CommClient(const char * serverName)
+        : m_fencing(false)
+    {
+        m_sock = new QLocalSocket();
+        m_sock->connectToServer(serverName, QIODevice::WriteOnly | QIODevice::Unbuffered);
+        m_connected = m_sock->waitForConnected(10000);
+        if (!m_connected)
+            printError("can't establish connection to the Inspector server");
+    }
 
-        ~InspCommClient()
-        {
-            delete m_sock;
-        }
+    ~CommClient()
+    {
+        delete m_sock;
+    }
 
-        bool isConnected() const
-        {
-            return m_connected;
-        }
+    bool isConnected() const
+    {
+        return m_connected;
+    }
 
-        bool sendCustom(quint32 channel, quint32 code1, const QByteArray &data = QByteArray())
-        {
-            return sendMarshalled(channel, code1, data);
-        }
+    bool sendCustom(quint32 channel, quint32 code1, const QByteArray &data = QByteArray())
+    {
+        return sendMarshalled(channel, code1, data);
+    }
 
-        bool sendInteger(quint32 channel, quint32 code1, int value)
-        {
-            return sendMarshalled(channel, code1, QString::number(value).toLatin1());
-        }
+    bool sendInteger(quint32 channel, quint32 code1, int value)
+    {
+        return sendMarshalled(channel, code1, QString::number(value).toLatin1());
+    }
 
-        bool sendDouble(quint32 channel, quint32 code1, double value)
-        {
-            return sendMarshalled(channel, code1, QString::number(value).toLatin1());
-        }
+    bool sendDouble(quint32 channel, quint32 code1, double value)
+    {
+        return sendMarshalled(channel, code1, QString::number(value).toLatin1());
+    }
 
-        bool sendImage(quint32 channel, quint32 code1, const QImage & image)
-        {
-            QByteArray imageData;
-            QDataStream dataWriter(&imageData, QIODevice::WriteOnly);
-            dataWriter << image.size();
-            dataWriter << (quint32)image.format();
-            dataWriter << QByteArray((const char *)image.bits(), image.numBytes());
-            return sendMarshalled(channel, code1, imageData);
-        }
+    bool sendImage(quint32 channel, quint32 code1, const QImage & image)
+    {
+        QByteArray imageData;
+        QDataStream dataWriter(&imageData, QIODevice::WriteOnly);
+        dataWriter << image.size();
+        dataWriter << (quint32)image.format();
+        dataWriter << QByteArray((const char *)image.bits(), image.numBytes());
+        return sendMarshalled(channel, code1, imageData);
+    }
+
+    bool sendMesh(quint32 channel, quint32 code1, const RegularMeshRealData &mesh)
+    {
+        QByteArray meshData;
+        QDataStream dataWriter(&meshData, QIODevice::WriteOnly);
+        dataWriter << mesh.physicalSize;
+        dataWriter << mesh.rows;
+        dataWriter << mesh.columns;
+        dataWriter << mesh.data;
+        return sendMarshalled(channel, code1, meshData);
+    }
 /*
-        bool sendMessage(const QString & string)
-        {
-            return sendMarshalled(Inspector::Internal::Channel_General, 0x01, string.toLatin1());
-        }
+    bool sendMessage(const QString & string)
+    {
+        return sendMarshalled(Inspector::Probe::Channel_General, 0x01, string.toLatin1());
+    }
 
-        bool sendError(const QString & string)
-        {
-            return sendMarshalled(Inspector::Internal::Channel_General, 0x02, string.toLatin1());
-        }
+    bool sendError(const QString & string)
+    {
+        return sendMarshalled(Inspector::Probe::Channel_General, 0x02, string.toLatin1());
+    }
 */
-        void printError(const QString & string) const
-        {
-            CONSOLE_PRINT("%s", qPrintable(string));
-        }
+    void printError(const QString & string) const
+    {
+        CONSOLE_PRINT("%s", qPrintable(string));
+    }
 
-        inline bool fencing() const
-        {
-            return m_fencing;
-        }
+    inline bool fencing() const
+    {
+        return m_fencing;
+    }
 
-    private:
-        inline bool sendMarshalled(quint32 channel, quint32 code1, const QByteArray &data)
-        {
-            // send the message
-            if (m_fencing) {
-                printError("writeData during fence!");
-                return false;
-            }
-            m_fencing = true;
-            const QByteArray marshalled = Inspector::Internal::marshallMessage(channel, code1, data);
-            m_sock->write(marshalled);
-            if (!m_sock->waitForBytesWritten(5000))
-                printError("error in waitForBytesWritten!");
-            m_sock->flush();
-            m_fencing = false;
-            return true;
+private:
+    inline bool sendMarshalled(quint32 channel, quint32 code1, const QByteArray &data)
+    {
+        // send the message
+        if (m_fencing) {
+            printError("writeData during fence!");
+            return false;
         }
+        m_fencing = true;
+        const QByteArray marshalled = Inspector::Probe::marshallMessage(channel, code1, data);
+        m_sock->write(marshalled);
+        if (!m_sock->waitForBytesWritten(5000))
+            printError("error in waitForBytesWritten!");
+        m_sock->flush();
+        m_fencing = false;
+        return true;
+    }
 
-        QLocalSocket * m_sock;
-        bool m_connected;
-        bool m_fencing;
+    QLocalSocket * m_sock;
+    bool m_connected;
+    bool m_fencing;
 };
 
-// static plugin data
-static InspCommClient * ipCommClient = 0;
-static bool ppDebugPainting = false;
-static bool ppWindowTemperature = false;
+} // namespace Probe
+} // namespace Inspector
 
+
+// static plugin data
+extern "C" {
+static Inspector::Probe::CommClient * ipCommClient = 0;
+static bool ipDebugPainting = false;
+static bool ipWindowTemperature = false;
+}
 
 static bool eventInterceptorCallback(void **data)
 {
     QEvent *event = reinterpret_cast<QEvent*>(data[1]);
     if (ipCommClient && !ipCommClient->fencing()
         && event->type() >= QEvent::Timer && event->type() <= QEvent::User
-        && !ppWindowTemperature) {
+        && !ipWindowTemperature) {
         static int stackDepth = 0;
         ++stackDepth;
         static int numE = 0;
@@ -265,7 +282,7 @@ static bool eventInterceptorCallback(void **data)
 
         // send out data
         // TODO: use a per-thread STACK for SIGNALS AND SLOTS SENDING HERE ?
-        ipCommClient->sendDouble(Inspector::Internal::Channel_Events, 0, elapsedMs);
+        ipCommClient->sendDouble(Inspector::Probe::Channel_Events, 0, elapsedMs);
 
         // check for too long events
         if (elapsedMs > 200) {
@@ -275,11 +292,11 @@ static bool eventInterceptorCallback(void **data)
             dataWriter << (quint32)event->type();
             dataWriter << elapsedMs;
             dataWriter << (receiver->metaObject()->className() ? receiver->metaObject()->className() : "null");
-            ipCommClient->sendCustom(Inspector::Internal::Channel_Events, 1, eventData);
+            ipCommClient->sendCustom(Inspector::Probe::Channel_Events, 1, eventData);
         }
 
         // show painting, if
-        if (ppDebugPainting && event->type() == QEvent::Paint) {
+        if (ipDebugPainting && event->type() == QEvent::Paint) {
             if (QWidget * widget = dynamic_cast<QWidget *>(receiver)) {
                 static int paintOpNumber = 0;
                 QPainter p(widget);
@@ -329,10 +346,10 @@ Q_DECL_EXPORT bool qInspectorActivate(const char * serverName, int activationFla
         ipCommClient->printError("already active");
         return false;
     } else
-        ipCommClient = new InspCommClient(serverName);
+        ipCommClient = new Inspector::Probe::CommClient(serverName);
 
     // 2. activation flags
-    ppDebugPainting = activationFlags & Inspector::Internal::AF_PaintDebug;
+    ipDebugPainting = activationFlags & Inspector::Probe::AF_PaintDebug;
 
     // 3. signal spy callback
     QSignalSpyCallbackSet set = {0, 0/*slotBeginCallback*/, 0, 0/*slotEndCallback*/};
@@ -342,7 +359,7 @@ Q_DECL_EXPORT bool qInspectorActivate(const char * serverName, int activationFla
     QInternal::registerCallback(QInternal::EventNotifyCallback, eventInterceptorCallback);
 
     CONSOLE_PRINT(IP_NAME": Activated");
-    ipCommClient->sendCustom(Inspector::Internal::Channel_General, 0x00);
+    ipCommClient->sendCustom(Inspector::Probe::Channel_General, 0x00);
     return true;
 }
 
@@ -389,11 +406,11 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
     }
 
     // signal the presence of this operation
-    ppWindowTemperature = true;
+    ipWindowTemperature = true;
 
     // tell that the operation has started
-    ipCommClient->sendCustom(Inspector::Internal::Channel_Painting, 1);
-    ipCommClient->sendInteger(Inspector::Internal::Channel_Painting, 3, 1);
+    ipCommClient->sendCustom(Inspector::Probe::Channel_Painting, 1);
+    ipCommClient->sendInteger(Inspector::Probe::Channel_Painting, 3, 1);
 
     // vars
     struct timeval tv1, tv2;
@@ -410,22 +427,24 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
         const int wCols = widget->width() / chunkWidth;
         const int wRows = widget->height() / chunkHeight;
         const int wRects = wCols * wRows;
-        QList<__TimedRect> wTimedRects;
+        QVector<__TimedRect> wTimedRects;
         {
-            int x1 = 0;
-            for (int col = 0; col < wCols; col++) {
-                int x2 = (wW * (col + 1)) / wCols;
-                int y1 = 0;
-                for (int row = 0; row < wRows; row++) {
-                    int y2 = (wH * (row + 1)) / wRows;
+            int y1 = 0;
+            for (int row = 0; row < wRows; row++) {
+                int y2 = (wH * (row + 1)) / wRows;
+                int x1 = 0;
+                for (int col = 0; col < wCols; col++) {
+                    int x2 = (wW * (col + 1)) / wCols;
                     __TimedRect tRect;
-                    tRect.rect = QRect(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
+                    tRect.rect = QRect(x1, y1, x2 - x1, y2 - y1);
                     wTimedRects.append(tRect);
-                    y1 = y2 + 1;
+                    x1 = x2;
                 }
-                x1 = x2 + 1;
+                y1 = y2;
             }
         }
+        if (consoleDebug)
+            CONSOLE_PRINT("done subdivision");
 
         // do the test over the widget
         QImage baseImage(wW, wH, QImage::Format_ARGB32);
@@ -434,7 +453,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
         if (consoleDebug)
             CONSOLE_PRINT("send snapshot");
 
-        ipCommClient->sendImage(Inspector::Internal::Channel_Painting, 4, baseImage);
+        ipCommClient->sendImage(Inspector::Probe::Channel_Painting, 4, baseImage);
 
         QImage testImage(wW, wH, QImage::Format_ARGB32);
         testImage.fill(0);
@@ -472,7 +491,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
                 if (percCycle >= percStep) {
                     int percent = (percProgress * 100) / percTotal;
                     percCycle = 0;
-                    ipCommClient->sendInteger(Inspector::Internal::Channel_Painting, 3, percent);
+                    ipCommClient->sendInteger(Inspector::Probe::Channel_Painting, 3, percent);
                     if (consoleDebug)
                         CONSOLE_PRINT("%d done", percent);
                 }
@@ -480,12 +499,12 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
         }
 
         // tell that we reached 100%
-        ipCommClient->sendInteger(Inspector::Internal::Channel_Painting, 3, 100);
+        ipCommClient->sendInteger(Inspector::Probe::Channel_Painting, 3, 100);
         if (consoleDebug)
             CONSOLE_PRINT("100 done");
 
         // single rect: drop min/max measured time value(s)
-        QList<__TimedRect>::iterator rIt = wTimedRects.begin(), rEnd = wTimedRects.end();
+        QVector<__TimedRect>::iterator rIt = wTimedRects.begin(), rEnd = wTimedRects.end();
         for (; rIt != rEnd; rIt++) {
             __TimedRect & tRect = *rIt;
             tRect.totalTime = 0;
@@ -496,50 +515,26 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
         if (consoleDebug)
             CONSOLE_PRINT("done statistics");
 
-        // all rects: find out boundaries and discard min and max
-        double tTotal = 0, tMax = 0, tMin = 0;
-        foreach (const __TimedRect & tRect, wTimedRects) {
-            if (tRect.totalTime > tMax)
-                tMax = tRect.totalTime;
-            if (tRect.totalTime < tMin || tMin == 0)
-                tMin = tRect.totalTime;
-            tTotal += tRect.totalTime;
-        }
+        // send out the resulting Mesh
+        Inspector::Probe::RegularMeshRealData mesh;
+        mesh.physicalSize = QRect(0, 0, wW, wH);
+        mesh.rows = wRows;
+        mesh.columns = wCols;
+        foreach (const __TimedRect & tRect, wTimedRects)
+            mesh.data.append(tRect.totalTime);
+        ipCommClient->sendMesh(Inspector::Probe::Channel_Painting, 5, mesh);
         if (consoleDebug)
-            CONSOLE_PRINT("done buondaries");
+            CONSOLE_PRINT("done sending mesh");
 
-        // colorize the original image, and draw the legend
-        QPainter basePainter(&baseImage);
-        foreach (const __TimedRect & tRect, wTimedRects) {
-            double alpha = (tRect.totalTime - tMin) / (tMax - tMin);
-            QColor col = QColor::fromHsvF(0.67 - alpha * 0.67, 1.0, 1.0, 0.5 + 0.25*alpha);
-            basePainter.fillRect(tRect.rect, col);
-            //basePainter.setFont(QFont("Arial",8));
-            //basePainter.drawText(tRect.rect.topLeft() + QPoint(2,10), QString::number(tRect.time / (double)passes));
-        }
-        if (consoleDebug)
-            CONSOLE_PRINT("done colorization");
-
-        for (int x = 0; x <= 100; x++) {
-            double alpha = (double)x / 100.0;
-            QColor col = QColor::fromHsvF(0.67 - alpha * 0.67, 1.0, 1.0, 0.5 + 0.25*alpha);
-            basePainter.fillRect(wW - 10 - x, 10, 1, 20, col);
-        }
-        basePainter.end();
-        if (consoleDebug)
-            CONSOLE_PRINT("done painting");
-
-        // send out the result
-        ipCommClient->sendImage(Inspector::Internal::Channel_Painting, 5, baseImage);
-        if (consoleDebug)
-            CONSOLE_PRINT("done sending colorized image");
+        // process just the first widget
+        break;
     }
 
     // signal the presence of this operation
-    ppWindowTemperature = false;
+    ipWindowTemperature = false;
 
     // tell that the operation has finished
-    ipCommClient->sendCustom(Inspector::Internal::Channel_Painting, 2);
+    ipCommClient->sendCustom(Inspector::Probe::Channel_Painting, 2);
 
     // run event loop, to flush out the localsocket - FIXME - avoid this - DOESN'T WORK ANYWAY
     //app->processEvents();
