@@ -49,6 +49,7 @@ class TasksScroller : public QGraphicsView
 
 public:
     TasksScroller(QWidget *parent = 0);
+    ~TasksScroller();
 
     void setTasksModel(TasksModel *model);
     void setTransparentBackground(bool);
@@ -115,7 +116,7 @@ private:
 class TaskRectangle : public QGraphicsWidget
 {
 public:
-    TaskRectangle(quint32 taskId, int left, QGraphicsItem * parent = 0);
+    TaskRectangle(quint32 taskId, int left, const QColor &color, QGraphicsItem * parent = 0);
 
     quint32 taskId() const;
     void updateSize(int right, int currentPercent);
@@ -124,7 +125,9 @@ public:
 
 private:
     quint32 m_taskId;
-    QBrush m_brush;
+    QPen m_contourPen;
+    QBrush m_backBrush;
+    QBrush m_foreBrush;
     QList<int> m_percs;
 };
 

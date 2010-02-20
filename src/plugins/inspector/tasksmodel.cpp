@@ -37,116 +37,11 @@ Row 'Tasks_Row': tasks
   1: active count           int
   2: tasks                  LIST(TaskItem)
 */
-
-TaskItem::TaskItem(quint32 tid, const QString &name, const QString &description)
-  : QStandardItem(name)
-  , m_tid(tid)
-  , m_name(name)
-  , m_description(description)
-  , m_started(false)
-  , m_stopped(false)
-  , m_duration(0)
-  , m_requestStop(false)
-  , m_progress(0)
-{
-}
-
-bool TaskItem::start()
-{
-    m_started = true;
-    m_start = QDateTime::currentDateTime();
-    emitDataChanged();
-    return true;
-}
-
-bool TaskItem::stop()
-{
-    if (m_started) {
-        m_stopped = true;
-        m_stop = QDateTime::currentDateTime();
-        m_duration = m_stop.toTime_t() - m_start.toTime_t()
-                     + ((qreal)(m_stop.time().msec() - m_start.time().msec())) / 1000.0;
-        emitDataChanged();
-        return true;
-    }
-    return false;
-}
-
-bool TaskItem::setRequestStop()
-{
-    if (m_stopped)
-        return false;
-    m_requestStop = true;
-    emitDataChanged();
-    return true;
-}
-
-void TaskItem::setProgress(int progress)
-{
-    if (progress != m_progress) {
-        m_progress = progress;
-        emitDataChanged();
-    }
-}
-
-quint32 TaskItem::tid() const
-{
-    return m_tid;
-}
-
-QString TaskItem::name() const
-{
-    return m_name;
-}
-
-QString TaskItem::description() const
-{
-    return m_description;
-}
-
-bool TaskItem::isActive() const
-{
-    return m_started && !m_stopped;
-}
-
-bool TaskItem::isStarted() const
-{
-    return m_started;
-}
-
-QDateTime TaskItem::startDate() const
-{
-    return m_start;
-}
-
-bool TaskItem::isEnded() const
-{
-    return m_stopped;
-}
-
-QDateTime TaskItem::endDate() const
-{
-    return m_stop;
-}
-
-qreal TaskItem::duration() const
-{
-    return m_duration;
-}
-
-bool TaskItem::requestStop() const
-{
-    return m_requestStop;
-}
-
-int TaskItem::progress() const
-{
-    return m_progress;
-}
-
-
 #define Tasks_Row     0
 
+//
+// TasksModel
+//
 TasksModel::TasksModel(QObject *parent)
   : Internal::AbstractEasyModel(parent)
 {
@@ -182,20 +77,32 @@ QList<quint32> TasksModel::activeTasksId() const
 
 QString TasksModel::taskName(quint32 taskId) const
 {
-    const TaskItem *item = task(taskId);
+    const TaskItem *item = constTask(taskId);
     return item ? item->name() : QString();
 }
 
-bool TasksModel::addTask(quint32 tid, const QString &name, const QString &description)
+const TaskItem *TasksModel::constTask(quint32 tid) const
+{
+    QStandardItem *root = tasksRoot();
+    int tasksCount = root->rowCount();
+    for (int task = 0; task < tasksCount; ++task) {
+        TaskItem *item = static_cast<TaskItem*>(root->child(task));
+        if (item->tid() == tid)
+            return item;
+    }
+    return 0;
+}
+
+bool TasksModel::addTask(quint32 tid, const QString &name, const QColor &color, const QString &description)
 {
     // safety check
-    if (task(tid)) {
+    if (constTask(tid)) {
         qWarning("TasksModel::addTask: already present %d", tid);
         return false;
     }
 
     // add item
-    TaskItem *taskItem = new TaskItem(tid, name, description);
+    TaskItem *taskItem = new TaskItem(tid, name, color, description);
     tasksRoot()->insertRow(0, taskItem);
 
     // refresh total tasks counter
@@ -290,4 +197,119 @@ TaskItem *TasksModel::task(quint32 tid) const
 QStandardItem *TasksModel::tasksRoot() const
 {
     return item(Tasks_Row, 2);
+}
+
+//
+// TasksItem
+//
+TaskItem::TaskItem(quint32 tid, const QString &name, const QColor &color, const QString &description)
+  : QStandardItem(name)
+  , m_tid(tid)
+  , m_name(name)
+  , m_color(color)
+  , m_description(description)
+  , m_started(false)
+  , m_stopped(false)
+  , m_duration(0)
+  , m_requestStop(false)
+  , m_progress(0)
+{
+}
+
+bool TaskItem::start()
+{
+    m_started = true;
+    m_start = QDateTime::currentDateTime();
+    emitDataChanged();
+    return true;
+}
+
+bool TaskItem::stop()
+{
+    if (m_started) {
+        m_stopped = true;
+        m_stop = QDateTime::currentDateTime();
+        m_duration = m_stop.toTime_t() - m_start.toTime_t()
+                     + ((qreal)(m_stop.time().msec() - m_start.time().msec())) / 1000.0;
+        emitDataChanged();
+        return true;
+    }
+    return false;
+}
+
+bool TaskItem::setRequestStop()
+{
+    if (m_stopped)
+        return false;
+    m_requestStop = true;
+    emitDataChanged();
+    return true;
+}
+
+void TaskItem::setProgress(int progress)
+{
+    if (progress != m_progress) {
+        m_progress = progress;
+        emitDataChanged();
+    }
+}
+
+quint32 TaskItem::tid() const
+{
+    return m_tid;
+}
+
+QString TaskItem::name() const
+{
+    return m_name;
+}
+
+QColor TaskItem::color() const
+{
+    return m_color;
+}
+
+QString TaskItem::description() const
+{
+    return m_description;
+}
+
+bool TaskItem::isActive() const
+{
+    return m_started && !m_stopped;
+}
+
+bool TaskItem::isStarted() const
+{
+    return m_started;
+}
+
+QDateTime TaskItem::startDate() const
+{
+    return m_start;
+}
+
+bool TaskItem::isEnded() const
+{
+    return m_stopped;
+}
+
+QDateTime TaskItem::endDate() const
+{
+    return m_stop;
+}
+
+qreal TaskItem::duration() const
+{
+    return m_duration;
+}
+
+bool TaskItem::requestStop() const
+{
+    return m_requestStop;
+}
+
+int TaskItem::progress() const
+{
+    return m_progress;
 }

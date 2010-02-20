@@ -31,7 +31,8 @@
 #define TASKSMODEL_H
 
 #include "abstracteasymodel.h"
-#include <QDateTime>
+#include <QtCore/QDateTime>
+#include <QtGui/QColor>
 
 namespace Inspector {
 namespace Internal {
@@ -52,14 +53,15 @@ public:
     int activeTasksCount() const;
     QList<quint32> activeTasksId() const;
     QString taskName(quint32 taskId) const;
+    const TaskItem *constTask(quint32 tid) const;
 
     // flag a task for stopping
     bool requestStopTask(quint32 tid);
 
 private:
     friend class IFramework;
-    friend class TasksScene; // Temp
-    bool addTask(quint32 tid, const QString &name, const QString &description = QString());
+    bool addTask(quint32 tid, const QString &name, const QColor &color,
+                 const QString &description = QString());
     bool startTask(quint32 tid);
     bool stopTask(quint32 tid);
     void setTaskProgress(quint32 tid, int percent);
@@ -70,7 +72,7 @@ private:
 class TaskItem : public QStandardItem
 {
 public:
-    TaskItem(quint32 tid, const QString &name, const QString &description);
+    TaskItem(quint32 tid, const QString &name, const QColor &color, const QString &description);
 
     // operations
     bool start();
@@ -81,6 +83,7 @@ public:
     // query status
     quint32 tid() const;
     QString name() const;
+    QColor color() const;
     QString description() const;
     bool isActive() const;
     bool isStarted() const;
@@ -94,6 +97,7 @@ public:
 private:
     quint32 m_tid;
     QString m_name;
+    QColor m_color;
     QString m_description;
     bool m_started;
     QDateTime m_start;
