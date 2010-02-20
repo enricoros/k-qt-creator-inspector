@@ -53,8 +53,8 @@ NokiaQtFramework::NokiaQtFramework(NokiaQtInspectionModel *model, ProbeInjecting
 {
     m_commServer = new LocalCommServer(m_model);
 
-    connect(m_piDebugger, SIGNAL(targetRunningChanged(bool)),
-            this, SLOT(slotTargetRunningChanged(bool)));
+    //connect(m_piDebugger, SIGNAL(targetRunningChanged(bool)),
+    //        this, SLOT(slotTargetRunningChanged(bool)));
     connect(m_piDebugger, SIGNAL(targetConnectedChanged(bool)),
             this, SLOT(slotTargetConnectedChanged(bool)));
 
@@ -85,9 +85,9 @@ bool NokiaQtFramework::startInspection(const InspectionTarget &target)
     return m_piDebugger->setInspectionTarget(target, localServerName);
 }
 
-bool NokiaQtFramework::targetIsConnected() const
+bool NokiaQtFramework::isTargetConnected() const
 {
-    return m_piDebugger->targetConnected();
+    return m_piDebugger->isTargetConnected();
 }
 
 int NokiaQtFramework::infoModuleUid() const
@@ -100,19 +100,11 @@ void NokiaQtFramework::callProbeFunction(const QString &name, const QVariantList
     m_piDebugger->callProbeFunction(name, args);
 }
 
-void NokiaQtFramework::slotTargetRunningChanged(bool running)
-{
-    Q_UNUSED(running);
-}
-
 void NokiaQtFramework::slotTargetConnectedChanged(bool connected)
 {
-    if (connected) {
-        emit targetConnected();
-    } else {
-        setModuleActivationEnabled(false);
-        emit targetDisconnected();
-    }
+    if (!connected)
+        setTaskActivationEnabled(false);
+    emit targetConnected(connected);
 }
 
 

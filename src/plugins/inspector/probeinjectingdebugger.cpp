@@ -103,12 +103,12 @@ void ProbeInjectingDebugger::closeInspection()
     }
 }
 
-bool ProbeInjectingDebugger::targetRunning() const
+bool ProbeInjectingDebugger::isTargetRunning() const
 {
     return m_targetRunning;
 }
 
-bool ProbeInjectingDebugger::targetConnected() const
+bool ProbeInjectingDebugger::isTargetConnected() const
 {
     return m_targetConnected;
 }
@@ -137,6 +137,7 @@ void ProbeInjectingDebugger::slotRunControlFinished()
 void ProbeInjectingDebugger::slotRunControlDestroyed()
 {
     QTC_ASSERT(!m_inspectorRunControl, /*This is here only to detect broken behaviors*/);
+    m_inspectorRunControl = 0;
 }
 
 // from here on, avoid typing Debugger:: ..

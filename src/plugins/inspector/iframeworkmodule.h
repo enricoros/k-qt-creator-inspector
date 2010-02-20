@@ -30,9 +30,9 @@
 #ifndef IFRAMEWORKMODULE_H
 #define IFRAMEWORKMODULE_H
 
-#include <QObject>
-#include <QIcon>
-#include <QList>
+#include <QtCore/QObject>
+#include <QtCore/QList>
+#include <QtGui/QIcon>
 
 namespace Inspector {
 namespace Internal {
@@ -49,8 +49,7 @@ struct ModuleMenuEntry {
     int moduleUid;
     int panelId;
 
-    ModuleMenuEntry(const QStringList &path, int moduleUid, int panelId, const QIcon &icon = QIcon())
-        : path(path), icon(icon), moduleUid(moduleUid), panelId(panelId) {}
+    ModuleMenuEntry(const QStringList &path, int moduleUid, int panelId, const QIcon &icon = QIcon());
 };
 
 typedef QList<ModuleMenuEntry> ModuleMenuEntries;
@@ -58,8 +57,7 @@ typedef QList<ModuleMenuEntry> ModuleMenuEntries;
 /**
   \brief Encapsulates functionalities relative to a probing context
 
-  Handles a certain type of tests, encapsulates communication, database,
-  panels and activation logic.
+  Handles a certain type of tests, encapsulates communication, data (models) and panels
 */
 class IFrameworkModule : public QObject
 {
@@ -67,44 +65,21 @@ class IFrameworkModule : public QObject
 
 public:
     IFrameworkModule(IFramework *, QObject *parent = 0);
-    virtual ~IFrameworkModule();
 
     // describe the module
     virtual int uid() const = 0;
     virtual QString name() const = 0;
     virtual ModuleMenuEntries menuEntries() const;
     virtual AbstractPanel *createPanel(int panelId);
-    //virtual QList<int> cmdClasses() const = 0;
-    //virtual * createCommSession(int cmdClass) = 0;
 
-    //virtual void frameworkStarted();
-
-    // useful references
+    // TODO: make this protected?
     IFramework *parentFramework() const;
 
 signals:
-    // requests IFramework to activate this module
-    void requestActivation(const QString &text);
-    // tells IFramework that this module is idle again
-    void deactivated();
-    // requests display of a panesl
     void requestPanelDisplay(int panelId);
 
-protected slots:
-    // reimplement to be notified when the state changes
-    virtual void slotActivate();
-    virtual void slotDeactivate();
-    virtual void slotLock();
-    virtual void slotUnlock();
-
 private:
-    // used by IFramework for state transitions
-    friend class IFramework;
-    void controlActivate();
-    void controlDeactivate();
-    void controlRefuse();
-    void controlWait();
-    struct IFrameworkModulePrivate *d;
+    IFramework *m_framework;
 };
 
 } // namespace Internal

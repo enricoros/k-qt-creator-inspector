@@ -139,18 +139,14 @@ void InspectionWindow::slotSetCurrentPanel(int moduleUid, int panelId)
     emit requestInspectionDisplay();
 }
 
-void InspectionWindow::slotFrameworkConnected()
+void InspectionWindow::slotFrameworkConnected(bool connected)
 {
-    m_messageLabel->label->setText(QString());
-    m_messageLabel->closeButton->hide();
-    m_messageLabel->hide();
-}
-
-void InspectionWindow::slotFrameworkDisconnected()
-{
-    m_messageLabel->label->setText(tr("Target disconnected."));
-    m_messageLabel->closeButton->show();
-    m_messageLabel->show();
+    if (connected)
+        m_messageLabel->label->setText(QString());
+    else
+        m_messageLabel->label->setText(tr("Target disconnected."));
+    m_messageLabel->closeButton->setVisible(!connected);
+    m_messageLabel->setVisible(!connected);
 }
 
 void InspectionWindow::setInspection(Inspection *inspection)
@@ -170,15 +166,13 @@ void InspectionWindow::setInspection(Inspection *inspection)
         // connect it
         connect(m_inspection->framework(), SIGNAL(requestPanelDisplay(int,int)),
                 this, SLOT(slotSetCurrentPanel(int,int)));
-        connect(m_inspection->framework(), SIGNAL(targetConnected()),
-                this, SLOT(slotFrameworkConnected()));
-        connect(m_inspection->framework(), SIGNAL(targetDisconnected()),
-                this, SLOT(slotFrameworkDisconnected()));
-        if (m_inspection->framework()->targetIsConnected())
-            slotFrameworkConnected();
+        connect(m_inspection->framework(), SIGNAL(targetConnected(bool)),
+                this, SLOT(slotFrameworkConnected(bool)));
+        if (m_inspection->framework()->isTargetConnected())
+            slotFrameworkConnected(true);
 
         // menu: add all entries by the plugged modules
-        ModuleMenuEntries entries = m_inspection->framework()->menuEntries();
+        ModuleMenuEntries entries = m_inspection->framework()->menuItems();
         foreach (const ModuleMenuEntry &entry, entries) {
             if ((entry.moduleUid & 0xFF000000) || (entry.panelId & 0xFFFFFF00)) {
                 qWarning("InspectionWindow::setInspection: moduleUid (%d) or panelId (%d) not valid", entry.moduleUid, entry.panelId);

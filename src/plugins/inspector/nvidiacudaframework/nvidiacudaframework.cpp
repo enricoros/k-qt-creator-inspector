@@ -48,6 +48,16 @@ bool NvidiaCudaFramework::startInspection(const InspectionTarget &target)
     return true;
 }
 
+bool NvidiaCudaFramework::isTargetConnected() const
+{
+    return false;
+}
+
+int NvidiaCudaFramework::infoModuleUid() const
+{
+    return 0;
+}
+
 //
 // NvidiaCudaFrameworkFactory
 //

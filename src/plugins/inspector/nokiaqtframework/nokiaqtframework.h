@@ -56,14 +56,13 @@ public:
 
     // ::IFramework
     bool startInspection(const InspectionTarget &);
-    bool targetIsConnected() const;
+    bool isTargetConnected() const;
     int infoModuleUid() const;
 
     // ### move this
     void callProbeFunction(const QString &name, const QVariantList &args);
 
 private slots:
-    void slotTargetRunningChanged(bool running);
     void slotTargetConnectedChanged(bool connected);
 
 private:

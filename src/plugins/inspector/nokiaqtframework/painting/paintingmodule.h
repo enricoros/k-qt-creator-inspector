@@ -36,6 +36,9 @@
 namespace Inspector {
 namespace Internal {
 
+// constants
+const int UID_MODULE_PAINTING = 2;
+
 class NokiaQtFramework;
 class PaintingModel;
 
@@ -50,16 +53,10 @@ public:
     PaintingModel *model() const;
 
     // ::IFrameworkModule
-    enum { Uid = 0x02 };
-    int uid() const { return Uid; }
+    int uid() const { return UID_MODULE_PAINTING; }
     QString name() const;
     ModuleMenuEntries menuEntries() const;
     AbstractPanel *createPanel(int panelId);
-
-    void slotActivate();
-    void slotDeactivate();
-    void slotLock();
-    void slotUnlock();
 
 private:
     PaintingModel *m_model;

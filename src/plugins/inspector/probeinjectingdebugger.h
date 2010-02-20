@@ -67,8 +67,8 @@ public:
     bool setInspectionTarget(const InspectionTarget &, const QString &localServerName);
     void closeInspection();
 
-    bool targetRunning() const;
-    bool targetConnected() const;
+    bool isTargetRunning() const;
+    bool isTargetConnected() const;
 
     void callProbeFunction(const QString &name, const QVariantList &args);
 
