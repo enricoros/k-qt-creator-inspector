@@ -32,107 +32,97 @@
 
 #include <qglobal.h>
 #include <QtCore/QByteArray>
-#include <QtCore/QRect>
-#include <QtCore/QVector>
 
 namespace Inspector {
 namespace Probe {
 
-    enum ActivationFlags {
-        AF_None             = 0x0000,
-        AF_PaintDebug       = 0x0001,
-    };
+// -- communication
+enum ActivationFlags {
+    AF_None             = 0x0000,
+    AF_PaintDebug       = 0x0001,
+};
 
-    enum CommChannel {
-        Channel_General     = 0x0001, /*
-          0: startup
-          1: message            qbytearray
-          2: error              qbytearray
-        */
-        Channel_Painting    = 0x0002, /*
-          1: start
-          2: stop
-          3: progress           int
-          4: original image     image
-          5: temperature        meshdata
-        */
-        Channel_Events      = 0x0003  /*
-          0: elapsed millisec,  double
-          1: overload,          data(quint32, quint32, double, const char *)
-        */
-    };
+enum CommChannel {
+    Channel_General     = 0x0001, /*
+      0: startup
+      1: message            qbytearray
+      2: error              qbytearray
+    */
+    Channel_Painting    = 0x0002, /*
+      1: start
+      2: stop
+      3: progress           int
+      4: original image     image
+      5: temperature        meshdata
+    */
+    Channel_Events      = 0x0003  /*
+      0: elapsed millisec,  double
+      1: overload,          data(quint32, quint32, double, const char *)
+    */
+};
 
-    // -- Painting Module: --
-    struct RegularMeshRealData {
-        QRect physicalSize;
-        int rows;
-        int columns;
-        QVector<qreal> data;
-    };
+// encode
+// TODO: make this ARCH/bit/endian resistant
+static QByteArray marshallMessage(quint32 code1, quint32 code2, const QByteArray &data)
+{
+    // create the message holder
+    QByteArray message;
+    quint32 messageSize = 3 * sizeof(quint32) + data.size();
+    quint32 offset = 0;
+    message.resize(messageSize);
 
+    // copy payload (size, code1, code2, data)
+    memcpy(message.data() + offset, &messageSize, sizeof(quint32));
+    offset += sizeof(quint32);
+    memcpy(message.data() + offset, &code1, sizeof(quint32));
+    offset += sizeof(quint32);
+    memcpy(message.data() + offset, &code2, sizeof(quint32));
+    offset += sizeof(quint32);
+    memcpy(message.data() + offset, data.data(), data.size());
+    offset += data.size();
 
-    // encode
-    // TODO: make this ARCH/bit/endian resistant
-    static QByteArray marshallMessage(quint32 code1, quint32 code2, const QByteArray &data)
-    {
-        // create the message holder
-        QByteArray message;
-        quint32 messageSize = 3 * sizeof(quint32) + data.size();
-        quint32 offset = 0;
-        message.resize(messageSize);
+    return message;
+}
 
-        // copy payload (size, code1, code2, data)
-        memcpy(message.data() + offset, &messageSize, sizeof(quint32));
-        offset += sizeof(quint32);
-        memcpy(message.data() + offset, &code1, sizeof(quint32));
-        offset += sizeof(quint32);
-        memcpy(message.data() + offset, &code2, sizeof(quint32));
-        offset += sizeof(quint32);
-        memcpy(message.data() + offset, data.data(), data.size());
-        offset += data.size();
+// decode (optimize this)
+static quint32 messageLength(const QByteArray &data)
+{
+    if (data.size() < (int)sizeof(quint32))
+        return 0;
+    quint32 length = 0;
+    memcpy(&length, data.data(), sizeof(quint32));
+    return length;
+}
 
-        return message;
+static bool demarshallMessage(const QByteArray &marshalled, quint32 *code1, quint32 *code2, QByteArray *data)
+{
+    // safety checks
+    quint32 messageSize = messageLength(marshalled);
+    if (!messageSize || marshalled.length() < (int)messageSize) {
+        qWarning("demarshallMessage: message is not complete %d %d", marshalled.length(), messageSize);
+        return false;
     }
-
-    // decode (optimize this)
-    static quint32 messageLength(const QByteArray &data)
-    {
-        if (data.size() < (int)sizeof(quint32))
-            return 0;
-        quint32 length = 0;
-        memcpy(&length, data.data(), sizeof(quint32));
-        return length;
-    }
-
-    static bool demarshallMessage(const QByteArray &marshalled, quint32 *code1, quint32 *code2, QByteArray *data)
-    {
-        // safety checks
-        quint32 messageSize = messageLength(marshalled);
-        if (!messageSize || marshalled.length() < (int)messageSize) {
-            qWarning("demarshallMessage: message is not complete %d %d", marshalled.length(), messageSize);
-            return false;
-        }
 #if 0
-        else if (marshalled.length() > (int)messageSize)
-            qWarning("demarshallMessage: data is too long for the message. check logic!");
-        else
-            qWarning("demarshallMessage: ok %d", messageSize);
+    else if (marshalled.length() > (int)messageSize)
+        qWarning("demarshallMessage: data is too long for the message. check logic!");
+    else
+        qWarning("demarshallMessage: ok %d", messageSize);
 #endif
 
-        // read data
-        quint32 offset = sizeof(quint32);
-        if (code1)
-            memcpy(code1, marshalled.data() + offset, sizeof(quint32));
-        offset += sizeof(quint32);
-        if (code2)
-            memcpy(code2, marshalled.data() + offset, sizeof(quint32));
-        offset += sizeof(quint32);
-        if (data) {
-            data->resize(messageSize - offset);
-            memcpy(data->data(), marshalled.data() + offset, messageSize - offset);
-        }
-        return true;
+    // read data
+    quint32 offset = sizeof(quint32);
+    if (code1)
+        memcpy(code1, marshalled.data() + offset, sizeof(quint32));
+    offset += sizeof(quint32);
+    if (code2)
+        memcpy(code2, marshalled.data() + offset, sizeof(quint32));
+    offset += sizeof(quint32);
+    if (data) {
+        data->resize(messageSize - offset);
+        memcpy(data->data(), marshalled.data() + offset, messageSize - offset);
     }
+    return true;
+}
 
 } // namespace Probe
 } // namespace Inspector

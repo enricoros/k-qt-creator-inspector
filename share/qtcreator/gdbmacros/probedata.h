@@ -27,44 +27,25 @@
 **
 **************************************************************************/
 
-#ifndef TEMPERATUREPANEL_H
-#define TEMPERATUREPANEL_H
+#ifndef PROBEDATA_H
+#define PROBEDATA_H
 
-#include "abstractpanel.h"
-#include "ui_temperaturepanel.h"
+#include <qglobal.h>
+#include <QtCore/QRect>
+#include <QtCore/QVector>
 
 namespace Inspector {
-namespace Internal {
+namespace Probe {
 
-class PaintingModule;
-class TemperatureResultsDelegate;
-
-class TemperaturePanel : public AbstractPanel, public Ui::TemperaturePanel
-{
-    Q_OBJECT
-
-public:
-    TemperaturePanel(PaintingModule *);
-
-private slots:
-    // 'new test' slots
-    void slotCheckIterations();
-    void slotCheckWeight();
-    void slotLoadDefaults();
-    void slotTestClicked();
-
-    // model slots
-    void slotModelItemChanged();
-
-    // results slots
-    void slotResultActivated(const QModelIndex &index);
-    void slotExportClicked();
-
-private:
-    PaintingModule *m_paintingModule;
+// -- Painting Module: --
+struct RegularMeshRealData {
+    QRect physicalSize;
+    int rows;
+    int columns;
+    QVector<qreal> data;
 };
 
-} // namespace Internal
+} // namespace Probe
 } // namespace Inspector
 
-#endif // TEMPERATUREPANEL_H
+#endif // PROBEDATA_H

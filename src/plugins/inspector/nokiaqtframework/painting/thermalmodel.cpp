@@ -27,14 +27,14 @@
 **
 **************************************************************************/
 
-#include "paintingmodel.h"
+#include "thermalmodel.h"
 
 using namespace Inspector::Internal;
 
-/* == PaintingModel Usage ==
+/* == ThermalModel Usage ==
 Row 'Results_Row':
   0: results count          int
-  1: results                LIST(TemperatureItem)
+  1: results                LIST(ThermalItem)
   2: saved                  bool
 
 Row 'CurrentPt_Row'
@@ -47,51 +47,62 @@ Row 'CurrentPt_Row'
 #define Results_Row 0
 #define CurrentPt_Row 1
 
-TemperatureItem::TemperatureItem(const QDateTime &dt, qreal duration, const QString &desc, const QString &options, const QPixmap &image)
-  : QStandardItem(desc)
+//
+// ThermalItem
+//
+ThermalItem::ThermalItem(const QDateTime &dt, qreal duration, const QString &label, const QString &options,
+                         const QPixmap &image, const Probe::RegularMeshRealData &mesh)
+  : QStandardItem(label)
   , m_dateTime(dt)
   , m_duration(duration)
-  , m_description(desc)
+  , m_label(label)
   , m_options(options)
   , m_pixmap(image)
+  , m_mesh(mesh)
 {
     m_previewPixmap = m_pixmap.scaled(QSize(previewWidth, previewHeight), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     setEditable(false);
 }
 
-QDateTime TemperatureItem::date() const
+QDateTime ThermalItem::startDate() const
 {
     return m_dateTime;
 }
 
-qreal TemperatureItem::duration() const
+qreal ThermalItem::duration() const
 {
     return m_duration;
 }
 
-QString TemperatureItem::description() const
+QString ThermalItem::label() const
 {
-    return m_description;
+    return m_label;
 }
 
-QString TemperatureItem::options() const
+QString ThermalItem::options() const
 {
     return m_options;
 }
 
-QPixmap TemperatureItem::image() const
+QPixmap ThermalItem::image() const
 {
     return m_pixmap;
 }
 
-QPixmap TemperatureItem::previewImage() const
+Inspector::Probe::RegularMeshRealData ThermalItem::mesh() const
+{
+    return m_mesh;
+}
+
+QPixmap ThermalItem::previewImage() const
 {
     return m_previewPixmap;
 }
 
-
-
-PaintingModel::PaintingModel(QObject *parent)
+//
+// ThermalModel
+//
+ThermalModel::ThermalModel(QObject *parent)
   : AbstractEasyModel(parent)
 {
     // init model
@@ -107,16 +118,16 @@ PaintingModel::PaintingModel(QObject *parent)
     loadData();
 }
 
-PaintingModel::~PaintingModel()
+ThermalModel::~ThermalModel()
 {
     saveData();
 }
 
-void PaintingModel::addPtResult(const QDateTime &date, qreal duration, const QString &description, const QString &options, const QPixmap &image)
+void ThermalModel::addResult(const QDateTime &date, qreal duration, const QString &label, const QString &options,
+                             const QPixmap &image, const Probe::RegularMeshRealData &mesh)
 {
     // add item
-    TemperatureItem *resultItem = new TemperatureItem(date, duration, description, options, image);
-    resultItem->setCheckable(true);
+    ThermalItem *resultItem = new ThermalItem(date, duration, label, options, image, mesh);
     item(Results_Row, 1)->insertRow(0, resultItem);
 
     // refresh counter
@@ -126,32 +137,32 @@ void PaintingModel::addPtResult(const QDateTime &date, qreal duration, const QSt
     setItemValue(Results_Row, 2, false);
 }
 
-QModelIndex PaintingModel::resultsTableIndex() const
+QModelIndex ThermalModel::resultsTableIndex() const
 {
     return index(Results_Row, 1);
 }
 
-const TemperatureItem *PaintingModel::result(int row) const
+const ThermalItem *ThermalModel::result(int row) const
 {
-    return dynamic_cast<TemperatureItem *>(item(Results_Row, 1)->child(row));
+    return dynamic_cast<ThermalItem *>(item(Results_Row, 1)->child(row));
 }
 
-void PaintingModel::setPtProgress(int progress)
+void ThermalModel::setPtProgress(int progress)
 {
     setItemValue(CurrentPt_Row, 3, progress);
 }
 
-int PaintingModel::ptProgress() const
+int ThermalModel::ptProgress() const
 {
     return itemValue(CurrentPt_Row, 3).toInt();
 }
 
-void PaintingModel::loadData()
+void ThermalModel::loadData()
 {
     // TODO...
 }
 
-void PaintingModel::saveData()
+void ThermalModel::saveData()
 {
     // check if already saved
     if (itemValue(Results_Row, 2).toBool())

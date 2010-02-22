@@ -4,7 +4,7 @@
         <file>info/menu-status.png</file>
         <file>nokiaqtframework.png</file>
         <file>painting/menu-energy.png</file>
-        <file>painting/menu-temperature.png</file>
+        <file>painting/menu-thermal.png</file>
         <file>warnings/mark-32.png</file>
         <file>warnings/menu-warning.png</file>
     </qresource>
