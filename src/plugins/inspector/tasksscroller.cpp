@@ -141,10 +141,10 @@ TaskRectangle::TaskRectangle(quint32 taskId, int left, const QColor &baseColor, 
     QColor color = baseColor;
     m_contourPen = QPen(color.dark(), 1);
 
-    color.setAlpha(128);
+    color.setAlpha(64);
     m_backBrush = color.dark();
 
-    color.setAlpha(200);
+    color.setAlpha(192);
     m_foreBrush = color.light();
 }
 
@@ -256,6 +256,12 @@ void TasksScene::setPixelPerSecond(int pps)
         m_pixelPerSecond = pps;
         regenScene();
     }
+}
+
+void TasksScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    // just consume the event
+    event->accept();
 }
 
 void TasksScene::mouseMoveEvent(QGraphicsSceneMouseEvent * event)

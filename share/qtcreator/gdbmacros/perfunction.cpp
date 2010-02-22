@@ -28,6 +28,7 @@
 **************************************************************************/
 
 #include "perfunction.h"
+#include "probedata.h"
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QObject>

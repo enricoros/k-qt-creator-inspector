@@ -27,34 +27,51 @@
 **
 **************************************************************************/
 
-#ifndef DATAUTILS_H
-#define DATAUTILS_H
+#ifndef THERMALTASK_H
+#define THERMALTASK_H
 
-#include <QtCore/QString>
-class QImage;
-
-// include Probe data types
-#include "../../../../share/qtcreator/gdbmacros/probedata.h"
+#include "iframeworktask.h"
+#include <QtCore/QDateTime>
+#include <QtCore/QVariantList>
+#include <QtGui/QImage>
 
 namespace Inspector {
 namespace Internal {
 
-class DataUtils {
-public:
-    // I/O functions
-    template<typename T>
-    static bool exportOctaveArray(const QString &fileName, const QString &varName,
-                                  int rows, int cols, T *data);
-    template<typename T>
-    static bool importOctaveArray(const QString &fileName, const QString &varName,
-                                  int *rows, int *cols, T *data);
+class NokiaQtFramework;
+class ThermalModel;
 
-    // drawing functions
-    static void paintMeshOverImage(QImage *image, Inspector::Probe::RegularMeshRealData *mesh,
-                                   bool scaleToImage = false, bool showLegend = true);
+/**
+  \brief Handles a Thermal test
+*/
+class ThermalTask : public IFrameworkTask
+{
+    Q_OBJECT
+
+public:
+    ThermalTask(NokiaQtFramework *, ThermalModel *, const QVariantList &options,
+                const QString &testTitle, QObject *parent = 0);
+
+    // ::IFrameworkTask
+    QString displayName() const;
+    void activateTask();
+    void deactivateTask();
+
+private slots:
+    void slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data);
+
+private:
+    NokiaQtFramework *m_framework;
+    ThermalModel *m_model;
+    QVariantList m_options;
+    QString m_testTitle;
+
+    QString m_optionsString;
+    QDateTime m_startDate;
+    QImage m_lastImage;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // DATAUTILS_H
+#endif // THERMALTASK_H

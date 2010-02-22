@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <author>Enrico Ros</author>
- <class>TemperaturePanel</class>
- <widget class="QWidget" name="TemperaturePanel">
+ <class>ThermalPanel</class>
+ <widget class="QWidget" name="ThermalPanel">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>650</width>
-    <height>399</height>
+    <width>648</width>
+    <height>397</height>
    </rect>
   </property>
   <layout class="QGridLayout" name="gridLayout">
@@ -23,7 +23,7 @@
         </sizepolicy>
        </property>
        <property name="pixmap">
-        <pixmap resource="../nokiaqtframework.qrc">:/inspector/painting/menu-temperature.png</pixmap>
+        <pixmap resource="../nokiaqtframework.qrc">:/inspector/painting/menu-thermal.png</pixmap>
        </property>
       </widget>
      </item>
@@ -209,14 +209,14 @@
        <item row="10" column="0">
         <widget class="QLabel" name="popsLabel_2">
          <property name="text">
-          <string>Test Name:</string>
+          <string>Label</string>
          </property>
         </widget>
        </item>
        <item row="10" column="1">
         <widget class="QLineEdit" name="testNameLabel">
          <property name="text">
-          <string notr="true">test</string>
+          <string notr="true">Test name</string>
          </property>
         </widget>
        </item>
@@ -233,7 +233,7 @@
          </property>
          <property name="icon">
           <iconset resource="../nokiaqtframework.qrc">
-           <normaloff>:/inspector/painting/menu-temperature.png</normaloff>:/inspector/painting/menu-temperature.png</iconset>
+           <normaloff>:/inspector/painting/menu-thermal.png</normaloff>:/inspector/painting/menu-thermal.png</iconset>
          </property>
         </widget>
        </item>
@@ -387,8 +387,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>367</width>
-            <height>298</height>
+            <width>94</width>
+            <height>24</height>
            </rect>
           </property>
          </widget>

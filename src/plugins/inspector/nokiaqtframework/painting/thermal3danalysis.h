@@ -27,33 +27,41 @@
 **
 **************************************************************************/
 
-#ifndef TEMPERATURE3DVIEW_H
-#define TEMPERATURE3DVIEW_H
+#ifndef THERMAL3DANALYSIS_H
+#define THERMAL3DANALYSIS_H
 
-#include <QListView>
-#include <QWidget>
+#include <QtCore/QModelIndex>
+#include <QtGui/QTreeWidget>
+#include <QtGui/QWidget>
+class QCheckBox;
 class QLabel;
+class QStandardItem;
 class vtkCommand;
 class vtkObject;
+
+// include Probe data types
+#include "../../../../share/qtcreator/gdbmacros/probedata.h"
 
 namespace Inspector {
 namespace Internal {
 
-class DataSetTreeView;
-class PaintingModel;
+class DataSetTreeWidget;
+class ThermalModel;
+class ThermalTreeWidgetItem;
 class PaintingModule;
 
-class Temperature3DView : public QWidget
+class Thermal3DAnalysis : public QWidget
 {
     Q_OBJECT
 
 public:
-    Temperature3DView(PaintingModule *, QWidget *parent = 0);
-    ~Temperature3DView();
+    Thermal3DAnalysis(PaintingModule *, QWidget *parent = 0);
+    ~Thermal3DAnalysis();
 
 private slots:
-    void slotContextMenu(vtkObject *obj, unsigned long, void *client_data,
-                         void *, vtkCommand *command);
+    void slotDataSetChanged();
+
+    void slotContextMenu(vtkObject *obj, unsigned long, void *client_data, void *, vtkCommand *command);
     void slotContextAction(QAction *);
     void slotUpdateCoords(vtkObject *);
 
@@ -62,21 +70,39 @@ private:
     VtkPrivate *v;
 
     PaintingModule *m_paintingModule;
-    DataSetTreeView *m_dataSetView;
+    DataSetTreeWidget *m_dataSetWidget;
+    QCheckBox *m_smoothCheck;
     QLabel *m_coordLabel;
 };
 
-class DataSetTreeView : public QListView
+
+class DataSetTreeWidget : public QTreeWidget
 {
     Q_OBJECT
 
 public:
-    DataSetTreeView(PaintingModel *model, QWidget *parent = 0);
+    DataSetTreeWidget(ThermalModel *sourceModel, QWidget *parent = 0);
 
+    QList<Probe::RegularMeshRealData> meshes() const;
 
+signals:
+    void changed();
+
+private slots:
+    void slotSourceRowsAdded(const QModelIndex &,int,int);
+    void slotSourceRowsRemoved(const QModelIndex &,int,int);
+    void slotItemChanged(QTreeWidgetItem*);
+
+private:
+    enum DataItemType {
+        DataOriginal = QTreeWidgetItem::UserType + 1,
+        //DataFiltered = DataOriginal + 1,
+        //DataCombined = DataFiltered + 1,
+    };
+    ThermalModel *m_sourceModel;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // TEMPERATUREPANEL_H
+#endif // THERMAL3DANALYSIS_H

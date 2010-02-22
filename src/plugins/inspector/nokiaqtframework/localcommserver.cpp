@@ -43,6 +43,7 @@
 
 // for demarshalling communication with The Probe
 #include "../../../../share/qtcreator/gdbmacros/perfunction.h"
+#include "../../../../share/qtcreator/gdbmacros/probedata.h"
 
 using namespace Inspector::Internal;
 

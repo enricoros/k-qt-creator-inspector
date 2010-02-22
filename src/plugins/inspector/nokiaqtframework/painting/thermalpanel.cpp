@@ -27,11 +27,11 @@
 **
 **************************************************************************/
 
-#include "temperaturepanel.h"
+#include "thermalpanel.h"
 #include "iframework.h"
 #include "iinspectionmodel.h"
-#include "paintingmodel.h"
 #include "paintingmodule.h"
+#include "thermalmodel.h"
 
 #include "../datautils.h"
 
@@ -40,30 +40,30 @@
 #include <QtGui/QStyledItemDelegate>
 
 #if defined(INSPECTOR_PAINTING_VTK)
-#include "temperature3dview.h"
+#include "thermal3danalysis.h"
 #endif
 
 using namespace Inspector::Internal;
 
-class Inspector::Internal::TemperatureResultsDelegate : public QStyledItemDelegate
+class Inspector::Internal::ThermalItemDelegate : public QStyledItemDelegate
 {
 public:
-    TemperatureResultsDelegate(QObject *parent = 0)
+    ThermalItemDelegate(QObject *parent = 0)
       : QStyledItemDelegate(parent)
     {
     }
 
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
     {
-        // get the TemperatureItem
-        const PaintingModel *model = static_cast<const PaintingModel *>(index.model());
-        const TemperatureItem *item = model->result(index.row());
+        // get the ThermalItem
+        const ThermalModel *model = static_cast<const ThermalModel *>(index.model());
+        const ThermalItem *item = model->result(index.row());
         if (!item) {
             QStyledItemDelegate::paint(painter, option, index);
             return;
         }
 
-        // draw the TemperatureItem
+        // draw the ThermalItem
         const QRect rect = option.rect;
         const int rt = rect.top();
         const int rl = rect.left();
@@ -93,7 +93,7 @@ public:
         smallFont.setPointSize(smallFont.pointSize() - 1);
         painter->setFont(normalFont);
         painter->setPen(textColor);
-        painter->drawText(QRect(rl + 88, rt + 5, rect.width() - 88, textRectHeight), Qt::AlignVCenter, item->date().toString());
+        painter->drawText(QRect(rl + 88, rt + 5, rect.width() - 88, textRectHeight), Qt::AlignVCenter, item->startDate().toString());
         int minutes = (int)(item->duration() / 60.0);
         int seconds = (int)(item->duration() - (minutes * 60));
         QString timeString = tr("%1' %2'' ").arg(minutes).arg(seconds);
@@ -102,7 +102,7 @@ public:
 
         // text: description
         painter->setFont(normalFont);
-        painter->drawText(QRect(rl + 88, rt + 5 + textRectHeight, rect.width() - 88, textRectHeight), Qt::AlignVCenter, item->description());
+        painter->drawText(QRect(rl + 88, rt + 5 + textRectHeight, rect.width() - 88, textRectHeight), Qt::AlignVCenter, item->label());
 
         // text: options
         painter->setFont(smallFont);
@@ -112,22 +112,22 @@ public:
 
     QSize sizeHint(const QStyleOptionViewItem &/*option*/, const QModelIndex &/*index*/) const
     {
-        return QSize(TemperatureItem::previewWidth + 150, TemperatureItem::previewHeight + 8);
+        return QSize(ThermalItem::previewWidth + 150, ThermalItem::previewHeight + 8);
     }
 };
 
 //
-// TemperaturePanel
+// ThermalPanel
 //
-TemperaturePanel::TemperaturePanel(PaintingModule *module)
+ThermalPanel::ThermalPanel(PaintingModule *module)
   : AbstractPanel(module)
   , m_paintingModule(module)
 {
     setupUi(this);
 
 #if defined(INSPECTOR_PAINTING_VTK)
-    Temperature3DView *tView = new Temperature3DView(m_paintingModule);
-    resultsTabWidget->addTab(tView, tr("3D Comparison"));
+    Thermal3DAnalysis *tView = new Thermal3DAnalysis(m_paintingModule);
+    resultsTabWidget->addTab(tView, tr("Surface Analysis"));
 #endif
 
     // wire-up controls
@@ -145,9 +145,9 @@ TemperaturePanel::TemperaturePanel(PaintingModule *module)
 
     // wire-up the results listview
     connect(resultsView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(slotResultActivated(QModelIndex)));
-    resultsView->setItemDelegate(new TemperatureResultsDelegate(resultsView));
-    resultsView->setModel(m_paintingModule->model());
-    resultsView->setRootIndex(m_paintingModule->model()->resultsTableIndex());
+    resultsView->setItemDelegate(new ThermalItemDelegate(resultsView));
+    resultsView->setModel(m_paintingModule->thermalModel());
+    resultsView->setRootIndex(m_paintingModule->thermalModel()->resultsTableIndex());
 
     // change looks
     QFont smallerFont = samplesLabel->font();
@@ -170,12 +170,12 @@ TemperaturePanel::TemperaturePanel(PaintingModule *module)
     slotLoadDefaults();
 
     // listen for model changes
-    connect(m_paintingModule->model(), SIGNAL(itemChanged(QStandardItem*)),
+    connect(m_paintingModule->thermalModel(), SIGNAL(itemChanged(QStandardItem*)),
             this, SLOT(slotModelItemChanged()));
     slotModelItemChanged();
 }
 
-void TemperaturePanel::slotCheckIterations()
+void ThermalPanel::slotCheckIterations()
 {
     int count = passesBox->value() - lowBox->value() - highBox->value();
     QPalette pal = palette();
@@ -191,13 +191,13 @@ void TemperaturePanel::slotCheckIterations()
     samplesBox->setPalette(pal);
 }
 
-void TemperaturePanel::slotCheckWeight()
+void ThermalPanel::slotCheckWeight()
 {
     qreal pops = 100 * (qreal)passesBox->value() * (qreal)innerBox->value() / (qreal)(widthBox->value() * heightBox->value());
     popsBox->setText(tr("%1%").arg(QString::number(pops)));
 }
 
-void TemperaturePanel::slotLoadDefaults()
+void ThermalPanel::slotLoadDefaults()
 {
     passesBox->setValue(5);
     lowBox->setValue(1);
@@ -207,28 +207,28 @@ void TemperaturePanel::slotLoadDefaults()
     heightBox->setValue(10);
 }
 
-void TemperaturePanel::slotTestClicked()
+void ThermalPanel::slotTestClicked()
 {
     // Build the options list: passes, headDrops, tailDrops, innerPasses, chunkWidth, chunkHeight, consoleDebug
     QVariantList options;
     options << passesBox->value() << lowBox->value() << highBox->value() << innerBox->value() << widthBox->value() << heightBox->value() << debugBox->isChecked();
 
     // start the test, we'll watch the results in the model
-    m_paintingModule->startTemperatureTest(testNameLabel->text(), options);
+    m_paintingModule->startThermalTest(testNameLabel->text(), options);
 }
 
-void TemperaturePanel::slotModelItemChanged()
+void ThermalPanel::slotModelItemChanged()
 {
-    PaintingModel *model = static_cast<PaintingModule *>(parentModule())->model();
+    ThermalModel *model = static_cast<PaintingModule *>(parentModule())->thermalModel();
     int value = model->ptProgress();
     ptProgress->setValue(value);
     ptProgress->setVisible(value > 0 && value < 100);
 }
 
-void TemperaturePanel::slotResultActivated(const QModelIndex &index)
+void ThermalPanel::slotResultActivated(const QModelIndex &index)
 {
-    PaintingModel *model = static_cast<PaintingModule *>(parentModule())->model();
-    const TemperatureItem *item = model->result(index.row());
+    ThermalModel *model = static_cast<PaintingModule *>(parentModule())->thermalModel();
+    const ThermalItem *item = model->result(index.row());
     if (!item || item->image().isNull())
         return;
     imageLabel->setFixedSize(item->image().size());
@@ -237,7 +237,7 @@ void TemperaturePanel::slotResultActivated(const QModelIndex &index)
     imageScrollArea->setFocus();
 }
 
-void TemperaturePanel::slotExportClicked()
+void ThermalPanel::slotExportClicked()
 {
     qint32 test[100];
     DataUtils::exportOctaveArray<qint32>("test", "A", 13, 7, test);

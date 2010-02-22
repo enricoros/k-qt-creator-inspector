@@ -98,6 +98,7 @@ public:
 
 protected:
     // ::QGraphicsScene
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
     // ::QObject
     void timerEvent(QTimerEvent *);

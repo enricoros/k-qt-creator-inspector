@@ -31,7 +31,6 @@
 #define PAINTINGMODULE_H
 
 #include "iframeworkmodule.h"
-#include "iframeworktask.h"
 #include <QtCore/QVariantList>
 #include <QtGui/QImage>
 
@@ -42,7 +41,7 @@ namespace Internal {
 const int UID_MODULE_PAINTING = 2;
 
 class NokiaQtFramework;
-class PaintingModel;
+class ThermalModel;
 
 class PaintingModule : public IFrameworkModule
 {
@@ -52,7 +51,7 @@ public:
     PaintingModule(NokiaQtFramework *, QObject *parent = 0);
     ~PaintingModule();
 
-    PaintingModel *model() const;
+    ThermalModel *thermalModel() const;
 
     // ::IFrameworkModule
     int uid() const { return UID_MODULE_PAINTING; }
@@ -60,43 +59,11 @@ public:
     ModuleMenuEntries menuEntries() const;
     AbstractPanel *createPanel(int panelId);
 
-    void startTemperatureTest(const QString &testTitle, const QVariantList &options);
+    void startThermalTest(const QString &testTitle, const QVariantList &options);
 
 private:
     NokiaQtFramework *m_framework;
-    PaintingModel *m_model;
-};
-
-
-/**
-  \brief Handles a Painting Temperature test
-*/
-class PaintingTemperatureTask : public IFrameworkTask
-{
-    Q_OBJECT
-
-public:
-    PaintingTemperatureTask(NokiaQtFramework *,
-                            PaintingModel *,
-                            const QVariantList &options,
-                            const QString &testTitle,
-                            QObject *parent = 0);
-
-    // ::IFrameworkTask
-    QString displayName() const;
-    void activateTask();
-    void deactivateTask();
-
-private slots:
-    void slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data);
-
-private:
-    NokiaQtFramework *m_framework;
-    PaintingModel *m_model;
-    QVariantList m_options;
-    QString m_testTitle;
-
-    QImage m_lastImage;
+    ThermalModel *m_thermalModel;
 };
 
 } // namespace Internal

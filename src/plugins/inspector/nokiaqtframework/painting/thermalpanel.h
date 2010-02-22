@@ -27,62 +27,44 @@
 **
 **************************************************************************/
 
-#ifndef PAINTINGMODEL_H
-#define PAINTINGMODEL_H
+#ifndef THERMALPANEL_H
+#define THERMALPANEL_H
 
-#include "abstracteasymodel.h"
-#include <QDateTime>
-#include <QPixmap>
-#include <QStandardItem>
+#include "abstractpanel.h"
+#include "ui_thermalpanel.h"
 
 namespace Inspector {
 namespace Internal {
 
-class TemperatureItem : public QStandardItem
-{
-public:
-    TemperatureItem(const QDateTime &dt, qreal duration, const QString &desc, const QString &options, const QPixmap &image);
+class PaintingModule;
+class ThermalItemDelegate;
 
-    QDateTime date() const;
-    qreal duration() const;
-    QString description() const;
-    QString options() const;
-    QPixmap image() const;
-    QPixmap previewImage() const;
-
-    static const int previewWidth  = 80;
-    static const int previewHeight = 60;
-
-private:
-    QDateTime m_dateTime;
-    qreal m_duration;
-    QString m_description;
-    QString m_options;
-    QPixmap m_pixmap;
-    QPixmap m_previewPixmap;
-};
-
-class PaintingModel : public AbstractEasyModel
+class ThermalPanel : public AbstractPanel, public Ui::ThermalPanel
 {
     Q_OBJECT
 
 public:
-    PaintingModel(QObject *parent = 0);
-    ~PaintingModel();
+    ThermalPanel(PaintingModule *);
 
-    void addPtResult(const QDateTime &, qreal duration, const QString &description, const QString &options, const QPixmap &image);
-    QModelIndex resultsTableIndex() const;
-    const TemperatureItem *result(int row) const;
+private slots:
+    // 'new test' slots
+    void slotCheckIterations();
+    void slotCheckWeight();
+    void slotLoadDefaults();
+    void slotTestClicked();
 
-    void setPtProgress(int progress);
-    int ptProgress() const;
+    // model slots
+    void slotModelItemChanged();
+
+    // results slots
+    void slotResultActivated(const QModelIndex &index);
+    void slotExportClicked();
 
 private:
-    void loadData();
-    void saveData();
+    PaintingModule *m_paintingModule;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // PAINTINGMODEL_H
+#endif // THERMALPANEL_H
