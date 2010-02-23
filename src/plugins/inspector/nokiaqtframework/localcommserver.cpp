@@ -102,6 +102,7 @@ bool LocalCommServer::decodeMesh(QByteArray *data, Inspector::Probe::RegularMesh
     dataReader >> mesh->physicalSize;
     dataReader >> mesh->rows;
     dataReader >> mesh->columns;
+    dataReader >> mesh->meanPatchSize;
     dataReader >> mesh->data;
     return mesh->rows > 0 && mesh->columns > 0 && mesh->data.size() == (mesh->rows * mesh->columns);
 }

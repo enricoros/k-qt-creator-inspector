@@ -32,18 +32,14 @@
 #include "thermalmodel.h"
 
 #include <QtGui/QApplication>
-#include <QtGui/QButtonGroup>
 #include <QtGui/QCheckBox>
 #include <QtGui/QCursor>
-#include <QtGui/QDockWidget>
 #include <QtGui/QGroupBox>
 #include <QtGui/QHBoxLayout>
-#include <QtGui/QHeaderView>
-#include <QtGui/QLabel>
+#include <QtGui/QInputDialog>
 #include <QtGui/QMenu>
-#include <QtGui/QRadioButton>
+#include <QtGui/QPushButton>
 #include <QtGui/QSplitter>
-#include <QtGui/QTreeWidget>
 #include <QtGui/QVBoxLayout>
 
 #include <QVTKWidget.h>
@@ -51,14 +47,16 @@
 #include <vtkEventQtSlotConnect.h>
 #include <vtkImageData.h>
 #include <vtkImageDataGeometryFilter.h>
+#include <vtkImageGaussianSmooth.h>
+#include <vtkLookupTable.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkProperty.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkWarpScalar.h>
 
-#include <vtkLookupTable.h>
-#include <vtkImageGaussianSmooth.h>
+// include Probe data types
+#include "../../../../share/qtcreator/gdbmacros/probedata.h"
 
 using namespace Inspector::Internal;
 
@@ -128,10 +126,6 @@ void VtkPrivate::initPipeline(QObject *connTarget)
     m_connections->Connect(m_widget->GetRenderWindow()->GetInteractor(), vtkCommand::RightButtonPressEvent,
                          connTarget, SLOT(slotContextMenu(vtkObject*, unsigned long, void*, void*, vtkCommand*)),
                          0, 1.0);
-
-    // update coords as we move through the window
-    m_connections->Connect(m_widget->GetRenderWindow()->GetInteractor(), vtkCommand::MouseMoveEvent,
-                         connTarget, SLOT(slotUpdateCoords(vtkObject*)));
 }
 
 void VtkPrivate::disposePipeline()
@@ -288,73 +282,65 @@ Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *parentModule, QWidget *pare
 
     splitter->addWidget(v->widget());
 
-    QWidget *rightPanel = new QWidget;
-    QVBoxLayout *rLay = new QVBoxLayout(rightPanel);
-    rLay->setMargin(0);
+    QSplitter *rightSplitter = new QSplitter(Qt::Vertical);
+    splitter->addWidget(rightSplitter);
 
     m_dataSetWidget = new DataSetTreeWidget(parentModule->thermalModel());
-    rLay->addWidget(m_dataSetWidget);
+    rightSplitter->addWidget(m_dataSetWidget);
 
-    QGroupBox *styleGroup = new QGroupBox(tr("Surface Color"));
+    QWidget *optionsPanel = new QWidget;
+    QVBoxLayout *oLay = new QVBoxLayout(optionsPanel);
+    oLay->setMargin(0);
+
+    QPushButton *removeButton = new QPushButton(tr("Remove Selected"));
+    removeButton->setEnabled(false);
+    connect(m_dataSetWidget, SIGNAL(itemSelected(bool)),
+            removeButton, SLOT(setEnabled(bool)));
+    connect(removeButton, SIGNAL(clicked()),
+            m_dataSetWidget, SLOT(slotRemoveSelected()));
+    oLay->addWidget(removeButton);
+
+    QPushButton *filterButton = new QPushButton(tr("Add Filtered"));
+    filterButton->setEnabled(false);
+    connect(m_dataSetWidget, SIGNAL(topItemSelected(bool)),
+            filterButton, SLOT(setEnabled(bool)));
+    connect(filterButton, SIGNAL(clicked()),
+            m_dataSetWidget, SLOT(slotAppendFiltered()));
+    oLay->addWidget(filterButton);
+
+    QGroupBox *styleGroup = new QGroupBox(tr("Surface Options"));
     QVBoxLayout *styleLay = new QVBoxLayout(styleGroup);
-    m_colorGroup = new QButtonGroup(styleGroup);
-    connect(m_colorGroup, SIGNAL(buttonClicked(QAbstractButton*)),
-            this, SLOT(slotDataSetChanged()));
-    QRadioButton *color1 = new QRadioButton(tr("Default"));
-    color1->setProperty("scheme", (int)0);
-    color1->setChecked(true);
-    m_colorGroup->addButton(color1);
-    styleLay->addWidget(color1);
-    QRadioButton *color2 = new QRadioButton(tr("Variation"));
-    color2->setProperty("scheme", (int)1);
-    m_colorGroup->addButton(color2);
-    styleLay->addWidget(color2);
-    rLay->addWidget(styleGroup);
-
+    m_altColorsCheck = new QCheckBox(tr("Alternate Colors"));
+    connect(m_altColorsCheck, SIGNAL(toggled(bool)),
+            this, SLOT(slotRefreshRendering()));
+    styleLay->addWidget(m_altColorsCheck);
     m_smoothCheck = new QCheckBox(tr("Smoother display"));
-    m_smoothCheck->setChecked(true);
     connect(m_smoothCheck, SIGNAL(toggled(bool)),
-            this, SLOT(slotDataSetChanged()));
-    rLay->addWidget(m_smoothCheck);
+            this, SLOT(slotRefreshRendering()));
+    styleLay->addWidget(m_smoothCheck);
+    oLay->addWidget(styleGroup);
 
-    m_filterCheck = new QCheckBox(tr("Filter display"));
-    m_filterCheck->setChecked(true);
-    connect(m_filterCheck, SIGNAL(toggled(bool)),
-            this, SLOT(slotDataSetChanged()));
-    rLay->addWidget(m_filterCheck);
+    oLay->addStretch(1);
 
-    m_coordLabel = new QLabel;
-    m_coordLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    rLay->addWidget(m_coordLabel);
-
-    splitter->addWidget(rightPanel);
+    rightSplitter->addWidget(optionsPanel);
 
     v->initPipeline(this);
     v->setBackground(QApplication::palette().color(QPalette::Window));
 
-    connect(m_dataSetWidget, SIGNAL(changed()), this, SLOT(slotDataSetChanged()));
-    slotDataSetChanged();
-}
-
-void Thermal3DAnalysis::slotDataSetChanged()
-{
-    v->clearContents();
-    //v->addTexturedPlane( ... );
-
-    QAbstractButton *colorButton = m_colorGroup->checkedButton();
-    int colorMode = colorButton ? colorButton->property("scheme").toInt() : 0;
-
-    QList<Probe::RegularMeshRealData> meshes = m_dataSetWidget->meshes();
-    foreach (const Probe::RegularMeshRealData &mesh, meshes)
-        v->addRegularMesh(mesh, colorMode, meshes.count() > 1, m_smoothCheck->isChecked(),
-                          m_filterCheck->isChecked() ? 5 : 0);
-
-    v->refresh();
+    connect(m_dataSetWidget, SIGNAL(changed()), this, SLOT(slotRefreshRendering()));
+    slotRefreshRendering();
 }
 
 Thermal3DAnalysis::~Thermal3DAnalysis()
 {
     delete v;
+}
+
+void Thermal3DAnalysis::slotRefreshRendering()
+{
+    int colorMode = m_altColorsCheck->isChecked() ? 1 : 0;
+    bool smoothing = m_smoothCheck->isChecked();
+    m_dataSetWidget->render(v, colorMode, smoothing);
 }
 
 void Thermal3DAnalysis::slotContextMenu(vtkObject *, unsigned long, void *, void *, vtkCommand *command)
@@ -383,14 +369,6 @@ void Thermal3DAnalysis::slotContextAction(QAction *action)
     }
 }
 
-void Thermal3DAnalysis::slotUpdateCoords(vtkObject *object)
-{
-    vtkRenderWindowInteractor *interactor = vtkRenderWindowInteractor::SafeDownCast(object);
-    int event_pos[2];
-    interactor->GetEventPosition(event_pos);
-    m_coordLabel->setText(tr("x=%1 : y=%2").arg(event_pos[0]).arg(event_pos[1]));
-}
-
 //
 // DataSetTreeItem
 //
@@ -398,17 +376,38 @@ class Inspector::Internal::DataSetTreeItem : public QTreeWidgetItem
 {
 public:
     DataSetTreeItem(QTreeWidget *parent, const QString &string, int type);
+    DataSetTreeItem(QTreeWidgetItem *parent, const QString &string, int type);
 
     void setMesh(const Probe::RegularMeshRealData &mesh);
     Probe::RegularMeshRealData mesh() const;
 
+    void setFilterRadius(qreal radius);
+    qreal filterRadius() const;
+
 private:
+    void init();
     Probe::RegularMeshRealData m_mesh;
+    qreal m_filterRadius;
 };
 
 DataSetTreeItem::DataSetTreeItem(QTreeWidget *parent, const QString &string, int type)
   : QTreeWidgetItem(parent, QStringList() << string, type)
 {
+    init();
+}
+
+DataSetTreeItem::DataSetTreeItem(QTreeWidgetItem *parent, const QString &string, int type)
+  : QTreeWidgetItem(parent, QStringList() << string, type)
+{
+    init();
+    QFont font;
+    font.setItalic(true);
+    setData(0, Qt::FontRole, font);
+}
+
+void DataSetTreeItem::init()
+{
+    m_filterRadius = 0;
     setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable);
     setCheckState(0, Qt::Unchecked);
     setData(0, Qt::SizeHintRole, QSize(150, 30));
@@ -425,6 +424,17 @@ Inspector::Probe::RegularMeshRealData DataSetTreeItem::mesh() const
     return m_mesh;
 }
 
+void DataSetTreeItem::setFilterRadius(qreal radius)
+{
+    m_filterRadius = qMax(radius, (qreal)0);
+    emitDataChanged();
+}
+
+qreal DataSetTreeItem::filterRadius() const
+{
+    return m_filterRadius;
+}
+
 //
 // DataSetTreeWidget
 //
@@ -433,8 +443,9 @@ DataSetTreeWidget::DataSetTreeWidget(ThermalModel *sourceModel, QWidget *parent)
   , m_sourceModel(sourceModel)
 {
     setEditTriggers(NoEditTriggers);
-    setHeaderLabel(tr("Data sets"));
-    setSelectionMode(ExtendedSelection);
+    setHeaderLabel(tr("Data Sets"));
+    setSelectionMode(SingleSelection);
+    setSelectionBehavior(SelectRows);
     setVerticalScrollMode(ScrollPerPixel);
 
     // monitor source model for insertions so we can mirror them
@@ -447,23 +458,73 @@ DataSetTreeWidget::DataSetTreeWidget(ThermalModel *sourceModel, QWidget *parent)
 
     // monitor local items for changes (checkstates or mesh changes)
     connect(this, SIGNAL(itemChanged(QTreeWidgetItem*,int)),
-            this, SLOT(slotItemChanged(QTreeWidgetItem*)));
+            this, SIGNAL(changed()));
+
+    // monitor for selection
+    connect(this, SIGNAL(itemSelectionChanged()),
+            this, SLOT(slotItemSelectionChanged()));
 }
 
-QList<Inspector::Probe::RegularMeshRealData> DataSetTreeWidget::meshes() const
+static QList<DataSetTreeItem *> s_checkedItems(QTreeWidgetItem *root)
 {
-    QList<Inspector::Probe::RegularMeshRealData> meshList;
-
-    QTreeWidgetItem *rootItem = invisibleRootItem();
-    int firstLevelCount = rootItem->childCount();
-
-    for (int idx = 0; idx < firstLevelCount; ++idx) {
-        DataSetTreeItem *thermalItem = static_cast<DataSetTreeItem *>(rootItem->child(idx));
-        if (thermalItem && thermalItem->checkState(0) != Qt::Unchecked)
-            meshList.append(thermalItem->mesh());
+    QList<DataSetTreeItem *> items;
+    int count = root->childCount();
+    for (int idx = 0; idx < count; ++idx) {
+        DataSetTreeItem *item = static_cast<DataSetTreeItem *>(root->child(idx));
+        if (item->checkState(0) != Qt::Unchecked)
+            items.append(item);
+        if (item->childCount())
+            items.append(s_checkedItems(item));
     }
+    return items;
+}
 
-    return meshList;
+void DataSetTreeWidget::render(VtkPrivate *v, int colorMode, bool smoothing) const
+{
+    v->clearContents();
+
+    QList<DataSetTreeItem *> checkedItems = s_checkedItems(invisibleRootItem());
+    bool translucentDrawing = checkedItems.count() > 1;
+    foreach (DataSetTreeItem *item, checkedItems)
+        v->addRegularMesh(item->mesh(), colorMode, translucentDrawing, smoothing, item->filterRadius());
+
+    v->refresh();
+}
+
+void DataSetTreeWidget::slotAppendFiltered()
+{
+    QList<QTreeWidgetItem*> items = selectedItems();
+    if (items.size() != 1)
+        return;
+    DataSetTreeItem *parent = dynamic_cast<DataSetTreeItem *>(items.first());
+    if (!parent || parent->type() != DataOriginal)
+        return;
+
+    // ask for filter radius
+    bool ok = false;
+    double radius = QInputDialog::getDouble(this, tr("Filter Radius"),
+                                            tr("Set the Gaussian Filter radius:"),
+                                            1.5, 0.0, 100.0, 1, &ok);
+    if (!ok || radius < 0.1)
+        return;
+
+    // add an entry here to mirror the standarditem
+    QString text = tr("%1 (Gaussian Filtered %2)").arg(parent->text(0)).arg(radius);
+    DataSetTreeItem *twi = new DataSetTreeItem(parent, text, DataFiltered);
+    twi->setMesh(parent->mesh());
+    twi->setFilterRadius(radius);
+
+    // expand parent
+    setItemExpanded(parent, true);
+}
+
+void DataSetTreeWidget::slotRemoveSelected()
+{
+    QList<QTreeWidgetItem*> selected = selectedItems();
+    if (!selected.isEmpty()) {
+        qDeleteAll(selected);
+        emit changed();
+    }
 }
 
 void DataSetTreeWidget::slotSourceRowsAdded(const QModelIndex &parent, int start, int end)
@@ -483,9 +544,15 @@ void DataSetTreeWidget::slotSourceRowsAdded(const QModelIndex &parent, int start
     }
 }
 
-void DataSetTreeWidget::slotItemChanged(QTreeWidgetItem *treeItem)
+void DataSetTreeWidget::slotItemSelectionChanged()
 {
-    Q_UNUSED(treeItem)
-    //DataSetTreeItem *item = static_cast<DataSetTreeItem *>(treeItem);
-    emit changed();
+    QList<QTreeWidgetItem*> items = selectedItems();
+    emit itemSelected(!items.isEmpty());
+    if (items.size() != 1) {
+        emit topItemSelected(false);
+    } else {
+       DataSetTreeItem *item = dynamic_cast<DataSetTreeItem *>(items.first());
+       bool firstLevel = item && item->type() == DataOriginal;
+       emit topItemSelected(firstLevel);
+    }
 }

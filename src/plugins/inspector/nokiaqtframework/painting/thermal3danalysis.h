@@ -33,17 +33,9 @@
 #include <QtCore/QModelIndex>
 #include <QtGui/QTreeWidget>
 #include <QtGui/QWidget>
-class QButtonGroup;
 class QCheckBox;
-class QDockWidget;
-class QLabel;
-class QStandardItem;
-class QVBoxLayout;
 class vtkCommand;
 class vtkObject;
-
-// include Probe data types
-#include "../../../../share/qtcreator/gdbmacros/probedata.h"
 
 namespace Inspector {
 namespace Internal {
@@ -64,20 +56,16 @@ public:
     ~Thermal3DAnalysis();
 
 private slots:
-    void slotDataSetChanged();
-
+    void slotRefreshRendering();
     void slotContextMenu(vtkObject *obj, unsigned long, void *client_data, void *, vtkCommand *command);
     void slotContextAction(QAction *);
-    void slotUpdateCoords(vtkObject *);
 
 private:
     VtkPrivate *v;
     PaintingModule *m_paintingModule;
     DataSetTreeWidget *m_dataSetWidget;
-    QButtonGroup *m_colorGroup;
+    QCheckBox *m_altColorsCheck;
     QCheckBox *m_smoothCheck;
-    QCheckBox *m_filterCheck;
-    QLabel *m_coordLabel;
 };
 
 class DataSetTreeWidget : public QTreeWidget
@@ -87,21 +75,26 @@ class DataSetTreeWidget : public QTreeWidget
 public:
     DataSetTreeWidget(ThermalModel *sourceModel, QWidget *parent = 0);
 
-    QList<Probe::RegularMeshRealData> meshes() const;
+    void render(VtkPrivate *, int colorMode, bool smoothing) const;
+
+public slots:
+    void slotAppendFiltered();
+    void slotRemoveSelected();
 
 signals:
     void changed();
+    void itemSelected(bool);
+    void topItemSelected(bool);
 
 private slots:
     void slotSourceRowsAdded(const QModelIndex &,int,int);
     void slotSourceRowsRemoved(const QModelIndex &,int,int);
-    void slotItemChanged(QTreeWidgetItem*);
+    void slotItemSelectionChanged();
 
 private:
     enum DataItemType {
         DataOriginal = QTreeWidgetItem::UserType + 1,
-        //DataFiltered = DataOriginal + 1,
-        //DataCombined = DataFiltered + 1,
+        DataFiltered = DataOriginal + 1
     };
     ThermalModel *m_sourceModel;
 };
