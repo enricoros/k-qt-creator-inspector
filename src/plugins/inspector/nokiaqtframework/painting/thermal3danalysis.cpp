@@ -33,6 +33,7 @@
 
 #include <QtGui/QApplication>
 #include <QtGui/QCheckBox>
+#include <QtGui/QColorDialog>
 #include <QtGui/QCursor>
 #include <QtGui/QGroupBox>
 #include <QtGui/QHBoxLayout>
@@ -77,8 +78,8 @@ public:
     void refresh();
 
     void clearContents();
-    void addRegularMesh(const Inspector::Probe::RegularMeshRealData &, int colorMode,
-                        bool drawTransparent, bool drawSmooth, double smoothRadius = 0);
+    void addRegularMesh(const Inspector::Probe::RegularMeshRealData &, const QColor &,
+                        int colorMode, bool translucent, bool smooth, double filterRadius);
 
     QWidget *widget() const { return m_widget; }
 
@@ -185,11 +186,13 @@ void VtkPrivate::clearContents()
     m_addedActors.clear();
 }
 
-void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mesh,
-                                int colorMode, bool drawTransparent, bool drawSmooth, double smoothRadius)
+void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mesh, const QColor &color,
+                                int colorMode, bool translucent, bool smooth, double filterRadius)
 {
     if (!mesh.rows || !mesh.columns || mesh.data.isEmpty())
         return;
+
+    // TODO: add RMS-normalization multiplier
 
     // create the image data scaled to physical size
     vtkImageData *imageData = vtkImageData::New();
@@ -201,7 +204,6 @@ void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mes
             (double)mesh.physicalSize.width() / (double)(mesh.columns - 1),
             (double)mesh.physicalSize.height() / (double)(mesh.rows - 1),
             1.0);
-    // TODO: add RMS-normalization multiplier
     int meshIdx = 0;
     for (int row = mesh.rows - 1; row >= 0; --row) {
         for (int col = 0; col < mesh.columns; ++col) {
@@ -210,15 +212,15 @@ void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mes
         }
     }
 
-    vtkImageGaussianSmooth *smooth = 0;
-    if (smoothRadius > 0.1) {
-        smooth = vtkImageGaussianSmooth::New();
-        smooth->SetRadiusFactor(smoothRadius);
-        smooth->SetInput(imageData);
+    vtkImageGaussianSmooth *gaussianFilter = 0;
+    if (filterRadius > 0.1) {
+        gaussianFilter = vtkImageGaussianSmooth::New();
+        gaussianFilter->SetRadiusFactor(filterRadius);
+        gaussianFilter->SetInput(imageData);
     }
 
     vtkImageDataGeometryFilter *geometry = vtkImageDataGeometryFilter::New();
-    geometry->SetInput(smooth ? smooth->GetOutput() : imageData);
+    geometry->SetInput(gaussianFilter ? gaussianFilter->GetOutput() : imageData);
 
     vtkWarpScalar *warp = vtkWarpScalar::New();
     warp->SetInput(geometry->GetOutput());
@@ -228,7 +230,7 @@ void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mes
     warp->SetScaleFactor(255);
 
     vtkPolyDataNormals *normals = 0;
-    if (drawSmooth) {
+    if (smooth) {
         normals = vtkPolyDataNormals::New();
         normals->SetInput(warp->GetOutput());
     }
@@ -243,42 +245,48 @@ void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mes
         elevation->SetInput(warp->GetOutput());
 */
     vtkDataSetMapper *mapper = vtkDataSetMapper::New();
-    if (normals)
-        mapper->SetInput(normals->GetOutput());
-    else
-        mapper->SetInput(warp->GetOutput());
+    mapper->SetInput(normals ? (vtkPointSet*)normals->GetOutput() : warp->GetOutput());
 
-    {
+    bool colorize = color != Qt::white;
+    if (colorMode != -1 || colorize) {
         vtkLookupTable *lut = vtkLookupTable::New();
         lut->SetRange(0, 1);
-        lut->SetHueRange(0.667, 0);
-        lut->SetSaturationRange(colorMode == 1 ? 0 : 1, 1);
-        lut->SetValueRange(1, 1);
-        lut->SetAlphaRange(colorMode == 1 ? 0 : 1, 1);
+        if (colorize) {
+            double hue = color.hueF();
+            lut->SetHueRange(hue, hue);
+            lut->SetSaturationRange(0, color.saturationF());
+            lut->SetValueRange(0, color.valueF());
+            lut->SetAlphaRange(1, 1);
+        } else {
+            lut->SetHueRange(0.667, 0);
+            lut->SetSaturationRange(colorMode == 1 ? 0 : 1, 1);
+            lut->SetValueRange(1, 1);
+            lut->SetAlphaRange(colorMode == 1 ? 0 : 1, 1);
+        }
         lut->Build();
         mapper->SetLookupTable(lut);
         lut->Delete();
     }
 
-    vtkProperty *property = vtkProperty::New();
-    property->SetOpacity(0.5);
-
     vtkActor* actor = vtkActor::New();
-    if (drawTransparent)
-        actor->SetProperty(property);
     actor->SetMapper(mapper);
+    if (translucent) {
+        vtkProperty *property = vtkProperty::New();
+        property->SetOpacity(0.5);
+        actor->SetProperty(property);
+        property->Delete();
+    }
 
     m_renderer->AddViewProp(actor);
     m_addedActors.append(actor);
 
-    property->Delete();
     mapper->Delete();
     if (normals)
         normals->Delete();
     warp->Delete();
     geometry->Delete();
-    if (smooth)
-        smooth->Delete();
+    if (gaussianFilter)
+        gaussianFilter->Delete();
     imageData->Delete();
 }
 
@@ -321,6 +329,14 @@ Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *module, bool useDepthPeelin
     connect(filterButton, SIGNAL(clicked()),
             m_dataSetWidget, SLOT(slotAppendFiltered()));
     oLay->addWidget(filterButton);
+
+    QPushButton *colorButton = new QPushButton(tr("Surface Color"));
+    colorButton->setEnabled(false);
+    connect(m_dataSetWidget, SIGNAL(itemSelected(bool)),
+            colorButton, SLOT(setEnabled(bool)));
+    connect(colorButton, SIGNAL(clicked()),
+            m_dataSetWidget, SLOT(slotColorizeSelected()));
+    oLay->addWidget(colorButton);
 
     QGroupBox *styleGroup = new QGroupBox(tr("Surface Options"));
     QVBoxLayout *styleLay = new QVBoxLayout(styleGroup);
@@ -398,30 +414,37 @@ public:
     void setFilterRadius(qreal radius);
     qreal filterRadius() const;
 
+    void setSurfaceColor(const QColor &);
+    QColor surfaceColor() const;
+
 private:
     void init();
     Probe::RegularMeshRealData m_mesh;
     qreal m_filterRadius;
+    QColor m_surfaceColor;
 };
 
 DataSetTreeItem::DataSetTreeItem(QTreeWidget *parent, const QString &string, int type)
-  : QTreeWidgetItem(parent, QStringList() << string, type)
+  : QTreeWidgetItem(QStringList() << string, type)
 {
     init();
+    parent->insertTopLevelItem(0, this);
 }
 
 DataSetTreeItem::DataSetTreeItem(QTreeWidgetItem *parent, const QString &string, int type)
-  : QTreeWidgetItem(parent, QStringList() << string, type)
+  : QTreeWidgetItem(QStringList() << string, type)
 {
     init();
     QFont font;
     font.setItalic(true);
     setData(0, Qt::FontRole, font);
+    parent->insertChild(0, this);;
 }
 
 void DataSetTreeItem::init()
 {
     m_filterRadius = 0;
+    m_surfaceColor = Qt::white;
     setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable);
     setCheckState(0, Qt::Unchecked);
     setData(0, Qt::SizeHintRole, QSize(150, 30));
@@ -430,7 +453,8 @@ void DataSetTreeItem::init()
 void DataSetTreeItem::setMesh(const Probe::RegularMeshRealData &mesh)
 {
     m_mesh = mesh;
-    emitDataChanged();
+    if (checkState(0) != Qt::Unchecked)
+        emitDataChanged();
 }
 
 Inspector::Probe::RegularMeshRealData DataSetTreeItem::mesh() const
@@ -440,13 +464,34 @@ Inspector::Probe::RegularMeshRealData DataSetTreeItem::mesh() const
 
 void DataSetTreeItem::setFilterRadius(qreal radius)
 {
+    if (radius < 0 || radius == m_filterRadius)
+        return;
     m_filterRadius = qMax(radius, (qreal)0);
-    emitDataChanged();
+    if (checkState(0) != Qt::Unchecked)
+        emitDataChanged();
 }
 
 qreal DataSetTreeItem::filterRadius() const
 {
     return m_filterRadius;
+}
+
+void DataSetTreeItem::setSurfaceColor(const QColor &color)
+{
+    if (!color.isValid() || color == m_surfaceColor)
+        return;
+    m_surfaceColor = color;
+    if (color == Qt::white)
+        setData(0, Qt::ForegroundRole, QApplication::palette().color(QPalette::WindowText));
+    else
+        setData(0, Qt::ForegroundRole, color);
+    if (checkState(0) != Qt::Unchecked)
+        emitDataChanged();
+}
+
+QColor DataSetTreeItem::surfaceColor() const
+{
+    return m_surfaceColor;
 }
 
 //
@@ -456,6 +501,7 @@ DataSetTreeWidget::DataSetTreeWidget(ThermalModel *sourceModel, QWidget *parent)
   : QTreeWidget(parent)
   , m_sourceModel(sourceModel)
 {
+    setAnimated(true);
     setEditTriggers(NoEditTriggers);
     setHeaderLabel(tr("Data Sets"));
     setSelectionMode(SingleSelection);
@@ -500,7 +546,8 @@ void DataSetTreeWidget::render(VtkPrivate *v, int colorMode, bool smoothing) con
     QList<DataSetTreeItem *> checkedItems = s_checkedItems(invisibleRootItem());
     bool translucentDrawing = checkedItems.count() > 1;
     foreach (DataSetTreeItem *item, checkedItems)
-        v->addRegularMesh(item->mesh(), colorMode, translucentDrawing, smoothing, item->filterRadius());
+        v->addRegularMesh(item->mesh(), item->surfaceColor(), colorMode,
+                          translucentDrawing, smoothing, item->filterRadius());
 
     v->refresh();
 }
@@ -528,8 +575,12 @@ void DataSetTreeWidget::slotAppendFiltered()
     twi->setMesh(parent->mesh());
     twi->setFilterRadius(radius);
 
-    // expand parent
+    // focus the new child
     setItemExpanded(parent, true);
+    clearSelection();
+    setItemSelected(twi, true);
+    twi->setCheckState(0, parent->checkState(0));
+    parent->setCheckState(0, Qt::Unchecked);
 }
 
 void DataSetTreeWidget::slotRemoveSelected()
@@ -538,6 +589,18 @@ void DataSetTreeWidget::slotRemoveSelected()
     if (!selected.isEmpty()) {
         qDeleteAll(selected);
         emit changed();
+    }
+}
+
+void DataSetTreeWidget::slotColorizeSelected()
+{
+    QList<QTreeWidgetItem*> selection = selectedItems();
+    if (selection.size() != 1)
+        return;
+    if (DataSetTreeItem *item = dynamic_cast<DataSetTreeItem *>(selection.first())) {
+        QColor color = QColorDialog::getColor(Qt::white, this, tr("Surface Color"));
+        if (color.isValid())
+            item->setSurfaceColor(color);
     }
 }
 
