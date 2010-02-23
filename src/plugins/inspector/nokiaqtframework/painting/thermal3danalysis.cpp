@@ -32,38 +32,40 @@
 #include "thermalmodel.h"
 
 #include <QtGui/QApplication>
+#include <QtGui/QButtonGroup>
 #include <QtGui/QCheckBox>
 #include <QtGui/QCursor>
+#include <QtGui/QDockWidget>
+#include <QtGui/QGroupBox>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QHeaderView>
 #include <QtGui/QLabel>
 #include <QtGui/QMenu>
+#include <QtGui/QRadioButton>
 #include <QtGui/QSplitter>
 #include <QtGui/QTreeWidget>
 #include <QtGui/QVBoxLayout>
 
 #include <QVTKWidget.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkEventQtSlotConnect.h>
-
-#include <vtkImageDataGeometryFilter.h>
-#include <vtkImageToStructuredPoints.h>
-#include <vtkStructuredGridSource.h>
-#include <vtkStructuredGrid.h>
-#include <vtkImageData.h>
-#include <vtkImageReader.h>
-#include <vtkConeSource.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkPolyDataNormals.h>
 #include <vtkDataSetMapper.h>
+#include <vtkEventQtSlotConnect.h>
+#include <vtkImageData.h>
+#include <vtkImageDataGeometryFilter.h>
+#include <vtkPolyDataNormals.h>
+#include <vtkProperty.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderer.h>
+#include <vtkWarpScalar.h>
+
+#include <vtkLookupTable.h>
+#include <vtkImageGaussianSmooth.h>
 
 using namespace Inspector::Internal;
 
 //
 // VtkPrivate
 //
-class Thermal3DAnalysis::VtkPrivate
+class Inspector::Internal::VtkPrivate
 {
 public:
     VtkPrivate();
@@ -72,91 +74,116 @@ public:
     void initPipeline(QObject *connTarget);
     void disposePipeline();
 
-    void clearContents();
-    void addRegularMesh(const Probe::RegularMeshRealData &, bool transp, bool smooth);
+    void setBackground(const QColor &backColor);
+    void toggleStereo();
+    void refresh();
 
-    QVTKWidget *widget;
-    vtkRenderer *renderer;
-    vtkEventQtSlotConnect *connections;
+    void clearContents();
+    void addRegularMesh(const Inspector::Probe::RegularMeshRealData &, int colorMode,
+                        bool drawTransparent, bool drawSmooth, double smoothRadius = 0);
+
+    QWidget *widget() const { return m_widget; }
 
 private:
+    QVTKWidget *m_widget;
+    vtkRenderer *m_renderer;
+    vtkEventQtSlotConnect *m_connections;
     QList<vtkActor *> m_addedActors;
 };
 
-Thermal3DAnalysis::VtkPrivate::VtkPrivate()
-  : widget(0)
-  , renderer(0)
-  , connections(0)
+VtkPrivate::VtkPrivate()
+  : m_widget(0)
+  , m_renderer(0)
+  , m_connections(0)
 {
-    widget = new QVTKWidget;
-    widget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-    widget->setAttribute(Qt::WA_DontCreateNativeAncestors);
+    m_widget = new QVTKWidget;
+    m_widget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    m_widget->setAttribute(Qt::WA_DontCreateNativeAncestors);
 }
 
-Thermal3DAnalysis::VtkPrivate::~VtkPrivate()
+VtkPrivate::~VtkPrivate()
 {
-    if (renderer)
+    if (m_renderer)
         disposePipeline();
 }
 
-void Thermal3DAnalysis::VtkPrivate::initPipeline(QObject *connTarget)
+void VtkPrivate::initPipeline(QObject *connTarget)
 {
     // create a window to make it stereo capable and give it to QVTKWidget
     {
         vtkRenderWindow *renderWindow = vtkRenderWindow::New();
         renderWindow->StereoCapableWindowOn();
-        widget->SetRenderWindow(renderWindow);
+        m_widget->SetRenderWindow(renderWindow);
         renderWindow->Delete();
     }
 
     // create the Renderer and connect it to the RenderWindow
-    renderer = vtkRenderer::New();
-    widget->GetRenderWindow()->AddRenderer(renderer);
+    m_renderer = vtkRenderer::New();
+    m_widget->GetRenderWindow()->AddRenderer(m_renderer);
 
     // connect Vtk Events to Qt Slots
-    connections = vtkEventQtSlotConnect::New();
+    m_connections = vtkEventQtSlotConnect::New();
 
     // get right mouse pressed with high priority
-    connections->Connect(widget->GetRenderWindow()->GetInteractor(), vtkCommand::RightButtonPressEvent,
+    m_connections->Connect(m_widget->GetRenderWindow()->GetInteractor(), vtkCommand::RightButtonPressEvent,
                          connTarget, SLOT(slotContextMenu(vtkObject*, unsigned long, void*, void*, vtkCommand*)),
                          0, 1.0);
 
     // update coords as we move through the window
-    connections->Connect(widget->GetRenderWindow()->GetInteractor(), vtkCommand::MouseMoveEvent,
+    m_connections->Connect(m_widget->GetRenderWindow()->GetInteractor(), vtkCommand::MouseMoveEvent,
                          connTarget, SLOT(slotUpdateCoords(vtkObject*)));
 }
 
-void Thermal3DAnalysis::VtkPrivate::disposePipeline()
+void VtkPrivate::disposePipeline()
 {
-    if (renderer) {
+    if (m_renderer) {
         clearContents();
-        renderer->Delete();
-        renderer = 0;
+        m_renderer->Delete();
+        m_renderer = 0;
     }
-    if (connections) {
-        connections->Delete();
-        connections = 0;
+    if (m_connections) {
+        m_connections->Delete();
+        m_connections = 0;
     }
+    delete m_widget;
+    m_widget = 0;
 }
 
-void Thermal3DAnalysis::VtkPrivate::clearContents()
+void VtkPrivate::setBackground(const QColor &color)
+{
+    m_renderer->SetBackground(color.redF(), color.greenF(), color.blueF());
+    refresh();
+}
+
+void VtkPrivate::toggleStereo()
+{
+    m_renderer->GetRenderWindow()->SetStereoRender(!m_renderer->GetRenderWindow()->GetStereoRender());
+}
+
+void VtkPrivate::refresh()
+{
+    if (!m_addedActors.isEmpty())
+        m_renderer->ResetCamera();
+    m_renderer->Render();
+    m_widget->update();
+}
+
+void VtkPrivate::clearContents()
 {
     foreach (vtkActor *actor, m_addedActors) {
+        m_renderer->RemoveActor(actor);
         actor->Delete();
-        renderer->RemoveActor(actor);
     }
     m_addedActors.clear();
 }
 
-#include <vtkImageDataGeometryFilter.h>
-#include <vtkWarpScalar.h>
-#include <vtkProperty.h>
-void Thermal3DAnalysis::VtkPrivate::addRegularMesh(const Probe::RegularMeshRealData &mesh, bool transp, bool smooth)
+void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mesh,
+                                int colorMode, bool drawTransparent, bool drawSmooth, double smoothRadius)
 {
     if (!mesh.rows || !mesh.columns || mesh.data.isEmpty())
         return;
 
-    // create image data
+    // create the image data scaled to physical size
     vtkImageData *imageData = vtkImageData::New();
     imageData->SetDimensions(mesh.columns, mesh.rows, 1);
     imageData->SetOrigin(-(double)mesh.physicalSize.width() / 2.0, -(double)mesh.physicalSize.height() / 2.0, 0.0);
@@ -166,65 +193,211 @@ void Thermal3DAnalysis::VtkPrivate::addRegularMesh(const Probe::RegularMeshRealD
             (double)mesh.physicalSize.width() / (double)(mesh.columns - 1),
             (double)mesh.physicalSize.height() / (double)(mesh.rows - 1),
             1.0);
-
+    // TODO: add RMS-normalization multiplier
     int meshIdx = 0;
     for (int row = mesh.rows - 1; row >= 0; --row) {
         for (int col = 0; col < mesh.columns; ++col) {
             double* pixel = static_cast<double*>(imageData->GetScalarPointer(col, row, 0));
-            pixel[0] = mesh.data[meshIdx++];
+            pixel[0] = mesh.data[meshIdx++] * 10;
         }
     }
 
-    // filter height
-    vtkImageDataGeometryFilter *igFilter = vtkImageDataGeometryFilter::New();
-    igFilter->SetInput(imageData);
+    vtkImageGaussianSmooth *smooth = 0;
+    if (smoothRadius > 0.1) {
+        smooth = vtkImageGaussianSmooth::New();
+        smooth->SetRadiusFactor(smoothRadius);
+        smooth->SetInput(imageData);
+    }
+
+    vtkImageDataGeometryFilter *geometry = vtkImageDataGeometryFilter::New();
+    geometry->SetInput(smooth ? smooth->GetOutput() : imageData);
 
     vtkWarpScalar *warp = vtkWarpScalar::New();
-    warp->SetInput(igFilter->GetOutput());
+    warp->SetInput(geometry->GetOutput());
     warp->SetNormal(0, 0, 1);
     warp->SetUseNormal(true);
     warp->SetXYPlane(false);
     warp->SetScaleFactor(255);
 
     vtkPolyDataNormals *normals = 0;
-    if (smooth) {
+    if (drawSmooth) {
         normals = vtkPolyDataNormals::New();
         normals->SetInput(warp->GetOutput());
     }
-
+/*
+    vtkElevationFilter *elevation = vtkElevationFilter::New();
+    elevation->SetLowPoint(0, 0, 0);
+    elevation->SetHighPoint(0, 0, 1000.0);
+    elevation->SetScalarRange(0, 1);
+    if (normals)
+        elevation->SetInput(normals->GetOutput());
+    else
+        elevation->SetInput(warp->GetOutput());
+*/
     vtkDataSetMapper *mapper = vtkDataSetMapper::New();
     if (normals)
         mapper->SetInput(normals->GetOutput());
     else
         mapper->SetInput(warp->GetOutput());
 
+    {
+        vtkLookupTable *lut = vtkLookupTable::New();
+        lut->SetRange(0, 1);
+        lut->SetHueRange(0.667, 0);
+        lut->SetSaturationRange(colorMode == 1 ? 0 : 1, 1);
+        lut->SetValueRange(1, 1);
+        lut->SetAlphaRange(colorMode == 1 ? 0 : 1, 1);
+        lut->Build();
+        mapper->SetLookupTable(lut);
+        lut->Delete();
+    }
+
     vtkProperty *property = vtkProperty::New();
     property->SetOpacity(0.5);
 
     vtkActor* actor = vtkActor::New();
-    if (transp)
+    if (drawTransparent)
         actor->SetProperty(property);
     actor->SetMapper(mapper);
-    m_addedActors.append(actor);
 
-    renderer->AddViewProp(actor);
+    m_renderer->AddViewProp(actor);
+    m_addedActors.append(actor);
 
     property->Delete();
     mapper->Delete();
     if (normals)
         normals->Delete();
     warp->Delete();
-    igFilter->Delete();
+    geometry->Delete();
+    if (smooth)
+        smooth->Delete();
     imageData->Delete();
 }
 
 //
-// ThermalTreeWidgetItem
+// Thermal3DAnalysis
 //
-class Inspector::Internal::ThermalTreeWidgetItem : public QTreeWidgetItem
+Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *parentModule, QWidget *parent)
+  : QWidget(parent)
+  , v(new VtkPrivate)
+  , m_paintingModule(parentModule)
+{
+    QVBoxLayout *vLay = new QVBoxLayout(this);
+    QSplitter *splitter = new QSplitter(Qt::Horizontal);
+    vLay->addWidget(splitter);
+
+    splitter->addWidget(v->widget());
+
+    QWidget *rightPanel = new QWidget;
+    QVBoxLayout *rLay = new QVBoxLayout(rightPanel);
+    rLay->setMargin(0);
+
+    m_dataSetWidget = new DataSetTreeWidget(parentModule->thermalModel());
+    rLay->addWidget(m_dataSetWidget);
+
+    QGroupBox *styleGroup = new QGroupBox(tr("Surface Color"));
+    QVBoxLayout *styleLay = new QVBoxLayout(styleGroup);
+    m_colorGroup = new QButtonGroup(styleGroup);
+    connect(m_colorGroup, SIGNAL(buttonClicked(QAbstractButton*)),
+            this, SLOT(slotDataSetChanged()));
+    QRadioButton *color1 = new QRadioButton(tr("Default"));
+    color1->setProperty("scheme", (int)0);
+    color1->setChecked(true);
+    m_colorGroup->addButton(color1);
+    styleLay->addWidget(color1);
+    QRadioButton *color2 = new QRadioButton(tr("Variation"));
+    color2->setProperty("scheme", (int)1);
+    m_colorGroup->addButton(color2);
+    styleLay->addWidget(color2);
+    rLay->addWidget(styleGroup);
+
+    m_smoothCheck = new QCheckBox(tr("Smoother display"));
+    m_smoothCheck->setChecked(true);
+    connect(m_smoothCheck, SIGNAL(toggled(bool)),
+            this, SLOT(slotDataSetChanged()));
+    rLay->addWidget(m_smoothCheck);
+
+    m_filterCheck = new QCheckBox(tr("Filter display"));
+    m_filterCheck->setChecked(true);
+    connect(m_filterCheck, SIGNAL(toggled(bool)),
+            this, SLOT(slotDataSetChanged()));
+    rLay->addWidget(m_filterCheck);
+
+    m_coordLabel = new QLabel;
+    m_coordLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    rLay->addWidget(m_coordLabel);
+
+    splitter->addWidget(rightPanel);
+
+    v->initPipeline(this);
+    v->setBackground(QApplication::palette().color(QPalette::Window));
+
+    connect(m_dataSetWidget, SIGNAL(changed()), this, SLOT(slotDataSetChanged()));
+    slotDataSetChanged();
+}
+
+void Thermal3DAnalysis::slotDataSetChanged()
+{
+    v->clearContents();
+    //v->addTexturedPlane( ... );
+
+    QAbstractButton *colorButton = m_colorGroup->checkedButton();
+    int colorMode = colorButton ? colorButton->property("scheme").toInt() : 0;
+
+    QList<Probe::RegularMeshRealData> meshes = m_dataSetWidget->meshes();
+    foreach (const Probe::RegularMeshRealData &mesh, meshes)
+        v->addRegularMesh(mesh, colorMode, meshes.count() > 1, m_smoothCheck->isChecked(),
+                          m_filterCheck->isChecked() ? 5 : 0);
+
+    v->refresh();
+}
+
+Thermal3DAnalysis::~Thermal3DAnalysis()
+{
+    delete v;
+}
+
+void Thermal3DAnalysis::slotContextMenu(vtkObject *, unsigned long, void *, void *, vtkCommand *command)
+{
+    // consume event so the interactor style doesn't get it
+    command->AbortFlagOn();
+
+    // connect and display a popup menu
+    QMenu *contextMenu = new QMenu(this);
+    contextMenu->setAttribute(Qt::WA_DeleteOnClose);
+    contextMenu->addAction(tr("Background White"))->setProperty("id", (int)1);
+    contextMenu->addAction(tr("Background Black"))->setProperty("id", (int)2);
+    contextMenu->addAction(tr("Stereo Rendering"))->setProperty("id", (int)3);
+    connect(contextMenu, SIGNAL(triggered(QAction*)),
+            this, SLOT(slotContextAction(QAction*)));
+    contextMenu->popup(QCursor::pos());
+}
+
+void Thermal3DAnalysis::slotContextAction(QAction *action)
+{
+    int id = action->property("id").toInt();
+    switch (id) {
+    case 1: v->setBackground(Qt::white); break;
+    case 2: v->setBackground(Qt::black); break;
+    case 3: v->toggleStereo(); break;
+    }
+}
+
+void Thermal3DAnalysis::slotUpdateCoords(vtkObject *object)
+{
+    vtkRenderWindowInteractor *interactor = vtkRenderWindowInteractor::SafeDownCast(object);
+    int event_pos[2];
+    interactor->GetEventPosition(event_pos);
+    m_coordLabel->setText(tr("x=%1 : y=%2").arg(event_pos[0]).arg(event_pos[1]));
+}
+
+//
+// DataSetTreeItem
+//
+class Inspector::Internal::DataSetTreeItem : public QTreeWidgetItem
 {
 public:
-    ThermalTreeWidgetItem(QTreeWidget *parent, const QString &string, int type);
+    DataSetTreeItem(QTreeWidget *parent, const QString &string, int type);
 
     void setMesh(const Probe::RegularMeshRealData &mesh);
     Probe::RegularMeshRealData mesh() const;
@@ -233,7 +406,7 @@ private:
     Probe::RegularMeshRealData m_mesh;
 };
 
-ThermalTreeWidgetItem::ThermalTreeWidgetItem(QTreeWidget *parent, const QString &string, int type)
+DataSetTreeItem::DataSetTreeItem(QTreeWidget *parent, const QString &string, int type)
   : QTreeWidgetItem(parent, QStringList() << string, type)
 {
     setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable);
@@ -241,13 +414,13 @@ ThermalTreeWidgetItem::ThermalTreeWidgetItem(QTreeWidget *parent, const QString 
     setData(0, Qt::SizeHintRole, QSize(150, 30));
 }
 
-void ThermalTreeWidgetItem::setMesh(const Probe::RegularMeshRealData &mesh)
+void DataSetTreeItem::setMesh(const Probe::RegularMeshRealData &mesh)
 {
     m_mesh = mesh;
     emitDataChanged();
 }
 
-Inspector::Probe::RegularMeshRealData ThermalTreeWidgetItem::mesh() const
+Inspector::Probe::RegularMeshRealData DataSetTreeItem::mesh() const
 {
     return m_mesh;
 }
@@ -285,7 +458,7 @@ QList<Inspector::Probe::RegularMeshRealData> DataSetTreeWidget::meshes() const
     int firstLevelCount = rootItem->childCount();
 
     for (int idx = 0; idx < firstLevelCount; ++idx) {
-        ThermalTreeWidgetItem *thermalItem = static_cast<ThermalTreeWidgetItem *>(rootItem->child(idx));
+        DataSetTreeItem *thermalItem = static_cast<DataSetTreeItem *>(rootItem->child(idx));
         if (thermalItem && thermalItem->checkState(0) != Qt::Unchecked)
             meshList.append(thermalItem->mesh());
     }
@@ -305,7 +478,7 @@ void DataSetTreeWidget::slotSourceRowsAdded(const QModelIndex &parent, int start
             continue;
 
         // add an entry here to mirror the standarditem
-        ThermalTreeWidgetItem *twi = new ThermalTreeWidgetItem(this, item->label(), DataOriginal);
+        DataSetTreeItem *twi = new DataSetTreeItem(this, item->label(), DataOriginal);
         twi->setMesh(item->mesh());
     }
 }
@@ -313,101 +486,6 @@ void DataSetTreeWidget::slotSourceRowsAdded(const QModelIndex &parent, int start
 void DataSetTreeWidget::slotItemChanged(QTreeWidgetItem *treeItem)
 {
     Q_UNUSED(treeItem)
-    //ThermalTreeWidgetItem *item = static_cast<ThermalTreeWidgetItem *>(treeItem);
+    //DataSetTreeItem *item = static_cast<DataSetTreeItem *>(treeItem);
     emit changed();
-}
-
-//
-// Thermal3DAnalysis
-//
-Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *parentModule, QWidget *parent)
-  : QWidget(parent)
-  , v(new VtkPrivate)
-  , m_paintingModule(parentModule)
-{
-    QVBoxLayout *vLay = new QVBoxLayout(this);
-    QSplitter *splitter = new QSplitter(Qt::Horizontal);
-    vLay->addWidget(splitter);
-
-    splitter->addWidget(v->widget);
-
-    QWidget *rightPanel = new QWidget;
-    QVBoxLayout *rLay = new QVBoxLayout(rightPanel);
-    rLay->setMargin(0);
-
-    m_dataSetWidget = new DataSetTreeWidget(parentModule->thermalModel());
-    rLay->addWidget(m_dataSetWidget);
-
-    m_smoothCheck = new QCheckBox(tr("Smoother display"));
-    m_smoothCheck->setChecked(true);
-    connect(m_smoothCheck, SIGNAL(toggled(bool)), this, SLOT(slotDataSetChanged()));
-    rLay->addWidget(m_smoothCheck);
-
-    m_coordLabel = new QLabel;
-    m_coordLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    rLay->addWidget(m_coordLabel);
-
-    splitter->addWidget(rightPanel);
-
-    v->initPipeline(this);
-    QColor backCol = QApplication::palette().color(QPalette::Window);
-    v->renderer->SetBackground(backCol.redF(), backCol.greenF(), backCol.blueF());
-
-    connect(m_dataSetWidget, SIGNAL(changed()), this, SLOT(slotDataSetChanged()));
-    slotDataSetChanged();
-}
-
-void Thermal3DAnalysis::slotDataSetChanged()
-{
-    v->clearContents();
-    //v->addTexturedPlane( ... );
-
-    QList<Probe::RegularMeshRealData> meshes = m_dataSetWidget->meshes();
-    foreach (const Probe::RegularMeshRealData &mesh, meshes)
-        v->addRegularMesh(mesh, meshes.count() > 1, m_smoothCheck->isChecked());
-
-    v->renderer->Render();
-    v->widget->update();
-}
-
-Thermal3DAnalysis::~Thermal3DAnalysis()
-{
-    delete v;
-}
-
-void Thermal3DAnalysis::slotContextMenu(vtkObject *, unsigned long, void *, void *, vtkCommand *command)
-{
-    // consume event so the interactor style doesn't get it
-    command->AbortFlagOn();
-
-    // connect and display a popup menu
-    QMenu *contextMenu = new QMenu(this);
-    contextMenu->setAttribute(Qt::WA_DeleteOnClose);
-    contextMenu->addAction(tr("Background White"))->setProperty("id", (int)1);
-    contextMenu->addAction(tr("Background Black"))->setProperty("id", (int)2);
-    contextMenu->addAction(tr("Stereo Rendering"))->setProperty("id", (int)3);
-    connect(contextMenu, SIGNAL(triggered(QAction*)),
-            this, SLOT(slotContextAction(QAction*)));
-    contextMenu->popup(QCursor::pos());
-}
-
-void Thermal3DAnalysis::slotContextAction(QAction *action)
-{
-    int id = action->property("id").toInt();
-    if (v->renderer && id) {
-        switch (id) {
-        case 1: v->renderer->SetBackground(1, 1, 1); break;
-        case 2: v->renderer->SetBackground(0, 0, 0); break;
-        case 3: v->renderer->GetRenderWindow()->SetStereoRender(!v->renderer->GetRenderWindow()->GetStereoRender()); break;
-        }
-        v->widget->update();
-    }
-}
-
-void Thermal3DAnalysis::slotUpdateCoords(vtkObject *object)
-{
-    vtkRenderWindowInteractor *interactor = vtkRenderWindowInteractor::SafeDownCast(object);
-    int event_pos[2];
-    interactor->GetEventPosition(event_pos);
-    m_coordLabel->setText(tr("x=%1 : y=%2").arg(event_pos[0]).arg(event_pos[1]));
 }
