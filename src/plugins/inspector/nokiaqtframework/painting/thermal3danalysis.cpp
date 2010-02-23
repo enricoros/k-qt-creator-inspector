@@ -69,7 +69,7 @@ public:
     VtkPrivate();
     ~VtkPrivate();
 
-    void initPipeline(QObject *connTarget);
+    void initPipeline(QObject *connTarget, bool useDepthPeeling);
     void disposePipeline();
 
     void setBackground(const QColor &backColor);
@@ -87,12 +87,14 @@ private:
     vtkRenderer *m_renderer;
     vtkEventQtSlotConnect *m_connections;
     QList<vtkActor *> m_addedActors;
+    bool m_depthPeeling;
 };
 
 VtkPrivate::VtkPrivate()
   : m_widget(0)
   , m_renderer(0)
   , m_connections(0)
+  , m_depthPeeling(false)
 {
     m_widget = new QVTKWidget;
     m_widget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
@@ -105,11 +107,17 @@ VtkPrivate::~VtkPrivate()
         disposePipeline();
 }
 
-void VtkPrivate::initPipeline(QObject *connTarget)
+void VtkPrivate::initPipeline(QObject *connTarget, bool useDepthPeeling)
 {
+    m_depthPeeling = useDepthPeeling;
+
     // create a window to make it stereo capable and give it to QVTKWidget
     {
         vtkRenderWindow *renderWindow = vtkRenderWindow::New();
+        if (m_depthPeeling) {
+            renderWindow->SetAlphaBitPlanes(1);
+            renderWindow->SetMultiSamples(0);
+        }
         renderWindow->StereoCapableWindowOn();
         m_widget->SetRenderWindow(renderWindow);
         renderWindow->Delete();
@@ -117,6 +125,11 @@ void VtkPrivate::initPipeline(QObject *connTarget)
 
     // create the Renderer and connect it to the RenderWindow
     m_renderer = vtkRenderer::New();
+    if (m_depthPeeling) {
+        m_renderer->SetUseDepthPeeling(1);
+        m_renderer->SetMaximumNumberOfPeels(100);
+        m_renderer->SetOcclusionRatio(0.1);
+    }
     m_widget->GetRenderWindow()->AddRenderer(m_renderer);
 
     // connect Vtk Events to Qt Slots
@@ -152,6 +165,7 @@ void VtkPrivate::setBackground(const QColor &color)
 void VtkPrivate::toggleStereo()
 {
     m_renderer->GetRenderWindow()->SetStereoRender(!m_renderer->GetRenderWindow()->GetStereoRender());
+    refresh();
 }
 
 void VtkPrivate::refresh()
@@ -271,10 +285,10 @@ void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mes
 //
 // Thermal3DAnalysis
 //
-Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *parentModule, QWidget *parent)
+Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *module, bool useDepthPeeling, QWidget *parent)
   : QWidget(parent)
   , v(new VtkPrivate)
-  , m_paintingModule(parentModule)
+  , m_paintingModule(module)
 {
     QVBoxLayout *vLay = new QVBoxLayout(this);
     QSplitter *splitter = new QSplitter(Qt::Horizontal);
@@ -285,7 +299,7 @@ Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *parentModule, QWidget *pare
     QSplitter *rightSplitter = new QSplitter(Qt::Vertical);
     splitter->addWidget(rightSplitter);
 
-    m_dataSetWidget = new DataSetTreeWidget(parentModule->thermalModel());
+    m_dataSetWidget = new DataSetTreeWidget(module->thermalModel());
     rightSplitter->addWidget(m_dataSetWidget);
 
     QWidget *optionsPanel = new QWidget;
@@ -314,7 +328,7 @@ Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *parentModule, QWidget *pare
     connect(m_altColorsCheck, SIGNAL(toggled(bool)),
             this, SLOT(slotRefreshRendering()));
     styleLay->addWidget(m_altColorsCheck);
-    m_smoothCheck = new QCheckBox(tr("Smoother display"));
+    m_smoothCheck = new QCheckBox(tr("Smooth Surfaces"));
     connect(m_smoothCheck, SIGNAL(toggled(bool)),
             this, SLOT(slotRefreshRendering()));
     styleLay->addWidget(m_smoothCheck);
@@ -324,7 +338,7 @@ Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *parentModule, QWidget *pare
 
     rightSplitter->addWidget(optionsPanel);
 
-    v->initPipeline(this);
+    v->initPipeline(this, useDepthPeeling);
     v->setBackground(QApplication::palette().color(QPalette::Window));
 
     connect(m_dataSetWidget, SIGNAL(changed()), this, SLOT(slotRefreshRendering()));
