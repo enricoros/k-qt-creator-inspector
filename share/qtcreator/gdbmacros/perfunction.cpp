@@ -194,6 +194,7 @@ public:
         dataWriter << mesh.physicalSize;
         dataWriter << mesh.rows;
         dataWriter << mesh.columns;
+        dataWriter << mesh.meanPatchSize;
         dataWriter << mesh.data;
         return sendMarshalled(channel, code1, meshData);
     }
@@ -428,6 +429,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
         const int wCols = widget->width() / chunkWidth;
         const int wRows = widget->height() / chunkHeight;
         const int wRects = wCols * wRows;
+        qreal meanPatchSize = 0;
         QVector<__TimedRect> wTimedRects;
         {
             int y1 = 0;
@@ -439,10 +441,12 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
                     __TimedRect tRect;
                     tRect.rect = QRect(x1, y1, x2 - x1, y2 - y1);
                     wTimedRects.append(tRect);
+                    meanPatchSize += tRect.rect.width() * tRect.rect.height();
                     x1 = x2;
                 }
                 y1 = y2;
             }
+            meanPatchSize /= (double)wRects;
         }
         if (consoleDebug)
             CONSOLE_PRINT("done subdivision");
@@ -523,6 +527,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
         mesh.physicalSize = QRect(0, 0, wW, wH);
         mesh.rows = wRows;
         mesh.columns = wCols;
+        mesh.meanPatchSize = meanPatchSize;
         foreach (const __TimedRect & tRect, wTimedRects)
             mesh.data.append(tRect.totalTime);
         ipCommClient->sendMesh(Inspector::Probe::Channel_Painting, 5, mesh);

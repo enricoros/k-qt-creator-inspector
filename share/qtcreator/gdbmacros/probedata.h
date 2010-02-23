@@ -42,6 +42,7 @@ struct RegularMeshRealData {
     QRect physicalSize;
     int rows;
     int columns;
+    qreal meanPatchSize;
     QVector<qreal> data;
 };
 
