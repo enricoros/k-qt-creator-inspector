@@ -33,9 +33,12 @@
 #include <QtCore/QModelIndex>
 #include <QtGui/QTreeWidget>
 #include <QtGui/QWidget>
+class QButtonGroup;
 class QCheckBox;
+class QDockWidget;
 class QLabel;
 class QStandardItem;
+class QVBoxLayout;
 class vtkCommand;
 class vtkObject;
 
@@ -46,9 +49,11 @@ namespace Inspector {
 namespace Internal {
 
 class DataSetTreeWidget;
+class DataSetTreeItem;
 class ThermalModel;
-class ThermalTreeWidgetItem;
 class PaintingModule;
+class VtkPrivate;
+
 
 class Thermal3DAnalysis : public QWidget
 {
@@ -66,15 +71,14 @@ private slots:
     void slotUpdateCoords(vtkObject *);
 
 private:
-    class VtkPrivate;
     VtkPrivate *v;
-
     PaintingModule *m_paintingModule;
     DataSetTreeWidget *m_dataSetWidget;
+    QButtonGroup *m_colorGroup;
     QCheckBox *m_smoothCheck;
+    QCheckBox *m_filterCheck;
     QLabel *m_coordLabel;
 };
-
 
 class DataSetTreeWidget : public QTreeWidget
 {
