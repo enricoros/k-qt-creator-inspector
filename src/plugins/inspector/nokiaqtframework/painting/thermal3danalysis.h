@@ -80,6 +80,7 @@ public:
 public slots:
     void slotAppendFiltered();
     void slotRemoveSelected();
+    void slotColorizeSelected();
 
 signals:
     void changed();
