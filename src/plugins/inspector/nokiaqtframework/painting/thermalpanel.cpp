@@ -126,7 +126,7 @@ ThermalPanel::ThermalPanel(PaintingModule *module)
     setupUi(this);
 
 #if defined(INSPECTOR_PAINTING_VTK)
-    Thermal3DAnalysis *tView = new Thermal3DAnalysis(m_paintingModule);
+    Thermal3DAnalysis *tView = new Thermal3DAnalysis(m_paintingModule, false /*TODO: use Settings*/);
     resultsTabWidget->addTab(tView, tr("Surface Analysis"));
 #endif
 

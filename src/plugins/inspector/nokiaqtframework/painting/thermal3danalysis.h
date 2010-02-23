@@ -52,7 +52,7 @@ class Thermal3DAnalysis : public QWidget
     Q_OBJECT
 
 public:
-    Thermal3DAnalysis(PaintingModule *, QWidget *parent = 0);
+    Thermal3DAnalysis(PaintingModule *, bool useDepthPeeling, QWidget *parent = 0);
     ~Thermal3DAnalysis();
 
 private slots:
