@@ -504,14 +504,16 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
         if (consoleDebug)
             CONSOLE_PRINT("100 done");
 
-        // single rect: drop min/max measured time value(s)
+        // single rect: drop min/max measured time value(s) and normalize
+        double normalizer = 1.0 / (double)(innerPasses * (passes - headDrops - tailDrops));
         QVector<__TimedRect>::iterator rIt = wTimedRects.begin(), rEnd = wTimedRects.end();
         for (; rIt != rEnd; rIt++) {
             __TimedRect & tRect = *rIt;
             tRect.totalTime = 0;
             qSort(tRect.times);
-            for (int idx = headDrops; idx < (tRect.times.size() - tailDrops); idx++)
+            for (int idx = headDrops; idx < (tRect.times.size() - tailDrops); ++idx)
                 tRect.totalTime += tRect.times[idx];
+            tRect.totalTime *= normalizer;
         }
         if (consoleDebug)
             CONSOLE_PRINT("done statistics");
