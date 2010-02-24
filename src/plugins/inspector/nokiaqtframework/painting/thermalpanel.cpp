@@ -123,6 +123,7 @@ public:
 ThermalPanel::ThermalPanel(PaintingModule *module)
   : AbstractPanel(module)
   , m_paintingModule(module)
+  , m_thermalModel(module->thermalModel())
 {
     setupUi(this);
 
@@ -132,26 +133,30 @@ ThermalPanel::ThermalPanel(PaintingModule *module)
 #endif
 
     // wire-up controls
+    connect(presetCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(slotActivatePreset(int)));
+    connect(testNameLabel, SIGNAL(textChanged(QString)), this, SLOT(slotValidateTestLabel()));
+
     connect(passesBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckIterations()));
     connect(lowBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckIterations()));
     connect(highBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckIterations()));
+
     connect(passesBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckWeight()));
     connect(innerBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckWeight()));
     connect(widthBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckWeight()));
     connect(heightBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckWeight()));
-    connect(defaultsButton, SIGNAL(clicked()), this, SLOT(slotLoadDefaults()));
+
     connect(runButton, SIGNAL(clicked()), this, SLOT(slotRunThermalClicked()));
     connect(viewButton, SIGNAL(clicked()), this, SLOT(slotDisplayClicked()));
     connect(removeButton, SIGNAL(clicked()), this, SLOT(slotRemoveClicked()));
+    connect(clearButton, SIGNAL(clicked()), this, SLOT(slotClearClicked()));
     connect(exportButton, SIGNAL(clicked()), this, SLOT(slotExportClicked()));
     connect(importButton, SIGNAL(clicked()), this, SLOT(slotImportClicked()));
     imageScrollArea->setWidget(imageLabel);
 
     // wire-up the results listview
-    connect(resultsView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(slotDisplayResultImage(QModelIndex)));
     resultsView->setItemDelegate(new ThermalItemDelegate(resultsView));
-    resultsView->setModel(m_paintingModule->thermalModel());
-    resultsView->setRootIndex(m_paintingModule->thermalModel()->resultsTableIndex());
+    resultsView->setModel(m_thermalModel);
+    resultsView->setRootIndex(m_thermalModel->resultsTableIndex());
 
     // change looks
     QFont smallerFont = samplesLabel->font();
@@ -170,16 +175,98 @@ ThermalPanel::ThermalPanel(PaintingModule *module)
     transPal.setColor(QPalette::Base, Qt::transparent);
     resultsView->setPalette(transPal);
 
-    // init fields
-    slotLoadDefaults();
-
     // listen for model changes
-    connect(m_paintingModule->thermalModel(), SIGNAL(itemChanged(QStandardItem*)),
+    connect(m_thermalModel, SIGNAL(itemChanged(QStandardItem*)),
             this, SLOT(slotModelItemChanged()));
     connect(resultsView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
             this, SLOT(slotViewSelectionChanged()));
+    connect(resultsView, SIGNAL(doubleClicked(QModelIndex)),
+            this, SLOT(slotDisplayResultImage(QModelIndex)));
     slotModelItemChanged();
     slotViewSelectionChanged();
+
+    // init fields
+    slotActivatePreset(presetCombo->currentIndex());
+    slotValidateTestLabel();
+    if (!runButton->isEnabled())
+        slotRegenLabel();
+}
+
+void ThermalPanel::slotActivatePreset(int comboIndex)
+{
+    groupBox->setVisible(comboIndex == 4);
+    switch (comboIndex) {
+    case 0: // fast
+        passesBox->setValue(4);
+        lowBox->setValue(0);
+        highBox->setValue(2);
+        innerBox->setValue(2);
+        widthBox->setValue(20);
+        heightBox->setValue(20);
+        break;
+    case 1: // default
+        passesBox->setValue(5);
+        lowBox->setValue(1);
+        highBox->setValue(2);
+        innerBox->setValue(4);
+        widthBox->setValue(10);
+        heightBox->setValue(10);
+        break;
+    case 2: // accurate
+        passesBox->setValue(7);
+        lowBox->setValue(1);
+        highBox->setValue(3);
+        innerBox->setValue(5);
+        widthBox->setValue(5);
+        heightBox->setValue(5);
+        break;
+    case 3: // high resolution
+        passesBox->setValue(10);
+        lowBox->setValue(1);
+        highBox->setValue(4);
+        innerBox->setValue(5);
+        widthBox->setValue(1);
+        heightBox->setValue(1);
+        break;
+    case 4: // custom
+        // keep the actual values
+        break;
+    }
+}
+
+void ThermalPanel::slotValidateTestLabel()
+{
+    if (testNameLabel->text().isEmpty())
+        runButton->setEnabled(false);
+    else if (m_thermalModel->containsResultLabel(testNameLabel->text()))
+        runButton->setEnabled(false);
+    else
+        runButton->setEnabled(true);
+}
+
+void ThermalPanel::slotRegenLabel()
+{
+    QString label = testNameLabel->text();
+    int antiLoop = 999;
+    while (antiLoop--) {
+        // parse existing number (after the dash) if any
+        int number = 0;
+        int dashIndex = label.lastIndexOf(QLatin1String("#"));
+        if (dashIndex != -1)
+            number = label.mid(dashIndex + 1).toInt();
+
+        // append the dash or increment the number
+        if (!number)
+            label.append(QLatin1String(" #1"));
+        else
+            label = label.left(dashIndex + 1).append(QString::number(number + 1));
+
+        // test the string, if ok set it, else continue looping
+        if (!m_thermalModel->containsResultLabel(label)) {
+            testNameLabel->setText(label);
+            break;
+        }
+    }
 }
 
 void ThermalPanel::slotCheckIterations()
@@ -204,21 +291,13 @@ void ThermalPanel::slotCheckWeight()
     popsBox->setText(tr("%1%").arg(QString::number(pops)));
 }
 
-void ThermalPanel::slotLoadDefaults()
-{
-    passesBox->setValue(5);
-    lowBox->setValue(1);
-    highBox->setValue(2);
-    innerBox->setValue(4);
-    widthBox->setValue(10);
-    heightBox->setValue(10);
-}
-
 void ThermalPanel::slotRunThermalClicked()
 {
+    slotRegenLabel();
+
     // Build the options list: passes, headDrops, tailDrops, innerPasses, chunkWidth, chunkHeight, consoleDebug
     QVariantList options;
-    options << passesBox->value() << lowBox->value() << highBox->value() << innerBox->value() << widthBox->value() << heightBox->value() << debugBox->isChecked();
+    options << passesBox->value() << lowBox->value() << highBox->value() << innerBox->value() << widthBox->value() << heightBox->value() << false;
 
     // start the test, we'll watch the results in the model
     m_paintingModule->startThermalTest(testNameLabel->text(), options);
@@ -240,14 +319,18 @@ void ThermalPanel::slotRemoveClicked()
     }
 }
 
+void ThermalPanel::slotClearClicked()
+{
+    m_thermalModel->clearResults();
+}
+
 void ThermalPanel::slotExportClicked()
 {
     // ask the file name
     const QString fileName = QFileDialog::getSaveFileName(this, tr("Export Thermal File"),
         "untitled.thermal", tr("Thermal Files (*.thermal)"));
     if (!fileName.isEmpty()) {
-        ThermalModel *model = static_cast<PaintingModule *>(parentModule())->thermalModel();
-        if (!model->exportToFile(fileName, resultsView->selectionModel()->selectedIndexes()))
+        if (!m_thermalModel->exportToFile(fileName, resultsView->selectionModel()->selectedIndexes()))
             exportButton->setEnabled(false);
     }
 }
@@ -257,16 +340,13 @@ void ThermalPanel::slotImportClicked()
     // ask the file name
     const QString fileName = QFileDialog::getOpenFileName(this, tr("Export Thermal File"),
         "untitled.thermal", tr("Thermal Files (*.thermal)"));
-    if (!fileName.isEmpty()) {
-        ThermalModel *model = static_cast<PaintingModule *>(parentModule())->thermalModel();
-        model->importFromFile(fileName);
-    }
+    if (!fileName.isEmpty())
+        m_thermalModel->importFromFile(fileName);
 }
 
 void ThermalPanel::slotModelItemChanged()
 {
-    ThermalModel *model = static_cast<PaintingModule *>(parentModule())->thermalModel();
-    int value = model->ptProgress();
+    int value = m_thermalModel->ptProgress();
     ptProgress->setValue(value);
     ptProgress->setVisible(value > 0 && value < 100);
 }
@@ -279,16 +359,14 @@ void ThermalPanel::slotViewSelectionChanged()
     viewButton->setEnabled(single);
     exportButton->setEnabled(!empty);
     removeButton->setEnabled(!empty);
+    clearButton->setEnabled(m_thermalModel->resultsCount());
 }
 
 void ThermalPanel::slotDisplayResultImage(const QModelIndex &index)
 {
-    ThermalModel *model = static_cast<PaintingModule *>(parentModule())->thermalModel();
-    const ThermalItem *item = model->result(index.row());
-    if (!item || item->originalImage().isNull())
-        return;
-    imageLabel->setFixedSize(item->originalImage().size());
-    imageLabel->setPixmap(item->coloredPixmap(true));
+    QPixmap pixmap = m_thermalModel->resultColoredPixmap(index);
+    imageLabel->setFixedSize(pixmap.size());
+    imageLabel->setPixmap(pixmap);
     resultsTabWidget->setCurrentIndex(1);
     imageScrollArea->setFocus();
 }

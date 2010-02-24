@@ -55,7 +55,12 @@ public:
     void addResult(const QDateTime &, qreal duration, const QString &label, const QString &options,
                    const QImage &image, const Probe::RegularMeshRealData &mesh);
     QModelIndex resultsTableIndex() const;
-    const ThermalItem *result(int row) const;
+    void clearResults();
+
+    QPixmap resultColoredPixmap(const QModelIndex &);
+    int resultsCount() const;
+
+    bool containsResultLabel(const QString &) const;
 
     void setPtProgress(int progress);
     int ptProgress() const;
@@ -64,6 +69,8 @@ public:
     int importFromFile(const QString &fileName);
 
 private:
+    friend class ThermalItemDelegate;
+    const ThermalItem *result(int row) const;
     QString storageFileName() const;
 };
 
