@@ -50,8 +50,8 @@ public:
                                   int *rows, int *cols, T *data);
 
     // drawing functions
-    static void paintMeshOverImage(QImage *image, Inspector::Probe::RegularMeshRealData *mesh,
-                                   bool scaleToImage = false, bool showLegend = true);
+    static void paintMeshOverImage(QImage *image, const Inspector::Probe::RegularMeshRealData &,
+                                   bool scaleToImage, bool showLegend);
 };
 
 } // namespace Internal

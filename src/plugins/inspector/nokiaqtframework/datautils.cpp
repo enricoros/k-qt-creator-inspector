@@ -78,11 +78,11 @@ bool DataUtils::importOctaveArray(const QString &fileName, const QString &varNam
     return false;
 }
 
-void DataUtils::paintMeshOverImage(QImage *image, Inspector::Probe::RegularMeshRealData *mesh, bool scaleToImage, bool showLegend)
+void DataUtils::paintMeshOverImage(QImage *image, const Inspector::Probe::RegularMeshRealData &mesh, bool scaleToImage, bool showLegend)
 {
     // find out the input range
     double tTotal = 0, tMax = 0, tMin = 0;
-    foreach (qreal value, mesh->data) {
+    foreach (qreal value, mesh.data) {
         if (value > tMax)
             tMax = value;
         if (value < tMin || tMin == 0)
@@ -92,10 +92,10 @@ void DataUtils::paintMeshOverImage(QImage *image, Inspector::Probe::RegularMeshR
 
     // draw over the image with the same rect-subdivision done by the probe
     QPainter painter(image);
-    const int wW = scaleToImage ? image->width() : mesh->physicalSize.width();
-    const int wH = scaleToImage ? image->height() : mesh->physicalSize.height();
-    const int wRows = mesh->rows;
-    const int wCols = mesh->columns;
+    const int wW = scaleToImage ? image->width() : mesh.physicalSize.width();
+    const int wH = scaleToImage ? image->height() : mesh.physicalSize.height();
+    const int wRows = mesh.rows;
+    const int wCols = mesh.columns;
     int index = 0;
     int y1 = 0;
     for (int row = 0; row < wRows; ++row) {
@@ -104,7 +104,7 @@ void DataUtils::paintMeshOverImage(QImage *image, Inspector::Probe::RegularMeshR
         for (int col = 0; col < wCols; ++col) {
             int x2 = (wW * (col + 1)) / wCols;
             QRect paintRect(x1, y1, x2 - x1, y2 - y1);
-            double nValue = (mesh->data[index++] - tMin) / (tMax - tMin);
+            double nValue = (mesh.data[index++] - tMin) / (tMax - tMin);
             QColor mappedColor = QColor::fromHsvF(0.67 - nValue * 0.67, 1.0, 1.0, 0.5 + 0.25*nValue);
             painter.fillRect(paintRect, mappedColor);
             x1 = x2;

@@ -64,6 +64,8 @@ private:
     VtkPrivate *v;
     PaintingModule *m_paintingModule;
     DataSetTreeWidget *m_dataSetWidget;
+    QCheckBox *m_texturesCheck;
+    QCheckBox *m_zeroPlanesCheck;
     QCheckBox *m_altColorsCheck;
     QCheckBox *m_smoothCheck;
 };
@@ -75,7 +77,7 @@ class DataSetTreeWidget : public QTreeWidget
 public:
     DataSetTreeWidget(ThermalModel *sourceModel, QWidget *parent = 0);
 
-    void render(VtkPrivate *, int colorMode, bool smoothing) const;
+    void render(VtkPrivate *, bool useTextures, bool zeroPlane, int colorMode, bool smoothing) const;
 
 public slots:
     void slotAppendFiltered();
@@ -89,7 +91,6 @@ signals:
 
 private slots:
     void slotSourceRowsAdded(const QModelIndex &,int,int);
-    void slotSourceRowsRemoved(const QModelIndex &,int,int);
     void slotItemSelectionChanged();
 
 private:
