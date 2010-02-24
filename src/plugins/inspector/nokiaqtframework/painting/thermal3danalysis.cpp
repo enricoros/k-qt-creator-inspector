@@ -50,10 +50,14 @@
 #include <vtkImageDataGeometryFilter.h>
 #include <vtkImageGaussianSmooth.h>
 #include <vtkLookupTable.h>
+#include <vtkPlaneSource.h>
+#include <vtkPolyDataMapper.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkProperty.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
+#include <vtkTexture.h>
+#include <vtkTextureMapToPlane.h>
 #include <vtkWarpScalar.h>
 
 // include Probe data types
@@ -79,7 +83,8 @@ public:
 
     void clearContents();
     void addRegularMesh(const Inspector::Probe::RegularMeshRealData &, const QColor &,
-                        int colorMode, bool translucent, bool smooth, double filterRadius);
+                        int colorMode, bool zeroPlane, bool translucent, bool smooth,
+                        double filterRadius, const QImage &texture);
 
     QWidget *widget() const { return m_widget; }
 
@@ -186,41 +191,55 @@ void VtkPrivate::clearContents()
     m_addedActors.clear();
 }
 
-void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mesh, const QColor &color,
-                                int colorMode, bool translucent, bool smooth, double filterRadius)
+void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mesh,
+                                const QColor &color, int colorMode, bool zeroPlane,
+                                bool translucent, bool smooth, double filterRadius,
+                                const QImage &textureImage)
 {
     if (!mesh.rows || !mesh.columns || mesh.data.isEmpty())
         return;
 
-    // TODO: add RMS-normalization multiplier
+    // TODO: add RMS-normalization multiplier (10.0 plays well on enrico's notebook...)
+    const double physicalWidth = mesh.physicalSize.width();
+    const double physicalHeight = mesh.physicalSize.height();
+    double rmsNormalizer = 10.0;
 
     // create the image data scaled to physical size
     vtkImageData *imageData = vtkImageData::New();
     imageData->SetDimensions(mesh.columns, mesh.rows, 1);
-    imageData->SetOrigin(-(double)mesh.physicalSize.width() / 2.0, -(double)mesh.physicalSize.height() / 2.0, 0.0);
+    imageData->SetOrigin(-physicalWidth / 2.0, -physicalHeight / 2.0, 0.0);
     imageData->SetNumberOfScalarComponents(1);
     imageData->SetScalarTypeToDouble();
     imageData->SetSpacing(
-            (double)mesh.physicalSize.width() / (double)(mesh.columns - 1),
-            (double)mesh.physicalSize.height() / (double)(mesh.rows - 1),
+            (double)physicalWidth / (double)(mesh.columns - 1),
+            (double)physicalHeight / (double)(mesh.rows - 1),
             1.0);
     int meshIdx = 0;
     for (int row = mesh.rows - 1; row >= 0; --row) {
         for (int col = 0; col < mesh.columns; ++col) {
             double* pixel = static_cast<double*>(imageData->GetScalarPointer(col, row, 0));
-            pixel[0] = mesh.data[meshIdx++] * 10;
+            pixel[0] = mesh.data[meshIdx++] * rmsNormalizer;
         }
+    }
+    vtkDataSet *inputData = imageData;
+
+    vtkTextureMapToPlane *texturePlane = 0;
+    if (!textureImage.isNull() && textureImage.format() == QImage::Format_ARGB32) {
+        texturePlane = vtkTextureMapToPlane::New();
+        texturePlane->SetInput(imageData);
+        inputData = texturePlane->GetOutput();
     }
 
     vtkImageGaussianSmooth *gaussianFilter = 0;
     if (filterRadius > 0.1) {
         gaussianFilter = vtkImageGaussianSmooth::New();
         gaussianFilter->SetRadiusFactor(filterRadius);
-        gaussianFilter->SetInput(imageData);
+        gaussianFilter->SetInput(inputData);
+        inputData = gaussianFilter->GetOutput();
     }
 
     vtkImageDataGeometryFilter *geometry = vtkImageDataGeometryFilter::New();
-    geometry->SetInput(gaussianFilter ? gaussianFilter->GetOutput() : imageData);
+    geometry->SetInput(inputData);
 
     vtkWarpScalar *warp = vtkWarpScalar::New();
     warp->SetInput(geometry->GetOutput());
@@ -248,10 +267,15 @@ void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mes
     mapper->SetInput(normals ? (vtkPointSet*)normals->GetOutput() : warp->GetOutput());
 
     bool colorize = color != Qt::white;
-    if (colorMode != -1 || colorize) {
+    if (colorMode != -1 || colorize || texturePlane) {
         vtkLookupTable *lut = vtkLookupTable::New();
         lut->SetRange(0, 1);
-        if (colorize) {
+        if (texturePlane) {
+            lut->SetHueRange(0, 0);
+            lut->SetSaturationRange(0, 0);
+            lut->SetValueRange(0.8, 1);
+            lut->SetAlphaRange(1, 1);
+        } else if (colorize) {
             double hue = color.hueF();
             lut->SetHueRange(hue, hue);
             lut->SetSaturationRange(0, color.saturationF());
@@ -270,6 +294,29 @@ void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mes
 
     vtkActor* actor = vtkActor::New();
     actor->SetMapper(mapper);
+
+    if (texturePlane) {
+        const int textureWidth = textureImage.width();
+        const int textureHeight = textureImage.height();
+        vtkImageData *textureData = vtkImageData::New();
+        textureData->SetDimensions(textureWidth, textureHeight, 1);
+        textureData->SetNumberOfScalarComponents(4);
+        textureData->SetScalarTypeToUnsignedChar();
+        for (int row = 0; row < textureHeight; ++row) {
+            const quint32 *sourcePixels = (const quint32 *)textureImage.scanLine(row);
+            quint32 *destPixels = (quint32 *)textureData->GetScalarPointer(0, textureHeight - row - 1, 0);
+            for (int col = 0; col < textureWidth; ++col) {
+                quint32 pixel = sourcePixels[col];
+                destPixels[col] = (pixel & 0xFF00FF00) | ((pixel & 0x00FF0000) >> 16) | ((pixel & 0x000000FF) << 16);
+            }
+        }
+        vtkTexture *texture = vtkTexture::New();
+        texture->SetInput(textureData);
+        actor->SetTexture(texture);
+        texture->Delete();
+        textureData->Delete();
+    }
+
     if (translucent) {
         vtkProperty *property = vtkProperty::New();
         property->SetOpacity(0.5);
@@ -280,6 +327,30 @@ void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mes
     m_renderer->AddViewProp(actor);
     m_addedActors.append(actor);
 
+    if (zeroPlane) {
+        vtkPlaneSource *backPlaneSource = vtkPlaneSource::New();
+        backPlaneSource->SetNormal(0.0, 0.0, 1.0);
+        backPlaneSource->SetCenter(-physicalWidth / 2, -physicalHeight / 2, 0.0);
+        backPlaneSource->SetPoint1(physicalWidth / 2, -physicalHeight / 2, 0);
+        backPlaneSource->SetPoint2(-physicalWidth / 2,  physicalHeight / 2, 0);
+
+        vtkTextureMapToPlane *backTexPlane = vtkTextureMapToPlane::New();
+        backTexPlane->SetInput(backPlaneSource->GetOutput());
+
+        vtkPolyDataMapper *backMapper = vtkPolyDataMapper::New();
+        backMapper->SetInputConnection(backTexPlane->GetOutputPort());
+
+        vtkActor *backActor = vtkActor::New();
+        backActor->SetMapper(backMapper);
+
+        m_renderer->AddViewProp(backActor);
+        m_addedActors.append(backActor);
+
+        backMapper->Delete();
+        backTexPlane->Delete();
+        backPlaneSource->Delete();
+    }
+
     mapper->Delete();
     if (normals)
         normals->Delete();
@@ -287,6 +358,8 @@ void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mes
     geometry->Delete();
     if (gaussianFilter)
         gaussianFilter->Delete();
+    if (texturePlane)
+        texturePlane->Delete();
     imageData->Delete();
 }
 
@@ -314,14 +387,6 @@ Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *module, bool useDepthPeelin
     QVBoxLayout *oLay = new QVBoxLayout(optionsPanel);
     oLay->setMargin(0);
 
-    QPushButton *removeButton = new QPushButton(tr("Remove Selected"));
-    removeButton->setEnabled(false);
-    connect(m_dataSetWidget, SIGNAL(itemSelected(bool)),
-            removeButton, SLOT(setEnabled(bool)));
-    connect(removeButton, SIGNAL(clicked()),
-            m_dataSetWidget, SLOT(slotRemoveSelected()));
-    oLay->addWidget(removeButton);
-
     QPushButton *filterButton = new QPushButton(tr("Add Filtered"));
     filterButton->setEnabled(false);
     connect(m_dataSetWidget, SIGNAL(topItemSelected(bool)),
@@ -330,7 +395,15 @@ Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *module, bool useDepthPeelin
             m_dataSetWidget, SLOT(slotAppendFiltered()));
     oLay->addWidget(filterButton);
 
-    QPushButton *colorButton = new QPushButton(tr("Surface Color"));
+    QPushButton *removeButton = new QPushButton(tr("Remove Selected"));
+    removeButton->setEnabled(false);
+    connect(m_dataSetWidget, SIGNAL(itemSelected(bool)),
+            removeButton, SLOT(setEnabled(bool)));
+    connect(removeButton, SIGNAL(clicked()),
+            m_dataSetWidget, SLOT(slotRemoveSelected()));
+    oLay->addWidget(removeButton);
+
+    QPushButton *colorButton = new QPushButton(tr("Set Surface Color"));
     colorButton->setEnabled(false);
     connect(m_dataSetWidget, SIGNAL(itemSelected(bool)),
             colorButton, SLOT(setEnabled(bool)));
@@ -338,13 +411,23 @@ Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *module, bool useDepthPeelin
             m_dataSetWidget, SLOT(slotColorizeSelected()));
     oLay->addWidget(colorButton);
 
-    QGroupBox *styleGroup = new QGroupBox(tr("Surface Options"));
+    QGroupBox *styleGroup = new QGroupBox(tr("Drawing Options"));
     QVBoxLayout *styleLay = new QVBoxLayout(styleGroup);
+    m_texturesCheck = new QCheckBox(tr("Overlay Source Image"));
+    connect(m_texturesCheck, SIGNAL(toggled(bool)),
+            this, SLOT(slotRefreshRendering()));
+    styleLay->addWidget(m_texturesCheck);
+    m_zeroPlanesCheck = new QCheckBox(tr("Show Zero Plane"));
+    connect(m_zeroPlanesCheck, SIGNAL(toggled(bool)),
+            this, SLOT(slotRefreshRendering()));
+    styleLay->addWidget(m_zeroPlanesCheck);
     m_altColorsCheck = new QCheckBox(tr("Alternate Colors"));
     connect(m_altColorsCheck, SIGNAL(toggled(bool)),
             this, SLOT(slotRefreshRendering()));
+    connect(m_texturesCheck, SIGNAL(toggled(bool)),
+            m_altColorsCheck, SLOT(setDisabled(bool)));
     styleLay->addWidget(m_altColorsCheck);
-    m_smoothCheck = new QCheckBox(tr("Smooth Surfaces"));
+    m_smoothCheck = new QCheckBox(tr("Smooth Colors"));
     connect(m_smoothCheck, SIGNAL(toggled(bool)),
             this, SLOT(slotRefreshRendering()));
     styleLay->addWidget(m_smoothCheck);
@@ -368,9 +451,11 @@ Thermal3DAnalysis::~Thermal3DAnalysis()
 
 void Thermal3DAnalysis::slotRefreshRendering()
 {
+    bool useTextures = m_texturesCheck->isChecked();
+    bool zeroPlane = m_zeroPlanesCheck->isChecked();
     int colorMode = m_altColorsCheck->isChecked() ? 1 : 0;
     bool smoothing = m_smoothCheck->isChecked();
-    m_dataSetWidget->render(v, colorMode, smoothing);
+    m_dataSetWidget->render(v, useTextures, zeroPlane, colorMode, smoothing);
 }
 
 void Thermal3DAnalysis::slotContextMenu(vtkObject *, unsigned long, void *, void *, vtkCommand *command)
@@ -411,6 +496,9 @@ public:
     void setMesh(const Probe::RegularMeshRealData &mesh);
     Probe::RegularMeshRealData mesh() const;
 
+    void setImage(const QImage &image);
+    QImage image() const;
+
     void setFilterRadius(qreal radius);
     qreal filterRadius() const;
 
@@ -420,6 +508,7 @@ public:
 private:
     void init();
     Probe::RegularMeshRealData m_mesh;
+    QImage m_image;
     qreal m_filterRadius;
     QColor m_surfaceColor;
 };
@@ -447,7 +536,7 @@ void DataSetTreeItem::init()
     m_surfaceColor = Qt::white;
     setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable);
     setCheckState(0, Qt::Unchecked);
-    setData(0, Qt::SizeHintRole, QSize(150, 30));
+    setData(0, Qt::SizeHintRole, QSize(150, 22));
 }
 
 void DataSetTreeItem::setMesh(const Probe::RegularMeshRealData &mesh)
@@ -460,6 +549,18 @@ void DataSetTreeItem::setMesh(const Probe::RegularMeshRealData &mesh)
 Inspector::Probe::RegularMeshRealData DataSetTreeItem::mesh() const
 {
     return m_mesh;
+}
+
+void DataSetTreeItem::setImage(const QImage &image)
+{
+    m_image = image;
+    if (checkState(0) != Qt::Unchecked)
+        emitDataChanged();
+}
+
+QImage DataSetTreeItem::image() const
+{
+    return m_image;
 }
 
 void DataSetTreeItem::setFilterRadius(qreal radius)
@@ -539,15 +640,18 @@ static QList<DataSetTreeItem *> s_checkedItems(QTreeWidgetItem *root)
     return items;
 }
 
-void DataSetTreeWidget::render(VtkPrivate *v, int colorMode, bool smoothing) const
+void DataSetTreeWidget::render(VtkPrivate *v, bool useTextures, bool zeroPlane, int colorMode, bool smoothing) const
 {
     v->clearContents();
 
     QList<DataSetTreeItem *> checkedItems = s_checkedItems(invisibleRootItem());
     bool translucentDrawing = checkedItems.count() > 1;
+    if (translucentDrawing)
+        zeroPlane = false;
     foreach (DataSetTreeItem *item, checkedItems)
-        v->addRegularMesh(item->mesh(), item->surfaceColor(), colorMode,
-                          translucentDrawing, smoothing, item->filterRadius());
+        v->addRegularMesh(item->mesh(), item->surfaceColor(), colorMode, zeroPlane,
+                          translucentDrawing, smoothing, item->filterRadius(),
+                          useTextures ? item->image() : QImage());
 
     v->refresh();
 }
@@ -573,7 +677,10 @@ void DataSetTreeWidget::slotAppendFiltered()
     QString text = tr("%1 (Gaussian Filtered %2)").arg(parent->text(0)).arg(radius);
     DataSetTreeItem *twi = new DataSetTreeItem(parent, text, DataFiltered);
     twi->setMesh(parent->mesh());
+    twi->setImage(parent->image());
     twi->setFilterRadius(radius);
+    if (parent->surfaceColor().isValid() && parent->surfaceColor() != Qt::white)
+        twi->setSurfaceColor(parent->surfaceColor());
 
     // focus the new child
     setItemExpanded(parent, true);
@@ -617,7 +724,8 @@ void DataSetTreeWidget::slotSourceRowsAdded(const QModelIndex &parent, int start
 
         // add an entry here to mirror the standarditem
         DataSetTreeItem *twi = new DataSetTreeItem(this, item->label(), DataOriginal);
-        twi->setMesh(item->mesh());
+        twi->setMesh(item->originalMesh());
+        twi->setImage(item->originalImage());
     }
 }
 

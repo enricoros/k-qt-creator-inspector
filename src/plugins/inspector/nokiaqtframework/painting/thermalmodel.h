@@ -32,6 +32,7 @@
 
 #include "abstracteasymodel.h"
 #include <QtCore/QDateTime>
+#include <QtGui/QImage>
 #include <QtGui/QPixmap>
 #include <QtGui/QStandardItem>
 
@@ -52,7 +53,7 @@ public:
     ~ThermalModel();
 
     void addResult(const QDateTime &, qreal duration, const QString &label, const QString &options,
-                   const QPixmap &image, const Probe::RegularMeshRealData &mesh);
+                   const QImage &image, const Probe::RegularMeshRealData &mesh);
     QModelIndex resultsTableIndex() const;
     const ThermalItem *result(int row) const;
 
@@ -68,15 +69,17 @@ class ThermalItem : public QStandardItem
 {
 public:
     ThermalItem(const QDateTime &dt, qreal duration, const QString &label, const QString &options,
-                const QPixmap &image, const Probe::RegularMeshRealData &mesh);
+                const QImage &image, const Probe::RegularMeshRealData &mesh);
 
     QDateTime startDate() const;
     qreal duration() const;
     QString label() const;
     QString options() const;
-    QPixmap image() const;
-    Probe::RegularMeshRealData mesh() const;
-    QPixmap previewImage() const;
+    QImage originalImage() const;
+    Probe::RegularMeshRealData originalMesh() const;
+    QPixmap previewPixmap() const;
+
+    QPixmap coloredPixmap(bool legend) const;
 
     static const int previewWidth  = 80;
     static const int previewHeight = 60;
@@ -86,7 +89,7 @@ private:
     qreal m_duration;
     QString m_label;
     QString m_options;
-    QPixmap m_pixmap;
+    QImage m_image;
     Probe::RegularMeshRealData m_mesh;
     QPixmap m_previewPixmap;
 };

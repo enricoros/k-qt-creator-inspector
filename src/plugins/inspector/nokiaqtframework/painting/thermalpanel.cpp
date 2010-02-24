@@ -84,7 +84,7 @@ public:
         subtleTextColor.setAlpha(subtleTextColor.alpha() / 2);
 
         // preview pixmap
-        const QPixmap preview = item->previewImage();
+        const QPixmap preview = item->previewPixmap();
         painter->drawPixmap(rl + (88 - preview.width()) / 2, rt + (rect.height() - preview.height()) / 2, preview);
 
         // text: date + duration
@@ -229,10 +229,10 @@ void ThermalPanel::slotResultActivated(const QModelIndex &index)
 {
     ThermalModel *model = static_cast<PaintingModule *>(parentModule())->thermalModel();
     const ThermalItem *item = model->result(index.row());
-    if (!item || item->image().isNull())
+    if (!item || item->originalImage().isNull())
         return;
-    imageLabel->setFixedSize(item->image().size());
-    imageLabel->setPixmap(item->image());
+    imageLabel->setFixedSize(item->originalImage().size());
+    imageLabel->setPixmap(item->coloredPixmap(true));
     resultsTabWidget->setCurrentIndex(1);
     imageScrollArea->setFocus();
 }

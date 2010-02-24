@@ -29,7 +29,6 @@
 
 #include "thermaltask.h"
 #include "thermalmodel.h"
-#include "../datautils.h"
 #include "../localcommserver.h"
 #include "../nokiaqtframework.h"
 
@@ -106,10 +105,8 @@ void ThermalTask::slotProcessIncomingData(quint32 channel, quint32 code1, QByteA
     case 5: {   // mesh data
         Inspector::Probe::RegularMeshRealData mesh;
         LocalCommServer::decodeMesh(data, &mesh);
-        DataUtils::paintMeshOverImage(&m_lastImage, &mesh, false);
         int duration = m_startDate.secsTo(QDateTime::currentDateTime());
-        m_model->addResult(m_startDate, duration, m_testTitle, m_optionsString,
-                           QPixmap::fromImage(m_lastImage), mesh);
+        m_model->addResult(m_startDate, duration, m_testTitle, m_optionsString, m_lastImage, mesh);
         } break;
     default:
         qWarning("ThermalTask::slotProcessIncomingData: unhandled code1 %d", code1);

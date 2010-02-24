@@ -28,6 +28,7 @@
 **************************************************************************/
 
 #include "thermalmodel.h"
+#include "../datautils.h"
 
 using namespace Inspector::Internal;
 
@@ -51,17 +52,18 @@ Row 'CurrentPt_Row'
 // ThermalItem
 //
 ThermalItem::ThermalItem(const QDateTime &dt, qreal duration, const QString &label, const QString &options,
-                         const QPixmap &image, const Probe::RegularMeshRealData &mesh)
+                         const QImage &image, const Probe::RegularMeshRealData &mesh)
   : QStandardItem(label)
   , m_dateTime(dt)
   , m_duration(duration)
   , m_label(label)
   , m_options(options)
-  , m_pixmap(image)
+  , m_image(image)
   , m_mesh(mesh)
 {
-    m_previewPixmap = m_pixmap.scaled(QSize(previewWidth, previewHeight), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     setEditable(false);
+    m_previewPixmap = coloredPixmap(false).scaled(QSize(previewWidth, previewHeight),
+                                                  Qt::KeepAspectRatio, Qt::SmoothTransformation);
 }
 
 QDateTime ThermalItem::startDate() const
@@ -84,20 +86,28 @@ QString ThermalItem::options() const
     return m_options;
 }
 
-QPixmap ThermalItem::image() const
+QImage ThermalItem::originalImage() const
 {
-    return m_pixmap;
+    return m_image;
 }
 
-Inspector::Probe::RegularMeshRealData ThermalItem::mesh() const
+Inspector::Probe::RegularMeshRealData ThermalItem::originalMesh() const
 {
     return m_mesh;
 }
 
-QPixmap ThermalItem::previewImage() const
+QPixmap ThermalItem::previewPixmap() const
 {
     return m_previewPixmap;
 }
+
+QPixmap ThermalItem::coloredPixmap(bool legend) const
+{
+    QImage coloredImage = m_image;
+    DataUtils::paintMeshOverImage(&coloredImage, m_mesh, false, legend);
+    return QPixmap::fromImage(coloredImage);
+}
+
 
 //
 // ThermalModel
@@ -124,7 +134,7 @@ ThermalModel::~ThermalModel()
 }
 
 void ThermalModel::addResult(const QDateTime &date, qreal duration, const QString &label, const QString &options,
-                             const QPixmap &image, const Probe::RegularMeshRealData &mesh)
+                             const QImage &image, const Probe::RegularMeshRealData &mesh)
 {
     // add item
     ThermalItem *resultItem = new ThermalItem(date, duration, label, options, image, mesh);
