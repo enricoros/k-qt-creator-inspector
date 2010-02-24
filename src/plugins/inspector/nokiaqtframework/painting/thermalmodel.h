@@ -60,9 +60,11 @@ public:
     void setPtProgress(int progress);
     int ptProgress() const;
 
+    bool exportToFile(const QString &fileName, const QModelIndexList &indices);
+    int importFromFile(const QString &fileName);
+
 private:
-    void loadData();
-    void saveData();
+    QString storageFileName() const;
 };
 
 class ThermalItem : public QStandardItem

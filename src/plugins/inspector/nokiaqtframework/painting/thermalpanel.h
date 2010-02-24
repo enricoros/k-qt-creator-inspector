@@ -51,14 +51,19 @@ private slots:
     void slotCheckIterations();
     void slotCheckWeight();
     void slotLoadDefaults();
-    void slotTestClicked();
+    void slotRunThermalClicked();
+
+    void slotDisplayClicked();
+    void slotRemoveClicked();
+    void slotExportClicked();
+    void slotImportClicked();
 
     // model slots
     void slotModelItemChanged();
+    void slotViewSelectionChanged();
 
     // results slots
-    void slotResultActivated(const QModelIndex &index);
-    void slotExportClicked();
+    void slotDisplayResultImage(const QModelIndex &index);
 
 private:
     PaintingModule *m_paintingModule;
