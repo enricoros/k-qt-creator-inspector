@@ -169,9 +169,36 @@ QModelIndex ThermalModel::resultsTableIndex() const
     return index(Results_Row, 1);
 }
 
-const ThermalItem *ThermalModel::result(int row) const
+void ThermalModel::clearResults()
 {
-    return dynamic_cast<ThermalItem *>(item(Results_Row, 1)->child(row));
+    QStandardItem *itemsRoot = item(Results_Row, 1);
+    while (itemsRoot->hasChildren())
+        removeRow(0, itemsRoot->index());
+
+    // mark as not saved
+    setItemValue(Results_Row, 2, false);
+}
+
+QPixmap ThermalModel::resultColoredPixmap(const QModelIndex &index)
+{
+    const ThermalItem *item = result(index.row());
+    if (!item || item->originalImage().isNull())
+        return QPixmap();
+    return item->coloredPixmap(true);
+}
+
+int ThermalModel::resultsCount() const
+{
+    return item(Results_Row, 1)->rowCount();
+}
+
+bool ThermalModel::containsResultLabel(const QString &label) const
+{
+    QStandardItem *itemsRoot = item(Results_Row, 1);
+    for (int row = 0; row < itemsRoot->rowCount(); ++row)
+        if (result(row)->label() == label)
+            return true;
+    return false;
 }
 
 void ThermalModel::setPtProgress(int progress)
@@ -193,7 +220,7 @@ bool ThermalModel::exportToFile(const QString &fileName, const QModelIndexList &
         if (thermalItem && !thermalItem->originalImage().isNull())
             exportedItems.append(thermalItem);
     }
-    if (exportedItems.isEmpty())
+    if (exportedItems.isEmpty() && !indices.isEmpty())
         return false;
 
     // open the file for writing
@@ -261,6 +288,11 @@ int ThermalModel::importFromFile(const QString &fileName)
         addResult(startDate, duration, label, options, originalImage, mesh);
     }
     return itemCount;
+}
+
+const ThermalItem *ThermalModel::result(int row) const
+{
+    return dynamic_cast<ThermalItem *>(item(Results_Row, 1)->child(row));
 }
 
 QString ThermalModel::storageFileName() const

@@ -38,6 +38,7 @@ namespace Internal {
 
 class PaintingModule;
 class ThermalItemDelegate;
+class ThermalModel;
 
 class ThermalPanel : public AbstractPanel, public Ui::ThermalPanel
 {
@@ -47,26 +48,31 @@ public:
     ThermalPanel(PaintingModule *);
 
 private slots:
-    // 'new test' slots
+    void slotActivatePreset(int comboIndex);
+    void slotValidateTestLabel();
+    void slotRegenLabel();
+
     void slotCheckIterations();
     void slotCheckWeight();
-    void slotLoadDefaults();
+
     void slotRunThermalClicked();
 
     void slotDisplayClicked();
     void slotRemoveClicked();
+    void slotClearClicked();
     void slotExportClicked();
     void slotImportClicked();
 
     // model slots
     void slotModelItemChanged();
-    void slotViewSelectionChanged();
 
-    // results slots
+    // view slots
+    void slotViewSelectionChanged();
     void slotDisplayResultImage(const QModelIndex &index);
 
 private:
     PaintingModule *m_paintingModule;
+    ThermalModel *m_thermalModel;
 };
 
 } // namespace Internal
