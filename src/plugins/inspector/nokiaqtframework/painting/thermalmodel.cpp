@@ -29,6 +29,11 @@
 
 #include "thermalmodel.h"
 #include "../datautils.h"
+#include <coreplugin/icore.h>
+#include <QtCore/QDataStream>
+#include <QtCore/QDir>
+#include <QtCore/QFile>
+#include <QtCore/QFileInfo>
 
 using namespace Inspector::Internal;
 
@@ -124,13 +129,25 @@ ThermalModel::ThermalModel(QObject *parent)
     setItemValue(CurrentPt_Row, 2, QString());
     setItemValue(CurrentPt_Row, 3, 0);
 
-    // load data from settings
-    loadData();
+    // load data from last session
+    if (QFile::exists(storageFileName()))
+        importFromFile(storageFileName());
+
+    // mark as don't need saving
+    setItemValue(Results_Row, 2, true);
 }
 
 ThermalModel::~ThermalModel()
 {
-    saveData();
+    // if not saved to disk, do it
+    if (!itemValue(Results_Row, 2).toBool()) {
+        QModelIndexList itemsList;
+        QStandardItem *itemsRoot = item(Results_Row, 1);
+        for (int row = 0; row < itemsRoot->rowCount(); ++row)
+            itemsList.append(itemsRoot->child(row, 0)->index());
+
+        exportToFile(storageFileName(), itemsList);
+    }
 }
 
 void ThermalModel::addResult(const QDateTime &date, qreal duration, const QString &label, const QString &options,
@@ -167,19 +184,91 @@ int ThermalModel::ptProgress() const
     return itemValue(CurrentPt_Row, 3).toInt();
 }
 
-void ThermalModel::loadData()
+bool ThermalModel::exportToFile(const QString &fileName, const QModelIndexList &indices)
 {
-    // TODO...
+    // build up the list of selected items
+    QList<const ThermalItem *> exportedItems;
+    foreach (const QModelIndex &index, indices) {
+        const ThermalItem *thermalItem = result(index.row());
+        if (thermalItem && !thermalItem->originalImage().isNull())
+            exportedItems.append(thermalItem);
+    }
+    if (exportedItems.isEmpty())
+        return false;
+
+    // open the file for writing
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly)) {
+        qWarning("ThermalModel::exportToFile: can't open '%s' for writing", qPrintable(fileName));
+        return false;
+    }
+    QDataStream ds(&file);
+    ds << (quint32)1;               // version
+    ds << exportedItems.count();    // items count
+    foreach (const ThermalItem *item, exportedItems) {
+        ds << item->startDate();
+        ds << item->duration();
+        ds << item->label();
+        ds << item->options();
+        ds << item->originalImage();
+        const Inspector::Probe::RegularMeshRealData &mesh = item->originalMesh();
+        ds << mesh.physicalSize;
+        ds << mesh.rows;
+        ds << mesh.columns;
+        ds << mesh.meanPatchSize;
+        ds << mesh.data;
+    }
+    return true;
 }
 
-void ThermalModel::saveData()
+int ThermalModel::importFromFile(const QString &fileName)
 {
-    // check if already saved
-    if (itemValue(Results_Row, 2).toBool())
-        return;
+    // open a file for reading
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning("ThermalModel::importFromFile: can't open '%s' for reading", qPrintable(fileName));
+        return 0;
+    }
 
-    // TODO...
+    // read file contents
+    QDataStream ds(&file);
 
-    // mark as saved
-    setItemValue(Results_Row, 2, true);
+    quint32 version = 0;
+    ds >> version;
+    if (version != 1)
+        return 0;
+
+    int itemCount = 0;
+    ds >> itemCount;
+
+    for (int i = 0; i < itemCount; i++) {
+        QDateTime startDate;
+         ds >> startDate;
+        qreal duration;
+         ds >> duration;
+        QString label;
+         ds >> label;
+        QString options;
+         ds >> options;
+        QImage originalImage;
+         ds >> originalImage;
+        Inspector::Probe::RegularMeshRealData mesh;
+         ds >> mesh.physicalSize;
+         ds >> mesh.rows;
+         ds >> mesh.columns;
+         ds >> mesh.meanPatchSize;
+         ds >> mesh.data;
+        addResult(startDate, duration, label, options, originalImage, mesh);
+    }
+    return itemCount;
+}
+
+QString ThermalModel::storageFileName() const
+{
+    // here I mimic what other do everyehere
+    const QString configDir = QFileInfo(Core::ICore::instance()->settings()->fileName()).absolutePath();
+    const QDir directory(configDir + QLatin1String("/qtcreator"));
+    if (!directory.exists())
+        directory.mkpath(directory.absolutePath());
+    return directory.absolutePath() + QLatin1String("/inspector.thermal");
 }

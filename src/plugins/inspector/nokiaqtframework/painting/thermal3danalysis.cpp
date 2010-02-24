@@ -604,7 +604,7 @@ DataSetTreeWidget::DataSetTreeWidget(ThermalModel *sourceModel, QWidget *parent)
 {
     setAnimated(true);
     setEditTriggers(NoEditTriggers);
-    setHeaderLabel(tr("Data Sets"));
+    setHeaderLabel(tr("Test Results"));
     setSelectionMode(SingleSelection);
     setSelectionBehavior(SelectRows);
     setVerticalScrollMode(ScrollPerPixel);

@@ -35,6 +35,7 @@
 
 #include "../datautils.h"
 
+#include <QtGui/QFileDialog>
 #include <QtGui/QPainter>
 #include <QtGui/QPalette>
 #include <QtGui/QStyledItemDelegate>
@@ -139,12 +140,15 @@ ThermalPanel::ThermalPanel(PaintingModule *module)
     connect(widthBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckWeight()));
     connect(heightBox, SIGNAL(valueChanged(int)), this, SLOT(slotCheckWeight()));
     connect(defaultsButton, SIGNAL(clicked()), this, SLOT(slotLoadDefaults()));
-    connect(runButton, SIGNAL(clicked()), this, SLOT(slotTestClicked()));
+    connect(runButton, SIGNAL(clicked()), this, SLOT(slotRunThermalClicked()));
+    connect(viewButton, SIGNAL(clicked()), this, SLOT(slotDisplayClicked()));
+    connect(removeButton, SIGNAL(clicked()), this, SLOT(slotRemoveClicked()));
     connect(exportButton, SIGNAL(clicked()), this, SLOT(slotExportClicked()));
+    connect(importButton, SIGNAL(clicked()), this, SLOT(slotImportClicked()));
     imageScrollArea->setWidget(imageLabel);
 
     // wire-up the results listview
-    connect(resultsView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(slotResultActivated(QModelIndex)));
+    connect(resultsView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(slotDisplayResultImage(QModelIndex)));
     resultsView->setItemDelegate(new ThermalItemDelegate(resultsView));
     resultsView->setModel(m_paintingModule->thermalModel());
     resultsView->setRootIndex(m_paintingModule->thermalModel()->resultsTableIndex());
@@ -172,7 +176,10 @@ ThermalPanel::ThermalPanel(PaintingModule *module)
     // listen for model changes
     connect(m_paintingModule->thermalModel(), SIGNAL(itemChanged(QStandardItem*)),
             this, SLOT(slotModelItemChanged()));
+    connect(resultsView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+            this, SLOT(slotViewSelectionChanged()));
     slotModelItemChanged();
+    slotViewSelectionChanged();
 }
 
 void ThermalPanel::slotCheckIterations()
@@ -207,7 +214,7 @@ void ThermalPanel::slotLoadDefaults()
     heightBox->setValue(10);
 }
 
-void ThermalPanel::slotTestClicked()
+void ThermalPanel::slotRunThermalClicked()
 {
     // Build the options list: passes, headDrops, tailDrops, innerPasses, chunkWidth, chunkHeight, consoleDebug
     QVariantList options;
@@ -215,6 +222,45 @@ void ThermalPanel::slotTestClicked()
 
     // start the test, we'll watch the results in the model
     m_paintingModule->startThermalTest(testNameLabel->text(), options);
+}
+
+void ThermalPanel::slotDisplayClicked()
+{
+    foreach (const QModelIndex &index, resultsView->selectionModel()->selectedIndexes()) {
+        slotDisplayResultImage(index);
+        break;
+    }
+}
+
+void ThermalPanel::slotRemoveClicked()
+{
+    while (resultsView->selectionModel()->hasSelection()) {
+        QModelIndex index = resultsView->selectionModel()->selectedRows().first();
+        resultsView->model()->removeRow(index.row(), index.parent());
+    }
+}
+
+void ThermalPanel::slotExportClicked()
+{
+    // ask the file name
+    const QString fileName = QFileDialog::getSaveFileName(this, tr("Export Thermal File"),
+        "untitled.thermal", tr("Thermal Files (*.thermal)"));
+    if (!fileName.isEmpty()) {
+        ThermalModel *model = static_cast<PaintingModule *>(parentModule())->thermalModel();
+        if (!model->exportToFile(fileName, resultsView->selectionModel()->selectedIndexes()))
+            exportButton->setEnabled(false);
+    }
+}
+
+void ThermalPanel::slotImportClicked()
+{
+    // ask the file name
+    const QString fileName = QFileDialog::getOpenFileName(this, tr("Export Thermal File"),
+        "untitled.thermal", tr("Thermal Files (*.thermal)"));
+    if (!fileName.isEmpty()) {
+        ThermalModel *model = static_cast<PaintingModule *>(parentModule())->thermalModel();
+        model->importFromFile(fileName);
+    }
 }
 
 void ThermalPanel::slotModelItemChanged()
@@ -225,7 +271,17 @@ void ThermalPanel::slotModelItemChanged()
     ptProgress->setVisible(value > 0 && value < 100);
 }
 
-void ThermalPanel::slotResultActivated(const QModelIndex &index)
+void ThermalPanel::slotViewSelectionChanged()
+{
+    QModelIndexList selection = resultsView->selectionModel()->selectedIndexes();
+    bool empty = selection.isEmpty();
+    bool single = selection.size() == 1;
+    viewButton->setEnabled(single);
+    exportButton->setEnabled(!empty);
+    removeButton->setEnabled(!empty);
+}
+
+void ThermalPanel::slotDisplayResultImage(const QModelIndex &index)
 {
     ThermalModel *model = static_cast<PaintingModule *>(parentModule())->thermalModel();
     const ThermalItem *item = model->result(index.row());
@@ -235,10 +291,4 @@ void ThermalPanel::slotResultActivated(const QModelIndex &index)
     imageLabel->setPixmap(item->coloredPixmap(true));
     resultsTabWidget->setCurrentIndex(1);
     imageScrollArea->setFocus();
-}
-
-void ThermalPanel::slotExportClicked()
-{
-    qint32 test[100];
-    DataUtils::exportOctaveArray<qint32>("test", "A", 13, 7, test);
 }
