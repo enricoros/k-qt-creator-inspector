@@ -44,6 +44,7 @@
 #include <QtGui/QVBoxLayout>
 
 #include <QVTKWidget.h>
+#include <vtkCamera.h>
 #include <vtkDataSetMapper.h>
 #include <vtkEventQtSlotConnect.h>
 #include <vtkImageData.h>
@@ -176,8 +177,12 @@ void VtkPrivate::toggleStereo()
 
 void VtkPrivate::refresh()
 {
-    if (!m_addedActors.isEmpty())
+    if (m_addedActors.size() < 2) {
         m_renderer->ResetCamera();
+        vtkCamera *camera = m_renderer->GetActiveCamera();
+        camera->SetFocalPoint(0, 0, 0);
+        m_renderer->SetActiveCamera(camera);
+    }
     m_renderer->Render();
     m_widget->update();
 }
