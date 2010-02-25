@@ -321,7 +321,7 @@ TaskRectangle::TaskRectangle(quint32 taskId, int left, const QString &label,
 #endif
 
     color.setAlpha(192);
-    m_foreBrush = color.light(300);
+    m_foreBrush = color.light(200);
 }
 
 quint32 TaskRectangle::taskId() const
@@ -356,11 +356,11 @@ void TaskRectangle::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
 
     // draw the percent polygon
     painter->setBrush(m_foreBrush);
-    const int pH = rect.height() - 2;
+    const int pH = rect.height();
     int x = 1;
     foreach (int val, m_percs) {
         int y = (pH * val) / 100.0;
-        painter->fillRect(x, pH - y + 1, 1, y, m_foreBrush);
+        painter->fillRect(x, pH - y, 1, y, m_foreBrush);
         x++;
     }
 
