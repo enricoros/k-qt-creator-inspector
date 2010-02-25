@@ -250,7 +250,7 @@ private:
 extern "C" {
 static Inspector::Probe::CommClient * ipCommClient = 0;
 static bool ipDebugPainting = false;
-static bool ipWindowTemperature = false;
+static bool ipThermalAnalysis = false;
 }
 
 static bool eventInterceptorCallback(void **data)
@@ -258,7 +258,7 @@ static bool eventInterceptorCallback(void **data)
     QEvent *event = reinterpret_cast<QEvent*>(data[1]);
     if (ipCommClient && !ipCommClient->fencing()
         && event->type() >= QEvent::Timer && event->type() <= QEvent::User
-        && !ipWindowTemperature) {
+        && !ipThermalAnalysis) {
         static int stackDepth = 0;
         ++stackDepth;
         static int numE = 0;
@@ -389,7 +389,7 @@ struct __TimedRect {
 };
 
 extern "C"
-Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
+Q_DECL_EXPORT void qThermalAnalysis(int passes, int headDrops, int tailDrops,
     int innerPasses, int chunkWidth, int chunkHeight, bool consoleDebug)
 {
     // sanity check
@@ -408,7 +408,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
     }
 
     // signal the presence of this operation
-    ipWindowTemperature = true;
+    ipThermalAnalysis = true;
 
     // tell that the operation has started
     ipCommClient->sendCustom(Inspector::Probe::Channel_Painting, 1);
@@ -539,7 +539,7 @@ Q_DECL_EXPORT void qWindowTemperature(int passes, int headDrops, int tailDrops,
     }
 
     // signal the presence of this operation
-    ipWindowTemperature = false;
+    ipThermalAnalysis = false;
 
     // tell that the operation has finished
     ipCommClient->sendCustom(Inspector::Probe::Channel_Painting, 2);

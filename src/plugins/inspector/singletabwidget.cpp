@@ -14,7 +14,7 @@ namespace Inspector {
 namespace Internal {
 
 // uncomment this to invert the looks of the inspection tabs (while keeping the first good)
-#define INVERT_INSPECTION_TABS_COLORS
+//#define INVERT_INSPECTION_TABS_COLORS
 
 // keep this in sync with combotreewidget.cpp
 static const int MIN_LEFT_MARGIN = 50;

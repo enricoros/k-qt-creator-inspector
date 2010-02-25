@@ -71,6 +71,12 @@ StatusBarWidget::StatusBarWidget(QWidget *parent)
   , m_taskScroller(0)
   , m_layout(0)
 {
+#if 1
+    // fake as a panelwidget to get cooler toolbuttus
+    setProperty("panelwidget", true);
+    setProperty("panelwidget_singlerow", true);
+#endif
+
     m_layout = new QHBoxLayout(this);
     m_layout->setContentsMargins(2, 1, 2, 1);
 
@@ -85,6 +91,11 @@ StatusBarWidget::StatusBarWidget(QWidget *parent)
     m_layout->setAlignment(m_taskScroller, Qt::AlignBottom);
 
     m_layout->addStretch();
+}
+
+void StatusBarWidget::addButton(QToolButton *button)
+{
+    m_layout->insertWidget(0, button);
 }
 
 void StatusBarWidget::setInspection(Inspection *inspection)

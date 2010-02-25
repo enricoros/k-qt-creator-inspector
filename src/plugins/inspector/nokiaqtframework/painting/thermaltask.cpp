@@ -50,7 +50,7 @@ ThermalTask::ThermalTask(NokiaQtFramework *framework, ThermalModel *model,
 
 QString ThermalTask::displayName() const
 {
-    return tr("Painting Temperature");
+    return tr("Thermal");
 }
 
 void ThermalTask::activateTask()
@@ -72,7 +72,7 @@ void ThermalTask::activateTask()
     }
     m_startDate = QDateTime::currentDateTime();
 
-    m_framework->callProbeFunction("qWindowTemperature", m_options);
+    m_framework->callProbeFunction("qThermalAnalysis", m_options);
 }
 
 void ThermalTask::deactivateTask()
