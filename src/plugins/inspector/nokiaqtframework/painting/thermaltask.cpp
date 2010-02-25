@@ -33,7 +33,7 @@
 #include "../nokiaqtframework.h"
 
 // for demarshalling communication with The Probe (FIXME!)
-#include "../../../../share/qtcreator/gdbmacros/perfunction.h"
+#include "../../../../../share/qtcreator/gdbmacros/perfunction.h"
 
 using namespace Inspector::Internal;
 

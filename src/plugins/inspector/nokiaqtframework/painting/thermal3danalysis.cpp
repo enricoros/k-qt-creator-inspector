@@ -62,7 +62,7 @@
 #include <vtkWarpScalar.h>
 
 // include Probe data types
-#include "../../../../share/qtcreator/gdbmacros/probedata.h"
+#include "../../../../../share/qtcreator/gdbmacros/probedata.h"
 
 using namespace Inspector::Internal;
 
