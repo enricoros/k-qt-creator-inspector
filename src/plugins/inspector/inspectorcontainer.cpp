@@ -49,7 +49,7 @@ InspectorContainer::InspectorContainer(QWidget *parent)
     layout->setSpacing(0);
 
     m_topbarWidget = new SingleTabWidget(this);
-    m_topbarWidget->setTitle(tr("Select:"));
+    m_topbarWidget->setTitle(tr("Select an Inspection:"));
     layout->addWidget(m_topbarWidget);
 
     m_centralWidget = new QStackedWidget(this);

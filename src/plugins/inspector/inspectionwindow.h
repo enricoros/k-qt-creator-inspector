@@ -64,7 +64,6 @@ signals:
     void requestInspectionDisplay();
 
 private slots:
-    void slotCollapseSideBar();
     void slotCloseInspection();
     void slotMenuChanged(quint32 compoId);
     void slotSetCurrentPanel(int moduleUid, int panelId);
@@ -74,13 +73,11 @@ private:
     void setInspection(Inspection *inspection);
     void showPanel(int moduleUid, int panelId);
     Inspection *                m_inspection;
-    Core::MiniSplitter *        m_horSplitter;
-    InspectionWindowSidebar *   m_sideBar;
     PanelInfoLabel *            m_panelInfoLabel;
     PanelContainerWidget *      m_panelContainer;
     StatusBarWidget *           m_statusbarWidget;
     // side panels
-    ModuleMenuWidget *          m_sideMenu;
+    ModuleMenuWidget *          m_modulesMenu;
 };
 
 
@@ -91,10 +88,7 @@ class InspectionWindowSidebar : public QWidget
 public:
     InspectionWindowSidebar(QWidget *parent = 0);
 
-    void addEntry(const QString &label, QWidget *widget);
-
-signals:
-    void collapse();
+    void addWidget(const QString &label, QWidget *widget);
 
 private:
     QComboBox *m_navigationComboBox;

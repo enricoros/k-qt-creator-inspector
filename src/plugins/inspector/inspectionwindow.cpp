@@ -36,6 +36,7 @@
 #include "modulemenuwidget.h"
 #include "panelcontainerwidget.h"
 #include "statusbarwidget.h"
+#include <coreplugin/coreconstants.h>
 #include <coreplugin/minisplitter.h>
 #include <utils/styledbar.h>
 #include <QtGui/QComboBox>
@@ -64,39 +65,63 @@ InspectionWindow::InspectionWindow(Inspection *inspection, QWidget *parent)
     layout->setMargin(0);
     layout->setSpacing(0);
 
-    layout->addWidget(new SunkenBar(true, this));
+    QToolButton *toggleSidebar = new QToolButton;
+    toggleSidebar->setIcon(QIcon(Core::Constants::ICON_TOGGLE_SIDEBAR));
+    toggleSidebar->setToolTip(tr("Show Sidebar"));
+    toggleSidebar->setCheckable(true);
+    toggleSidebar->setChecked(true);
 
+    // top
     m_panelInfoLabel = new PanelInfoLabel;
     connect(m_panelInfoLabel, SIGNAL(buttonClicked()),
             this, SLOT(slotCloseInspection()), Qt::QueuedConnection);
     layout->addWidget(m_panelInfoLabel);
 
-    m_horSplitter = new Core::MiniSplitter;
-    layout->addWidget(m_horSplitter);
+    Core::MiniSplitter *horSplitter = new Core::MiniSplitter(Qt::Horizontal);
+    layout->addWidget(horSplitter);
 
-    m_sideBar = new InspectionWindowSidebar;
-    connect(m_sideBar, SIGNAL(collapse()),
-            this, SLOT(slotCollapseSideBar()));
-    m_horSplitter->addWidget(m_sideBar);
+    // left panel
+    {
+        Core::MiniSplitter *leftSplitter = new Core::MiniSplitter(Qt::Vertical);
+        horSplitter->addWidget(leftSplitter);
 
-    m_panelContainer = new PanelContainerWidget(this);
-    m_horSplitter->addWidget(m_panelContainer);
+        connect(toggleSidebar, SIGNAL(toggled(bool)),
+                leftSplitter, SLOT(setVisible(bool)));
 
+        // upper part
+        InspectionWindowSidebar *topPanel = new InspectionWindowSidebar;
+        leftSplitter->addWidget(topPanel);
+
+        m_modulesMenu = new ModuleMenuWidget;
+        connect(m_modulesMenu, SIGNAL(panelSelected(quint32)),
+                this, SLOT(slotMenuChanged(quint32)));
+        topPanel->addWidget(tr("Panels"), m_modulesMenu);
+
+        // lower part
+        InspectionWindowSidebar *bottomPanel = new InspectionWindowSidebar;
+        leftSplitter->addWidget(bottomPanel);
+
+        bottomPanel->addWidget(tr("Help"), new ColorWidget(Qt::darkGray));
+        bottomPanel->addWidget(tr("Notes"), new ColorWidget(Qt::darkGray));
+        bottomPanel->addWidget(tr("/* Collected Data */"), new ColorWidget(Qt::blue));
+        bottomPanel->addWidget(tr("/* Workflow */"), new QWidget);
+
+        leftSplitter->setSizes(QList<int>() << 200 << 400);
+    }
+
+    // right panel
+    {
+        m_panelContainer = new PanelContainerWidget(this);
+        horSplitter->addWidget(m_panelContainer);
+    }
+
+    // bottom status bar
     m_statusbarWidget = new Inspector::Internal::StatusBarWidget;
     layout->addWidget(m_statusbarWidget);
+    m_statusbarWidget->addButton(toggleSidebar);
 
-    // add panels to the sidebar
-    m_sideMenu = new ModuleMenuWidget;
-    connect(m_sideMenu, SIGNAL(panelSelected(quint32)),
-            this, SLOT(slotMenuChanged(quint32)));
-    m_sideBar->addEntry(tr("Modules / Panels"), m_sideMenu);
-
-    m_sideBar->addEntry(tr("Notes"), new ColorWidget(Qt::darkGray));
-    m_sideBar->addEntry(tr("/* Collected Data */"), new ColorWidget(Qt::blue));
-    m_sideBar->addEntry(tr("/* Workflow */"), new QWidget);
-
-    m_horSplitter->setCollapsible(0, true);
-    m_horSplitter->setSizes(QList<int>() << 150 << 600);
+    // initial size
+    horSplitter->setSizes(QList<int>() << 140 << 660);
 
     setInspection(inspection);
 }
@@ -104,11 +129,6 @@ InspectionWindow::InspectionWindow(Inspection *inspection, QWidget *parent)
 Inspection *InspectionWindow::inspection() const
 {
     return m_inspection;
-}
-
-void InspectionWindow::slotCollapseSideBar()
-{
-    m_horSplitter->setSizes(QList<int>() << 0 << width());
 }
 
 void InspectionWindow::slotCloseInspection()
@@ -131,7 +151,7 @@ void InspectionWindow::slotSetCurrentPanel(int moduleUid, int panelId)
         return;
     }
     quint32 compoId = (moduleUid << 8) + panelId;
-    m_sideMenu->setCurrentItem(compoId);
+    m_modulesMenu->setCurrentItem(compoId);
     emit requestInspectionDisplay();
 }
 
@@ -149,7 +169,7 @@ void InspectionWindow::setInspection(Inspection *inspection)
     // remove previous references
     if (m_inspection) {
         disconnect(m_inspection->framework(), 0, this, 0);
-        m_sideMenu->clear();
+        m_modulesMenu->clear();
         m_panelContainer->setPanel(new QWidget);
         m_statusbarWidget->setInspection(0);
     }
@@ -176,7 +196,7 @@ void InspectionWindow::setInspection(Inspection *inspection)
                 continue;
             }
             quint32 compoId = (entry.moduleUid << 8) + entry.panelId;
-            m_sideMenu->addItem(entry.path, compoId, entry.icon);
+            m_modulesMenu->addItem(entry.path, compoId, entry.icon);
         }
 
         // link the taskbar
@@ -230,13 +250,13 @@ InspectionWindowSidebar::InspectionWindowSidebar(QWidget *parent)
     toolBarLayout->setSpacing(0);
     toolBar->setLayout(toolBarLayout);
     toolBarLayout->addWidget(m_navigationComboBox);
-
+/*
     QToolButton *close = new QToolButton;
     close->setIcon(QIcon(":/core/images/closebutton.png"));
     close->setToolTip(tr("Close"));
-    connect(close, SIGNAL(clicked()), this, SIGNAL(collapse()));
+    connect(close, SIGNAL(clicked()), this, ...);
     toolBarLayout->addWidget(close);
-
+*/
     m_stack = new QStackedWidget;
     lay->addWidget(m_stack);
 
@@ -244,7 +264,7 @@ InspectionWindowSidebar::InspectionWindowSidebar(QWidget *parent)
             m_stack, SLOT(setCurrentIndex(int)));
 }
 
-void InspectionWindowSidebar::addEntry(const QString &label, QWidget *widget)
+void InspectionWindowSidebar::addWidget(const QString &label, QWidget *widget)
 {
     m_stack->addWidget(widget);
     m_navigationComboBox->addItem(label);

@@ -35,6 +35,7 @@
 class QHBoxLayout;
 class QLabel;
 class QPixmap;
+class QToolButton;
 
 namespace Inspector {
 namespace Internal {
@@ -53,6 +54,7 @@ class StatusBarWidget : public SunkenBar
 public:
     StatusBarWidget(QWidget *parent = 0);
 
+    void addButton(QToolButton *);
     void setInspection(Inspection *inspection);
 
 signals:
