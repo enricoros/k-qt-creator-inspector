@@ -37,7 +37,7 @@
 #include <QtGui/QStandardItem>
 
 // include Probe data types
-#include "../../../../share/qtcreator/gdbmacros/probedata.h"
+#include "../../../../../share/qtcreator/gdbmacros/probedata.h"
 
 namespace Inspector {
 namespace Internal {

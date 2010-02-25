@@ -35,16 +35,22 @@ FORMS += \
 RESOURCES += \
     $$PWD/nokiaqtframework.qrc
 
-contains(CONFIG, USE_VTK) {
-DEFINES += \
-    INSPECTOR_PAINTING_VTK
 
-HEADERS += \
-    $$PWD/painting/thermal3danalysis.h
+SUPPORT_VTK = $$(QTCREATOR_WITH_INSPECTOR_VTK)
+!isEmpty(SUPPORT_VTK) {
+    message("Adding experimental support for VTK Thermal Visualization.")
 
-SOURCES += \
-    $$PWD/painting/thermal3danalysis.cpp
+    DEFINES += \
+        INSPECTOR_PAINTING_VTK
 
-INCLUDEPATH += /usr/include/vtk-5.4
-LIBS += -lQVTK
+    HEADERS += \
+        $$PWD/painting/thermal3danalysis.h
+
+    SOURCES += \
+        $$PWD/painting/thermal3danalysis.cpp
+
+    INCLUDEPATH += /usr/include/vtk-5.4 /usr/include/vtk
+    LIBS += -lQVTK
+} else {
+    message("If you want to try Surface Visualization please set the QTCREATOR_WITH_INSPECTOR_VTK environment variable.")
 }
