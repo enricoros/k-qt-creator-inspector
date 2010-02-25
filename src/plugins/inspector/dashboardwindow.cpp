@@ -771,9 +771,9 @@ void RunningInspectionWidget::paintEvent(QPaintEvent *)
 void RunningInspectionWidget::slotFrameworkConnected(bool connected)
 {
     if (connected)
-        m_connLabel->setPixmap(QPixmap(":/qt4projectmanager/images/connected.png"));
+        m_connLabel->setPixmap(QPixmap(":/projectexplorer/images/ConnectionOn.png"));
     else
-        m_connLabel->setPixmap(QPixmap(":/qt4projectmanager/images/notconnected.png"));
+        m_connLabel->setPixmap(QPixmap(":/projectexplorer/images/ConnectionOff.png"));
     m_tasksWidget->setVisible(connected);
 }
 

@@ -126,6 +126,66 @@ QWidget *InspectorStyle::createOnePixelBlackLine(QWidget *parent)
 
 
 //
+// SunkenBar
+//
+SunkenBar::SunkenBar(bool onTop, QWidget *parent)
+  : QWidget(parent)
+  , m_onTop(onTop)
+  , m_shadowTile(0)
+{
+    setPalette(InspectorStyle::invertedPalette());
+#if defined(DRAW_STYLED_SUNKENBAR)
+    setProperty("panelwidget", true);
+    setProperty("panelwidget_singlerow", true);
+#else
+    setAutoFillBackground(true);
+#endif
+    setFixedHeight(InspectorStyle::defaultBarHeight());
+}
+
+SunkenBar::~SunkenBar()
+{
+    delete m_shadowTile;
+}
+
+void SunkenBar::paintEvent(QPaintEvent *event)
+{
+    // the first time create the Shadow Tile
+    if (!m_shadowTile) {
+        const int height = m_onTop ? 4 : 10;
+        m_shadowTile = new QPixmap(64, height);
+        m_shadowTile->fill(Qt::transparent);
+        QPainter shadowPainter(m_shadowTile);
+        InspectorStyle::drawVerticalShadow(&shadowPainter, 64, height,
+                                           m_onTop ? QColor(50, 50, 50) : Qt::black,
+                                           !m_onTop);
+    }
+
+    // draw styled background
+    QPainter p(this);
+#if defined(DRAW_STYLED_SUNKENBAR)
+    QStyleOption option;
+    option.rect = rect();
+    option.state = QStyle::State_Horizontal;
+    style()->drawControl(QStyle::CE_ToolBar, &option, &p, this);
+#endif
+
+    // draw dubtle shadow
+    if (m_shadowTile) {
+        QRect shadowRect = event->rect();
+        if (m_onTop) {
+            shadowRect.setTop(height() - 4);
+            shadowRect.setHeight(4);
+        } else {
+            shadowRect.setTop(0);
+            shadowRect.setHeight(10);
+        }
+        p.drawTiledPixmap(shadowRect, *m_shadowTile);
+    }
+}
+
+
+//
 // WatermarkedWidget
 //
 WatermarkedWidget::WatermarkedWidget(QWidget *parent)
@@ -161,4 +221,20 @@ void WatermarkedWidget::paintEvent(QPaintEvent *event)
         if (event->rect().intersects(wmRect))
             p.drawPixmap(wmRect.topLeft(), m_watermarkPixmap);
     }
+}
+
+//
+// ColorWidget
+//
+ColorWidget::ColorWidget(const QColor &color, QWidget *parent)
+  : QWidget(parent)
+{
+    QColor tColor = color;
+    tColor.setAlpha(qMin(color.alpha(), 200));
+
+    QPalette pal;
+    pal.setBrush(QPalette::Window, tColor);
+    setPalette(pal);
+
+    setAutoFillBackground(true);
 }

@@ -27,28 +27,42 @@
 **
 **************************************************************************/
 
-#ifndef PANELCONTAINERWIDGET_H
-#define PANELCONTAINERWIDGET_H
+#ifndef MODULEMENUWIDGET_H
+#define MODULEMENUWIDGET_H
 
-#include <QWidget>
+#include <QtCore/QStringList>
+#include <QtCore/QVariant>
+#include <QtGui/QTreeWidget>
+#include <QtGui/QIcon>
 
 namespace Inspector {
 namespace Internal {
 
-class PanelContainerWidget : public QWidget
+class ModuleMenuWidget : public QTreeWidget
 {
     Q_OBJECT
 
 public:
-    PanelContainerWidget(QWidget *parent = 0);
+    ModuleMenuWidget(QWidget *parent = 0);
 
-    void setPanel(QWidget *widget);
+    void addItem(const QStringList &path, quint32 id, const QIcon &icon = QIcon());
+    void setCurrentItem(quint32 id);
+
+signals:
+    void panelSelected(quint32 id);
+
+protected:
+    QSize sizeHint() const;
+
+private slots:
+    void slotItemActivated(QTreeWidgetItem *);
 
 private:
-    QWidget *m_panel;
+    QIcon iconOverlay(QStyle::StandardPixmap name, const QIcon &overlayIcon);
+    void recursiveInsertion(QTreeWidgetItem *parent, QStringList remainingPath, quint32 id, const QIcon &icon);
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // PANELCONTAINERWIDGET_H
+#endif // MODULEMENUWIDGET_H

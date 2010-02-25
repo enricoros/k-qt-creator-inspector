@@ -75,8 +75,8 @@ public:
     ComboTreeWidget(QWidget *parent = 0);
     ~ComboTreeWidget();
 
-    QString title() const;
-    void setTitle(const QString &title);
+    QString label() const;
+    void setLabel(const QString &title);
 
     // contents setup
     void addItem(const QStringList &path, const QVariant &userData, const QIcon &icon = QIcon());
@@ -104,7 +104,7 @@ private:
     QStringList searchPathRecursive(MenuNode *node, const QVariant &userData);
 
     MenuNode * m_rootNode;
-    QLabel * m_titleLabel;
+    QLabel * m_label;
     QList<MenuNode *> m_nodePath;
     QList<NodesComboBox *> m_comboPath;
     QIcon m_blankIcon;

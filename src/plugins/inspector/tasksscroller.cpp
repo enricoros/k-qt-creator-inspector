@@ -128,74 +128,21 @@ void TasksScroller::slotTasksChanged()
     }
 }
 
-//
-// TaskRectangle
-//
-TaskRectangle::TaskRectangle(quint32 taskId, int left, const QColor &baseColor, QGraphicsItem *parent)
-  : QGraphicsWidget(parent)
-  , m_taskId(taskId)
+void TasksScroller::drawBackground(QPainter *painter, const QRectF &/*rect*/)
 {
-    setPos(left - 1, 2);
-    resize(2, TasksScene::fixedHeight() - 4);
-
-    QColor color = baseColor;
-    m_contourPen = QPen(color.dark(), 1);
-
-    color.setAlpha(64);
-    m_backBrush = color.dark();
-
-    color.setAlpha(192);
-    m_foreBrush = color.light();
+    // draw the subtle bottom white line
+    painter->save();
+    painter->resetTransform();
+    QLinearGradient lg(0, 0, width(), 0);
+    lg.setColorAt(0.0,  QColor(250, 250, 250,   0));
+    lg.setColorAt(0.27, QColor(250, 250, 250, 160));
+    lg.setColorAt(0.5,  QColor(255, 255, 255));
+    lg.setColorAt(0.73, QColor(250, 250, 250, 160));
+    lg.setColorAt(1.0,  QColor(250, 250, 250,   0));
+    painter->fillRect(0, height() - 1, width(), 1, lg);
+    painter->restore();
 }
 
-quint32 TaskRectangle::taskId() const
-{
-    return m_taskId;
-}
-
-void TaskRectangle::updateSize(int right, int currentPercent)
-{
-    resize(right - (int)x() + 1, TasksScene::fixedHeight() - 4);
-    m_percs.append(currentPercent);
-    update();
-}
-
-void TaskRectangle::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
-    Q_UNUSED(option);
-    Q_UNUSED(widget);
-    QRect rect = boundingRect().toRect();
-    if (rect.width() < 2)
-        return;
-
-    painter->setRenderHint(QPainter::Antialiasing, false);
-    painter->setPen(QPen(Qt::lightGray, 1));
-    painter->setBrush(m_backBrush);
-    painter->drawRect(rect.adjusted(0, 0, -1, -1));
-
-    // draw the percent polygon
-    painter->setBrush(m_foreBrush);
-    const int pH = rect.height() - 2;
-    int x = 1;
-    foreach (int val, m_percs) {
-        int y = (pH * val) / 100.0;
-        painter->fillRect(x, pH - y + 1, 1, y, m_foreBrush);
-        x++;
-    }
-
-    QRect r = rect.adjusted(2, 1, -2, 1);
-    if (r.width() > 2) {
-        QFont font = painter->font();
-        font.setPointSize(font.pointSize() - 2);
-        painter->setFont(font);
-        painter->setPen(Qt::black);
-        painter->setBrush(Qt::NoBrush);
-        painter->setRenderHint(QPainter::TextAntialiasing, true);
-        painter->drawText(r.adjusted(1, 1, 1, 1), Qt::AlignVCenter, tr("..."));
-        painter->setPen(Qt::white);
-        painter->drawText(r, Qt::AlignVCenter, tr("..."));
-    }
-}
 
 //
 // TasksScene
@@ -207,11 +154,6 @@ TasksScene::TasksScene(QObject * parent)
   , m_pixelPerSecond(10)
 {
     m_updateTimer.start(100, this);
-}
-
-int TasksScene::fixedHeight()
-{
-    return InspectorStyle::defaultComboHeight();
 }
 
 void TasksScene::clear()
@@ -314,7 +256,7 @@ void TasksScene::updateCurrentScene()
             widget->horizontalScrollBar()->setValue(contentsWidth);
     }
 
-    // SYNC TASKS
+    // SYNC TASKS - FIXME change this with async 'add/remove' notifications from the model
     if (!m_tasksModel)
         return;
 
@@ -343,10 +285,95 @@ void TasksScene::updateCurrentScene()
 
         // create if missing
         if (missing && task->isActive()) {
-            TaskRectangle * i = new TaskRectangle(taskId, contentsWidth, task->color());
-            addItem(i);
+            TaskRectangle * i = new TaskRectangle(taskId, contentsWidth, task->name(), task->color());
             m_currentTasks.append(i);
+            addItem(i);
             continue;
         }
+    }
+}
+
+
+//
+// TaskRectangle
+//
+TaskRectangle::TaskRectangle(quint32 taskId, int left, const QString &label,
+                             const QColor &baseColor, QGraphicsItem *parent)
+  : QGraphicsWidget(parent)
+  , m_taskId(taskId)
+  , m_label(label)
+{
+    setPos(left - 1, 0);
+    resize(2, TasksScene::fixedHeight() - 1);
+
+    QColor color = baseColor;
+
+#if 1
+    QLinearGradient backGradient(0, 0, 0, TasksScene::fixedHeight() - 1);
+    color.setAlpha(128);
+    backGradient.setColorAt(0.0, color.dark(280));
+    color.setAlpha(192);
+    backGradient.setColorAt(1.0, color.dark(200));
+    m_backBrush = backGradient;
+#else
+    color.setAlpha(64);
+    m_backBrush = color.dark();
+#endif
+
+    color.setAlpha(192);
+    m_foreBrush = color.light(300);
+}
+
+quint32 TaskRectangle::taskId() const
+{
+    return m_taskId;
+}
+
+void TaskRectangle::updateSize(int right, int currentPercent)
+{
+    resize(right - (int)x(), TasksScene::fixedHeight() - 1);
+    m_percs.append(currentPercent);
+    update();
+}
+
+void TaskRectangle::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    event->accept();
+    emit clicked(m_taskId);
+}
+
+void TaskRectangle::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    Q_UNUSED(option);
+    Q_UNUSED(widget);
+    QRect rect = boundingRect().toRect();
+    if (rect.width() < 2)
+        return;
+
+    // draw the task rectangle
+    painter->setRenderHint(QPainter::Antialiasing, false);
+    painter->fillRect(rect, m_backBrush);
+
+    // draw the percent polygon
+    painter->setBrush(m_foreBrush);
+    const int pH = rect.height() - 2;
+    int x = 1;
+    foreach (int val, m_percs) {
+        int y = (pH * val) / 100.0;
+        painter->fillRect(x, pH - y + 1, 1, y, m_foreBrush);
+        x++;
+    }
+
+    QRect r = rect.adjusted(2, 0, -2, -1);
+    if (r.width() > 2) {
+        QFont font = painter->font();
+        font.setPointSize(font.pointSize() - 2);
+        painter->setFont(font);
+        painter->setPen(QColor(32, 32, 32));
+        painter->setBrush(Qt::NoBrush);
+        painter->setRenderHint(QPainter::TextAntialiasing, true);
+        painter->drawText(r.adjusted(1, 1, 1, 1), Qt::AlignVCenter, m_label);
+        painter->setPen(Qt::white);
+        painter->drawText(r, Qt::AlignVCenter, m_label);
     }
 }

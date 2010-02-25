@@ -67,23 +67,12 @@ private:
 };
 
 StatusBarWidget::StatusBarWidget(QWidget *parent)
-  : QWidget(parent)
-  , m_shadowTile(0)
-  , m_tasksLabel(0)
+  : SunkenBar(false, parent)
   , m_taskScroller(0)
   , m_layout(0)
 {
-    setPalette(InspectorStyle::invertedPalette());
-#if defined(DRAW_STYLED)
-    setProperty("panelwidget", true);
-    setProperty("panelwidget_singlerow", true);
-#else
-    setAutoFillBackground(true);
-#endif
-    setFixedHeight(InspectorStyle::defaultBarHeight());
-
-    m_tasksLabel = new QLabel(this);
-    updateLabels();
+    m_layout = new QHBoxLayout(this);
+    m_layout->setContentsMargins(2, 1, 2, 1);
 
     m_taskScroller = new TasksScroller(this);
     connect(m_taskScroller, SIGNAL(newActiveTask(quint32,QString)),
@@ -92,12 +81,10 @@ StatusBarWidget::StatusBarWidget(QWidget *parent)
             this, SLOT(slotRemoveActiveTask(quint32)));
     connect(this, SIGNAL(stopTask(quint32)),
             m_taskScroller, SLOT(slotStopTask(quint32)));
+    m_layout->addWidget(m_taskScroller);
+    m_layout->setAlignment(m_taskScroller, Qt::AlignBottom);
 
-    m_layout = new QHBoxLayout(this);
-    m_layout->setContentsMargins(9, 0, 9, 0);
-    m_layout->addWidget(m_tasksLabel, 0);
-    m_layout->addWidget(m_taskScroller, 0);
-    m_layout->addStretch(1);
+    m_layout->addStretch();
 }
 
 void StatusBarWidget::setInspection(Inspection *inspection)
@@ -109,35 +96,6 @@ void StatusBarWidget::setInspection(Inspection *inspection)
     // apply the model to the tasks widget
     TasksModel *model = inspection ? inspection->tasksModel() : 0;
     m_taskScroller->setTasksModel(model);
-}
-
-void StatusBarWidget::paintEvent(QPaintEvent * event)
-{
-    if (event->rect().top() >= 10)
-        return;
-
-    // the first time create the Shadow Tile
-    if (!m_shadowTile) {
-        m_shadowTile = new QPixmap(64, 10);
-        m_shadowTile->fill(Qt::transparent);
-        QPainter shadowPainter(m_shadowTile);
-        InspectorStyle::drawVerticalShadow(&shadowPainter, 64, 10, Qt::black);
-    }
-
-    // draw styled background
-    QPainter p(this);
-#if defined(DRAW_STYLED)
-    QStyleOption option;
-    option.rect = rect();
-    option.state = QStyle::State_Horizontal;
-    style()->drawControl(QStyle::CE_ToolBar, &option, &p, this);
-#endif
-
-    // draw dubtle shadow
-    QRect shadowRect = event->rect();
-    shadowRect.setTop(0);
-    shadowRect.setHeight(10);
-    p.drawTiledPixmap(shadowRect, *m_shadowTile);
 }
 
 void StatusBarWidget::slotNewActiveTask(quint32 tid, const QString &taskName)
@@ -152,7 +110,6 @@ void StatusBarWidget::slotNewActiveTask(quint32 tid, const QString &taskName)
     connect(button, SIGNAL(clicked()), this, SLOT(slotStopTaskClicked()));
     m_buttons.append(button);
     m_layout->insertWidget(m_layout->count() - 1, button);
-    updateLabels();
 }
 
 void StatusBarWidget::slotRemoveActiveTask(quint32 tid)
@@ -161,7 +118,6 @@ void StatusBarWidget::slotRemoveActiveTask(quint32 tid)
         if (button->tid() == tid) {
             m_buttons.removeAll(button);
             button->deleteLater();
-            updateLabels();
             return;
         }
     }
@@ -173,13 +129,4 @@ void StatusBarWidget::slotStopTaskClicked()
     quint32 taskId = static_cast<KillTaskButton *>(sender())->tid();
     // don't use the button after this line, because it should be deleted
     emit stopTask(taskId);
-}
-
-void StatusBarWidget::updateLabels()
-{
-    int count = m_buttons.count();
-    if (!count)
-        m_tasksLabel->setText(tr("No Operations"));
-    else
-        m_tasksLabel->setText(tr("%1 Active Operations", "%1 may be 1..N", count).arg(count));
 }

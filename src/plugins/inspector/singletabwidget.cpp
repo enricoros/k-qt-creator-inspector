@@ -10,10 +10,11 @@
 #include <QtGui/QMouseEvent>
 #include <QtGui/QMenu>
 
-#include <QtDebug>
-
 namespace Inspector {
 namespace Internal {
+
+// uncomment this to invert the looks of the inspection tabs (while keeping the first good)
+#define INVERT_INSPECTION_TABS_COLORS
 
 // keep this in sync with combotreewidget.cpp
 static const int MIN_LEFT_MARGIN = 50;
@@ -242,7 +243,11 @@ void SingleTabWidget::paintEvent(QPaintEvent *event)
         int actualIndex = m_currentTabIndices.at(i);
         QString tabName = m_tabs.at(actualIndex);
         if (actualIndex == m_currentIndex) {
-            QColor bgColor = actualIndex ? InspectorStyle::invertedBackColor() : palette().color(QPalette::Window);
+            QColor bgColor =
+#if defined(INVERT_INSPECTION_TABS_COLORS)
+                    actualIndex ? InspectorStyle::invertedBackColor() :
+#endif
+                    palette().color(QPalette::Window);
             painter.setPen(Utils::StyleHelper::borderColor());
             painter.drawLine(x - 1, 0, x - 1, r.height() - 1);
             painter.fillRect(QRect(x, 0,
@@ -250,7 +255,11 @@ void SingleTabWidget::paintEvent(QPaintEvent *event)
                                    r.height() + 1),
                              bgColor);
             x += MARGIN;
-            QColor textColor = actualIndex ? InspectorStyle::invertedTextColor() : Qt::black;
+            QColor textColor =
+#if defined(INVERT_INSPECTION_TABS_COLORS)
+                    actualIndex ? InspectorStyle::invertedTextColor() :
+#endif
+                    palette().color(QPalette::WindowText);
             painter.setPen(textColor);
             painter.drawText(x, baseline, tabName);
             x += nameWidth.at(actualIndex);

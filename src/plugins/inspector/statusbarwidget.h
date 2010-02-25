@@ -30,8 +30,8 @@
 #ifndef STATUSBARWIDGET_H
 #define STATUSBARWIDGET_H
 
-#include <QWidget>
-#include <QList>
+#include "inspectorstyle.h"
+#include <QtCore/QList>
 class QHBoxLayout;
 class QLabel;
 class QPixmap;
@@ -46,7 +46,7 @@ class TasksScroller;
 /**
   \brief Shows Inspection information, like running Tasks
 */
-class StatusBarWidget : public QWidget
+class StatusBarWidget : public SunkenBar
 {
     Q_OBJECT
 
@@ -58,18 +58,12 @@ public:
 signals:
     void stopTask(quint32 tid);
 
-protected:
-    void paintEvent(QPaintEvent *);
-
 private slots:
     void slotNewActiveTask(quint32 tid, const QString &name);
     void slotRemoveActiveTask(quint32 tid);
     void slotStopTaskClicked();
 
 private:
-    void updateLabels();
-    QPixmap *m_shadowTile;
-    QLabel *m_tasksLabel;
     TasksScroller *m_taskScroller;
     QList<KillTaskButton *> m_buttons;
     QHBoxLayout *m_layout;

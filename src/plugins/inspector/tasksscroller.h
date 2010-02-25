@@ -68,15 +68,19 @@ public slots:
 private slots:
     void slotTasksChanged();
 
+protected:
+    // ::QGraphicsView
+    void drawBackground(QPainter *painter, const QRectF &rect);
+
 private:
     QList<quint32> m_activeTasks;
     TasksModel *m_tasksModel;
     TasksScene *m_scene;
 };
 
-//
-// The Scene to show scrolling tasks
-//
+/**
+  \brief The QGraphicsScene that's synced with the TasksModel
+*/
 class TasksScene : public QGraphicsScene
 {
     Q_OBJECT
@@ -84,7 +88,7 @@ class TasksScene : public QGraphicsScene
 public:
     TasksScene(QObject * parent = 0);
 
-    static int fixedHeight();
+    static int fixedHeight() { return 18; }
 
     void clear();
 
@@ -116,19 +120,25 @@ private:
 
 class TaskRectangle : public QGraphicsWidget
 {
+    Q_OBJECT
+
 public:
-    TaskRectangle(quint32 taskId, int left, const QColor &color, QGraphicsItem * parent = 0);
+    TaskRectangle(quint32 taskId, int left, const QString &label,
+                  const QColor &color, QGraphicsItem * parent = 0);
 
     quint32 taskId() const;
     void updateSize(int right, int currentPercent);
-
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = 0);
+
+signals:
+    void clicked(quint32 taskId);
 
 private:
     quint32 m_taskId;
-    QPen m_contourPen;
     QBrush m_backBrush;
     QBrush m_foreBrush;
+    QString m_label;
     QList<int> m_percs;
 };
 

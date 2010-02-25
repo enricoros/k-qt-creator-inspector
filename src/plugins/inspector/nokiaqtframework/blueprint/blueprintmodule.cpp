@@ -78,7 +78,7 @@ QString BlueprintModule::name() const
 ModuleMenuEntries BlueprintModule::menuEntries() const
 {
     ModuleMenuEntries entries;
-    entries.append(ModuleMenuEntry(QStringList() << tr("Blueprint"), UID_MODULE_BLUEPRINT, 1));
+    entries.append(ModuleMenuEntry(QStringList() << tr("Introspection") << tr("Blueprint"), UID_MODULE_BLUEPRINT, 1));
     return entries;
 }
 

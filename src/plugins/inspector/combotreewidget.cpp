@@ -147,8 +147,8 @@ ComboTreeWidget::ComboTreeWidget(QWidget *parent)
     layout->setContentsMargins(MARGIN, 0, 0, 0);
     layout->setSpacing(MARGIN);
 
-    m_titleLabel = new QLabel;
-    layout->addWidget(m_titleLabel);
+    m_label = new QLabel;
+    layout->addWidget(m_label);
 
     layout->addStretch(100);
 
@@ -163,14 +163,14 @@ ComboTreeWidget::~ComboTreeWidget()
     delete m_rootNode;
 }
 
-QString ComboTreeWidget::title() const
+QString ComboTreeWidget::label() const
 {
-    return m_titleLabel->text();
+    return m_label->text();
 }
 
-void ComboTreeWidget::setTitle(const QString &title)
+void ComboTreeWidget::setLabel(const QString &title)
 {
-    m_titleLabel->setText(title);
+    m_label->setText(title);
 }
 
 void ComboTreeWidget::addItem(const QStringList &path, const QVariant &userData, const QIcon &icon)

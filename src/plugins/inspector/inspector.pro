@@ -14,7 +14,6 @@ include(inspector_dependencies.pri)
 HEADERS += \
     abstracteasymodel.h \
     abstractpanel.h \
-    combotreewidget.h \
     dashboardwindow.h \
     iframework.h \
     iframeworkmodule.h \
@@ -27,6 +26,7 @@ HEADERS += \
     inspectorplugin.h \
     inspectorrunner.h \
     inspectorstyle.h \
+    modulemenuwidget.h \
     panelcontainerwidget.h \
     plotgrid.h \
     probeinjectingdebugger.h \
@@ -41,7 +41,6 @@ HEADERS += \
 SOURCES += \
     abstracteasymodel.cpp \
     abstractpanel.cpp \
-    combotreewidget.cpp \
     dashboardwindow.cpp \
     iframework.cpp \
     iframeworkmodule.cpp \
@@ -54,6 +53,7 @@ SOURCES += \
     inspectorplugin.cpp \
     inspectorrunner.cpp \
     inspectorstyle.cpp \
+    modulemenuwidget.cpp \
     panelcontainerwidget.cpp \
     plotgrid.cpp \
     probeinjectingdebugger.cpp \
