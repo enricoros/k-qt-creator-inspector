@@ -31,16 +31,25 @@
 #define INSPECTIONWINDOW_H
 
 #include <QtGui/QWidget>
+class QComboBox;
 class QLabel;
+class QPushButton;
+class QStackedWidget;
+
+namespace Core {
+class MiniSplitter;
+}
 
 namespace Inspector {
 namespace Internal {
 
-class ComboTreeWidget;
 class Inspection;
-class IWMessageLabel;
+class InspectionWindowSidebar;
+class ModuleMenuWidget;
 class PanelContainerWidget;
+class PanelInfoLabel;
 class StatusBarWidget;
+
 
 class InspectionWindow : public QWidget
 {
@@ -55,19 +64,65 @@ signals:
     void requestInspectionDisplay();
 
 private slots:
+    void slotCollapseSideBar();
     void slotCloseInspection();
-    void slotMenuChanged(const QStringList &path, const QVariant &data);
+    void slotMenuChanged(quint32 compoId);
     void slotSetCurrentPanel(int moduleUid, int panelId);
     void slotFrameworkConnected(bool connected);
 
 private:
     void setInspection(Inspection *inspection);
     void showPanel(int moduleUid, int panelId);
-    Inspection *            m_inspection;
-    ComboTreeWidget *       m_menuWidget;
-    IWMessageLabel *        m_messageLabel;
-    PanelContainerWidget *  m_panelContainer;
-    StatusBarWidget *       m_statusbarWidget;
+    Inspection *                m_inspection;
+    Core::MiniSplitter *        m_horSplitter;
+    InspectionWindowSidebar *   m_sideBar;
+    PanelInfoLabel *            m_panelInfoLabel;
+    PanelContainerWidget *      m_panelContainer;
+    StatusBarWidget *           m_statusbarWidget;
+    // side panels
+    ModuleMenuWidget *          m_sideMenu;
+};
+
+
+class InspectionWindowSidebar : public QWidget
+{
+    Q_OBJECT
+
+public:
+    InspectionWindowSidebar(QWidget *parent = 0);
+
+    void addEntry(const QString &label, QWidget *widget);
+
+signals:
+    void collapse();
+
+private:
+    QComboBox *m_navigationComboBox;
+    QStackedWidget *m_stack;
+};
+
+
+class PanelInfoLabel : public QWidget
+{
+    Q_OBJECT
+    Q_PROPERTY(int fixedHeight READ maximumHeight WRITE setFixedHeight)
+
+public:
+    PanelInfoLabel(QWidget *parent = 0);
+
+    void setContents(const QString &, bool showClose);
+    void hideContents();
+
+signals:
+    void buttonClicked();
+
+protected:
+    void paintEvent(QPaintEvent *);
+
+private:
+    void animateHeight(int from, int to, bool hideAtEnd);
+    QLabel *m_label;
+    QPushButton *m_closeButton;
 };
 
 } // namespace Internal

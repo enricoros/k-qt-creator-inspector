@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/inspector">
+        <file>images/folder_overlay.png</file>
         <file>images/icon-configure-small.png</file>
         <file>images/icon-inspections-small.png</file>
         <file>images/icon-newinspection-small.png</file>

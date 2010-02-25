@@ -57,6 +57,22 @@ public:
     static QWidget *createOnePixelBlackLine(QWidget *parent = 0);
 };
 
+
+class SunkenBar : public QWidget
+{
+public:
+    SunkenBar(bool onTop, QWidget *parent);
+    ~SunkenBar();
+
+protected:
+    void paintEvent(QPaintEvent *);
+
+private:
+    bool m_onTop;
+    QPixmap *m_shadowTile;
+};
+
+
 class WatermarkedWidget : public QWidget
 {
 public:
@@ -67,6 +83,16 @@ protected:
 
 private:
     QPixmap m_watermarkPixmap;
+};
+
+
+/**
+  \brief Temporary debugging widget: new ColorWidget(Qt::red)
+*/
+class ColorWidget : public QWidget
+{
+public:
+    ColorWidget(const QColor &color, QWidget *parent = 0);
 };
 
 } // namespace Internal
