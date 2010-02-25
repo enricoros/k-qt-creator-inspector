@@ -30,7 +30,8 @@
 #ifndef ABSTRACTPANEL_H
 #define ABSTRACTPANEL_H
 
-#include <QWidget>
+#include <QtGui/QWidget>
+#include <QtCore/QString>
 
 namespace Inspector {
 namespace Internal {
@@ -47,7 +48,11 @@ class AbstractPanel : public QWidget
 
 public:
     AbstractPanel(IFrameworkModule *parentModule);
+    virtual ~AbstractPanel();
 
+    virtual QString helpHtml() const;
+
+protected:
     IFramework *parentFramework() const;
     IFrameworkModule *parentModule() const;
 

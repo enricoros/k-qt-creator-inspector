@@ -236,15 +236,6 @@ DashboardWindow::DashboardWindow(QWidget *parent)
                             widget);
     }
 
-    // temp strings
-    {
-        QLabel *tempLabel = new QLabel;
-        tempLabel->setText(tr("Setup  >  Data collection  >  Data preparation  >  Data mining  >  Interpretation  >  Application  >  Institutional decision"));
-        appendWrappedWidget(tr("Profiling Process Workflow"),
-                            QIcon(),
-                            tempLabel);
-    }
-
     foreach (Inspection *inspection, plugin->inspections())
         slotInspectionAdded(inspection);
     connect(plugin, SIGNAL(inspectionAdded(Inspection*)),
@@ -724,7 +715,7 @@ RunningInspectionWidget::RunningInspectionWidget(Inspection *inspection, QWidget
     QPushButton *b = new QPushButton;
     b->setMaximumHeight(InspectorStyle::defaultComboHeight());
     b->setText(tr("Close"));
-    b->setIcon(QIcon(":/projectexplorer/images/stop.png"));
+    b->setIcon(QIcon(":/debugger/images/debugger_stop_small.png"));
     connect(b, SIGNAL(clicked()),
             this, SLOT(slotCloseClicked()));
     lay->addWidget(b);
