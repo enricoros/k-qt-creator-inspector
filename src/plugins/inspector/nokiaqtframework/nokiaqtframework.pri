@@ -45,6 +45,6 @@ HEADERS += \
 SOURCES += \
     $$PWD/painting/thermal3danalysis.cpp
 
-INCLUDEPATH += /usr/include/vtk
+INCLUDEPATH += /usr/include/vtk-5.4
 LIBS += -lQVTK
 }

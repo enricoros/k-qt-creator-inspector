@@ -21,7 +21,6 @@ SUBDIRS   = plugin_coreplugin \
 #            plugin_snippets \ # buggy and annoying
             plugin_locator \
             plugin_debugger \
-            plugin_inspector \
 #            plugin_qtestlib \ # this seems to be dead
 #            plugin_helloworld \ # sample plugin
             plugin_help \
@@ -142,11 +141,6 @@ plugin_debugger.depends = plugin_projectexplorer
 plugin_debugger.depends += plugin_coreplugin
 plugin_debugger.depends += plugin_cppeditor
 
-plugin_inspector.subdir = inspector
-plugin_inspector.depends = plugin_projectexplorer
-plugin_inspector.depends += plugin_coreplugin
-plugin_inspector.depends += plugin_debugger
-
 plugin_fakevim.subdir = fakevim
 plugin_fakevim.depends = plugin_projectexplorer
 plugin_fakevim.depends += plugin_coreplugin
@@ -213,3 +207,17 @@ plugin_mercurial.subdir = mercurial
 plugin_mercurial.depends = plugin_vcsbase
 plugin_mercurial.depends += plugin_projectexplorer
 plugin_mercurial.depends += plugin_coreplugin
+
+SUPPORT_INSPECTOR_PLUGIN = $$(QTCREATOR_WITH_INSPECTOR)
+!isEmpty(SUPPORT_INSPECTOR_PLUGIN) {
+    message("Adding experimental support for Inspecting applications.")
+
+    SUBDIRS += plugin_inspector
+
+    plugin_inspector.subdir = inspector
+    plugin_inspector.depends = plugin_projectexplorer
+    plugin_inspector.depends += plugin_coreplugin
+    plugin_inspector.depends += plugin_debugger
+} else {
+    message("If you want to try the Inspector please set the QTCREATOR_WITH_INSPECTOR environment variable.")
+}
