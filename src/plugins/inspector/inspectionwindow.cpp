@@ -94,17 +94,23 @@ InspectionWindow::InspectionWindow(Inspection *inspection, QWidget *parent)
 
         m_modulesMenu = new ModuleMenuWidget;
         connect(m_modulesMenu, SIGNAL(panelSelected(quint32)),
-                this, SLOT(slotMenuChanged(quint32)));
+                this, SLOT(slotShowPanel(quint32)));
         topPanel->addWidget(tr("Panels"), m_modulesMenu);
 
         // lower part
         InspectionWindowSidebar *bottomPanel = new InspectionWindowSidebar;
         leftSplitter->addWidget(bottomPanel);
 
-        bottomPanel->addWidget(tr("Help"), new ColorWidget(Qt::darkGray));
+        m_sideHelp = new SideHelpWidget;
+        bottomPanel->addWidget(tr("Help"), m_sideHelp);
+
         bottomPanel->addWidget(tr("Notes"), new ColorWidget(Qt::darkGray));
+
+        SideHelpWidget *workflowLabel = new SideHelpWidget;
+        workflowLabel->setHelpHtml(tr("<h3>Typical <b>Workflow</b> of a <b>Profiling Process</b>:</h3> * Setup<br> * Data collection<br> * Data preparation<br> * Data mining<br> * Interpretation<br> * Application<br> * Institutional decision<br>"));
+        bottomPanel->addWidget(tr("Workflow"), workflowLabel);
+
         bottomPanel->addWidget(tr("/* Collected Data */"), new ColorWidget(Qt::blue));
-        bottomPanel->addWidget(tr("/* Workflow */"), new QWidget);
 
         leftSplitter->setSizes(QList<int>() << 200 << 400);
     }
@@ -136,7 +142,7 @@ void InspectionWindow::slotCloseInspection()
     InspectorPlugin::instance()->deleteInspection(m_inspection);
 }
 
-void InspectionWindow::slotMenuChanged(quint32 compoId)
+void InspectionWindow::slotShowPanel(quint32 compoId)
 {
     // create the panel of a module
     int moduleUid = compoId >> 8;
@@ -202,8 +208,9 @@ void InspectionWindow::setInspection(Inspection *inspection)
         // link the taskbar
         m_statusbarWidget->setInspection(m_inspection);
 
-        // show default panel
-        showPanel(m_inspection->framework()->defaultModuleUid(), 0);
+        // show default panel (by selecting the Menu entry)
+        quint32 defaultId = m_inspection->framework()->defaultModuleUid() << 8;
+        m_modulesMenu->setCurrentItem(defaultId);
     }
 }
 
@@ -220,54 +227,15 @@ void InspectionWindow::showPanel(int moduleUid, int panelId)
     if (!panel) {
         qWarning("InspectionWindow::showPanel: can't create panel %d for module %d", panelId, moduleUid);
         m_panelContainer->setPanel(new QWidget);
+        m_sideHelp->clearHelp();
         return;
     }
 
+    // set the panel help
+    m_sideHelp->setHelpHtml(panel->helpHtml());
+
     // set the panel
     m_panelContainer->setPanel(panel);
-}
-
-
-//
-// InspectionWindowSidebar
-//
-InspectionWindowSidebar::InspectionWindowSidebar(QWidget *parent)
-  : QWidget(parent)
-{
-    QVBoxLayout *lay = new QVBoxLayout(this);
-    lay->setMargin(0);
-    lay->setSpacing(0);
-
-    m_navigationComboBox = new QComboBox(this);
-    m_navigationComboBox->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    m_navigationComboBox->setMinimumContentsLength(0);
-
-    Utils::StyledBar *toolBar = new Utils::StyledBar(this);
-    lay->addWidget(toolBar);
-
-    QHBoxLayout *toolBarLayout = new QHBoxLayout;
-    toolBarLayout->setMargin(0);
-    toolBarLayout->setSpacing(0);
-    toolBar->setLayout(toolBarLayout);
-    toolBarLayout->addWidget(m_navigationComboBox);
-/*
-    QToolButton *close = new QToolButton;
-    close->setIcon(QIcon(":/core/images/closebutton.png"));
-    close->setToolTip(tr("Close"));
-    connect(close, SIGNAL(clicked()), this, ...);
-    toolBarLayout->addWidget(close);
-*/
-    m_stack = new QStackedWidget;
-    lay->addWidget(m_stack);
-
-    connect(m_navigationComboBox, SIGNAL(currentIndexChanged(int)),
-            m_stack, SLOT(setCurrentIndex(int)));
-}
-
-void InspectionWindowSidebar::addWidget(const QString &label, QWidget *widget)
-{
-    m_stack->addWidget(widget);
-    m_navigationComboBox->addItem(label);
 }
 
 
@@ -287,7 +255,7 @@ PanelInfoLabel::PanelInfoLabel(QWidget *parent)
     m_closeButton->setFlat(true);
     m_closeButton->setMaximumHeight(InspectorStyle::defaultComboHeight());
     m_closeButton->setText(tr("Close Inspection"));
-    m_closeButton->setIcon(QIcon(":/projectexplorer/images/stop_small.png"));
+    m_closeButton->setIcon(QIcon(":/debugger/images/debugger_stop_small.png"));
     m_closeButton->hide();
     lay->addWidget(m_closeButton);
 
@@ -337,4 +305,68 @@ void PanelInfoLabel::animateHeight(int from, int to, bool hideAtEnd)
     prop->setDuration(100);
     prop->setEasingCurve(QEasingCurve::OutQuad);
     prop->start(QPropertyAnimation::DeleteWhenStopped);
+}
+
+
+//
+// InspectionWindowSidebar
+//
+InspectionWindowSidebar::InspectionWindowSidebar(QWidget *parent)
+  : QWidget(parent)
+{
+    QVBoxLayout *lay = new QVBoxLayout(this);
+    lay->setMargin(0);
+    lay->setSpacing(0);
+
+    m_navigationComboBox = new QComboBox(this);
+    m_navigationComboBox->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    m_navigationComboBox->setMinimumContentsLength(0);
+
+    Utils::StyledBar *toolBar = new Utils::StyledBar(this);
+    lay->addWidget(toolBar);
+
+    QHBoxLayout *toolBarLayout = new QHBoxLayout;
+    toolBarLayout->setMargin(0);
+    toolBarLayout->setSpacing(0);
+    toolBar->setLayout(toolBarLayout);
+    toolBarLayout->addWidget(m_navigationComboBox);
+/*
+    QToolButton *close = new QToolButton;
+    close->setIcon(QIcon(":/core/images/closebutton.png"));
+    close->setToolTip(tr("Close"));
+    connect(close, SIGNAL(clicked()), this, ...);
+    toolBarLayout->addWidget(close);
+*/
+    m_stack = new QStackedWidget;
+    lay->addWidget(m_stack);
+
+    connect(m_navigationComboBox, SIGNAL(currentIndexChanged(int)),
+            m_stack, SLOT(setCurrentIndex(int)));
+}
+
+void InspectionWindowSidebar::addWidget(const QString &label, QWidget *widget)
+{
+    m_stack->addWidget(widget);
+    m_navigationComboBox->addItem(label);
+}
+
+
+//
+// SideHelpWidget
+//
+SideHelpWidget::SideHelpWidget(QWidget *parent)
+  : QTextBrowser(parent)
+{
+    setFrameStyle(QFrame::NoFrame);
+    setTextInteractionFlags(Qt::TextBrowserInteraction);
+}
+
+void SideHelpWidget::setHelpHtml(const QString &data)
+{
+    setHtml(data);
+}
+
+void SideHelpWidget::clearHelp()
+{
+    clear();
 }

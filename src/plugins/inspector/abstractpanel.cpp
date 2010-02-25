@@ -39,6 +39,15 @@ AbstractPanel::AbstractPanel(IFrameworkModule *parentModule)
     Q_ASSERT(parentModule);
 }
 
+AbstractPanel::~AbstractPanel()
+{
+}
+
+QString AbstractPanel::helpHtml() const
+{
+    return tr("No help is provided for this panel.");
+}
+
 IFramework *AbstractPanel::parentFramework() const
 {
     return m_parentModule->parentFramework();

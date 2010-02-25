@@ -30,6 +30,7 @@
 #ifndef INSPECTIONWINDOW_H
 #define INSPECTIONWINDOW_H
 
+#include <QtGui/QTextBrowser>
 #include <QtGui/QWidget>
 class QComboBox;
 class QLabel;
@@ -48,6 +49,7 @@ class InspectionWindowSidebar;
 class ModuleMenuWidget;
 class PanelContainerWidget;
 class PanelInfoLabel;
+class SideHelpWidget;
 class StatusBarWidget;
 
 
@@ -65,7 +67,7 @@ signals:
 
 private slots:
     void slotCloseInspection();
-    void slotMenuChanged(quint32 compoId);
+    void slotShowPanel(quint32 compoId);
     void slotSetCurrentPanel(int moduleUid, int panelId);
     void slotFrameworkConnected(bool connected);
 
@@ -78,21 +80,7 @@ private:
     StatusBarWidget *           m_statusbarWidget;
     // side panels
     ModuleMenuWidget *          m_modulesMenu;
-};
-
-
-class InspectionWindowSidebar : public QWidget
-{
-    Q_OBJECT
-
-public:
-    InspectionWindowSidebar(QWidget *parent = 0);
-
-    void addWidget(const QString &label, QWidget *widget);
-
-private:
-    QComboBox *m_navigationComboBox;
-    QStackedWidget *m_stack;
+    SideHelpWidget *            m_sideHelp;
 };
 
 
@@ -117,6 +105,31 @@ private:
     void animateHeight(int from, int to, bool hideAtEnd);
     QLabel *m_label;
     QPushButton *m_closeButton;
+};
+
+
+class InspectionWindowSidebar : public QWidget
+{
+    Q_OBJECT
+
+public:
+    InspectionWindowSidebar(QWidget *parent = 0);
+
+    void addWidget(const QString &label, QWidget *widget);
+
+private:
+    QComboBox *m_navigationComboBox;
+    QStackedWidget *m_stack;
+};
+
+
+class SideHelpWidget : public QTextBrowser
+{
+public:
+    SideHelpWidget(QWidget *parent = 0);
+
+    void setHelpHtml(const QString &data);
+    void clearHelp();
 };
 
 } // namespace Internal
