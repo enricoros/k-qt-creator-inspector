@@ -163,3 +163,9 @@ else:unix:SOURCES += applicationlauncher_x11.cpp
 RESOURCES += projectexplorer.qrc
 DEFINES += PROJECTEXPLORER_LIBRARY
 OTHER_FILES += ProjectExplorer.pluginspec
+
+# Inspector: use a define to add some lines of code
+SUPPORT_INSPECTOR_PLUGIN = $$(QTCREATOR_WITH_INSPECTOR)
+!isEmpty(SUPPORT_INSPECTOR_PLUGIN) {
+    DEFINES += QTCREATOR_WITH_INSPECTOR
+}

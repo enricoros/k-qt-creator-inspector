@@ -150,7 +150,9 @@ signals:
 
     void settingsChanged();
 
+#if defined(QTCREATOR_WITH_INSPECTOR)
     void aboutToStartRunControl(ProjectExplorer::RunControl *runControl);
+#endif
 
 public slots:
     void setStartupProject(ProjectExplorer::Project *project = 0);
