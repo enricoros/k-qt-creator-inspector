@@ -1266,7 +1266,9 @@ void ProjectExplorerPlugin::executeRunConfiguration(RunConfiguration *runConfigu
 
 void ProjectExplorerPlugin::startRunControl(RunControl *runControl, const QString &runMode)
 {
+#if defined(QTCREATOR_WITH_INSPECTOR)
     emit aboutToStartRunControl(runControl);
+#endif
 
     d->m_outputPane->createNewOutputWindow(runControl);
     if (runMode == ProjectExplorer::Constants::RUNMODE)

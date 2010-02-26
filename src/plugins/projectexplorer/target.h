@@ -159,7 +159,9 @@ signals:
 
 } // namespace ProjectExplorer
 
+// can't use "#if defined(QTCREATOR_WITH_INSPECTOR)", it messes up compilation
 // Allow a Target to be stored in a QVariant
 Q_DECLARE_METATYPE(ProjectExplorer::Target *)
+// #endif
 
 #endif // TARGET_H
