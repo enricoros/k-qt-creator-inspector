@@ -65,6 +65,7 @@ private:
     PaintingModule *m_paintingModule;
     DataSetTreeWidget *m_dataSetWidget;
     QCheckBox *m_texturesCheck;
+    QCheckBox *m_textureSmoothCheck;
     QCheckBox *m_zeroPlanesCheck;
     QCheckBox *m_altColorsCheck;
     QCheckBox *m_smoothCheck;
@@ -77,7 +78,8 @@ class DataSetTreeWidget : public QTreeWidget
 public:
     DataSetTreeWidget(ThermalModel *sourceModel, QWidget *parent = 0);
 
-    void render(VtkPrivate *, bool useTextures, bool zeroPlane, int colorMode, bool smoothing) const;
+    void render(VtkPrivate *, bool useTextures, bool smoothTextures,
+                bool zeroPlane, int colorMode, bool smoothNormals) const;
 
 public slots:
     void slotAppendFiltered();
