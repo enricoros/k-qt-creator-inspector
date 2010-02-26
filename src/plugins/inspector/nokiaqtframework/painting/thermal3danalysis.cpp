@@ -84,8 +84,8 @@ public:
 
     void clearContents();
     void addRegularMesh(const Inspector::Probe::RegularMeshRealData &, const QColor &,
-                        int colorMode, bool zeroPlane, bool translucent, bool smooth,
-                        double filterRadius, const QImage &texture);
+                        int colorMode, bool zeroPlane, bool translucent, bool smoothNormals,
+                        double filterRadius, const QImage &texture, bool smoothTexture);
 
     QWidget *widget() const { return m_widget; }
 
@@ -198,8 +198,8 @@ void VtkPrivate::clearContents()
 
 void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mesh,
                                 const QColor &color, int colorMode, bool zeroPlane,
-                                bool translucent, bool smooth, double filterRadius,
-                                const QImage &textureImage)
+                                bool translucent, bool smoothNormals, double filterRadius,
+                                const QImage &textureImage, bool smoothTexture)
 {
     if (!mesh.rows || !mesh.columns || mesh.data.isEmpty())
         return;
@@ -254,7 +254,7 @@ void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mes
     warp->SetScaleFactor(255);
 
     vtkPolyDataNormals *normals = 0;
-    if (smooth) {
+    if (smoothNormals) {
         normals = vtkPolyDataNormals::New();
         normals->SetInput(warp->GetOutput());
     }
@@ -316,6 +316,8 @@ void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mes
             }
         }
         vtkTexture *texture = vtkTexture::New();
+        if (smoothTexture)
+            texture->InterpolateOn();
         texture->SetInput(textureData);
         actor->SetTexture(texture);
         texture->Delete();
@@ -392,7 +394,7 @@ Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *module, bool useDepthPeelin
     QVBoxLayout *oLay = new QVBoxLayout(optionsPanel);
     oLay->setMargin(0);
 
-    QPushButton *filterButton = new QPushButton(tr("Add Filtered"));
+    QPushButton *filterButton = new QPushButton(tr("Add Filtered Subsurface"));
     filterButton->setEnabled(false);
     connect(m_dataSetWidget, SIGNAL(topItemSelected(bool)),
             filterButton, SLOT(setEnabled(bool)));
@@ -422,10 +424,18 @@ Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *module, bool useDepthPeelin
     connect(m_texturesCheck, SIGNAL(toggled(bool)),
             this, SLOT(slotRefreshRendering()));
     styleLay->addWidget(m_texturesCheck);
+    m_textureSmoothCheck = new QCheckBox(tr("Smooth Image"));
+    connect(m_textureSmoothCheck, SIGNAL(toggled(bool)),
+            this, SLOT(slotRefreshRendering()));
+    styleLay->addWidget(m_textureSmoothCheck);
+    connect(m_texturesCheck, SIGNAL(toggled(bool)),
+            m_textureSmoothCheck, SLOT(setEnabled(bool)));
+    m_textureSmoothCheck->setEnabled(false);
     m_zeroPlanesCheck = new QCheckBox(tr("Show Zero Plane"));
+    styleLay->addWidget(m_zeroPlanesCheck);
     connect(m_zeroPlanesCheck, SIGNAL(toggled(bool)),
             this, SLOT(slotRefreshRendering()));
-    styleLay->addWidget(m_zeroPlanesCheck);
+    m_zeroPlanesCheck->setChecked(true);
     m_altColorsCheck = new QCheckBox(tr("Alternate Colors"));
     connect(m_altColorsCheck, SIGNAL(toggled(bool)),
             this, SLOT(slotRefreshRendering()));
@@ -457,10 +467,11 @@ Thermal3DAnalysis::~Thermal3DAnalysis()
 void Thermal3DAnalysis::slotRefreshRendering()
 {
     bool useTextures = m_texturesCheck->isChecked();
+    bool smoothTextures = m_textureSmoothCheck->isChecked();
     bool zeroPlane = m_zeroPlanesCheck->isChecked();
     int colorMode = m_altColorsCheck->isChecked() ? 1 : 0;
-    bool smoothing = m_smoothCheck->isChecked();
-    m_dataSetWidget->render(v, useTextures, zeroPlane, colorMode, smoothing);
+    bool smoothNormals = m_smoothCheck->isChecked();
+    m_dataSetWidget->render(v, useTextures, smoothTextures, zeroPlane, colorMode, smoothNormals);
 }
 
 void Thermal3DAnalysis::slotContextMenu(vtkObject *, unsigned long, void *, void *, vtkCommand *command)
@@ -645,7 +656,8 @@ static QList<DataSetTreeItem *> s_checkedItems(QTreeWidgetItem *root)
     return items;
 }
 
-void DataSetTreeWidget::render(VtkPrivate *v, bool useTextures, bool zeroPlane, int colorMode, bool smoothing) const
+void DataSetTreeWidget::render(VtkPrivate *v, bool useTextures, bool smoothTextures,
+                               bool zeroPlane, int colorMode, bool smoothNormals) const
 {
     v->clearContents();
 
@@ -655,8 +667,8 @@ void DataSetTreeWidget::render(VtkPrivate *v, bool useTextures, bool zeroPlane, 
         zeroPlane = false;
     foreach (DataSetTreeItem *item, checkedItems)
         v->addRegularMesh(item->mesh(), item->surfaceColor(), colorMode, zeroPlane,
-                          translucentDrawing, smoothing, item->filterRadius(),
-                          useTextures ? item->image() : QImage());
+                          translucentDrawing, smoothNormals, item->filterRadius(),
+                          useTextures ? item->image() : QImage(), smoothTextures);
 
     v->refresh();
 }
