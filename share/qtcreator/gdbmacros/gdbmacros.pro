@@ -4,17 +4,23 @@ linux-* {
     CONFIG -= release
     CONFIG += debug
 }
-SOURCES = gdbmacros.cpp perfunction.cpp
+SOURCES = gdbmacros.cpp
 false {
     DEFINES += USE_QT_GUI=0
-    QT = core \
-        network
+    QT = core
 }
 else {
     DEFINES += USE_QT_GUI=1
     QT = core \
-        gui \
-        network
+        gui
 }
 exists($$QMAKE_INCDIR_QT/QtCore/private/qobject_p.h):DEFINES += HAS_QOBJECT_P_H
 HEADERS += gdbmacros_p.h
+
+# Inspector: add some functions and link to the network
+SUPPORT_INSPECTOR_PLUGIN = $$(QTCREATOR_WITH_INSPECTOR)
+!isEmpty(SUPPORT_INSPECTOR_PLUGIN) {
+    message("Inspector: compiling the Debugging Helpers with instrumentation functions.")
+    SOURCES += perfunction.cpp
+    QT += network
+}
