@@ -87,7 +87,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
         QWidget *widget = new QWidget;
 
         m_inspectionsLayout = new QVBoxLayout;
-        m_inspectionsLayout->setContentsMargins(LEFT_MARGIN, ABOVE_CONTENTS_MARGIN, 0, 0);
+        m_inspectionsLayout->setContentsMargins(0, ABOVE_CONTENTS_MARGIN, 0, 0);
         m_inspectionsLayout->setSpacing(0);
         widget->setLayout(m_inspectionsLayout);
 
@@ -96,7 +96,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
         m_inspectionsLayout->addWidget(m_noInspectionsLabel);
 
         appendWrappedWidget(tr("Active Inspections"),
-                            QIcon(":/inspector/images/icon-inspections-small.png"),
+                            QIcon(":/inspector/images/icon-inspections.png"),
                             widget);
     }
 
@@ -181,7 +181,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
         appendSubWidget(grid, attWidget, tr("Inspect an Existing Target"));
 
         appendWrappedWidget(tr("Create a New Inspection"),
-                            QIcon(":/inspector/images/icon-newinspection-small.png"),
+                            QIcon(":/inspector/images/icon-newinspection.png"),
                             panel);
 
         connect(m_attFrameworks, SIGNAL(currentFrameworkChanged()),
@@ -232,7 +232,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
         }
 
         appendWrappedWidget(tr("Configure Frameworks"),
-                            QIcon(":/inspector/images/icon-configure-small.png"),
+                            QIcon(":/inspector/images/icon-configure.png"),
                             widget);
     }
 
@@ -385,7 +385,7 @@ void DashboardWindow::appendWrappedWidget(const QString &title, const QIcon &ico
         QLabel *iconLabel = new QLabel(m_root);
         iconLabel->setPixmap(icon.pixmap(ICON_SIZE, ICON_SIZE));
         iconLabel->setContentsMargins(0, ABOVE_HEADING_MARGIN, 0, 0);
-        m_layout->addWidget(iconLabel, headerRow, 0, 2, 1, Qt::AlignTop | Qt::AlignHCenter);
+        m_layout->addWidget(iconLabel, headerRow, 0, 3, 1, Qt::AlignTop | Qt::AlignHCenter);
     }
 
     // name:
@@ -394,7 +394,7 @@ void DashboardWindow::appendWrappedWidget(const QString &title, const QIcon &ico
     nameLabel->setContentsMargins(0, ABOVE_HEADING_MARGIN, 0, 0);
     QFont f = nameLabel->font();
     f.setBold(true);
-    f.setPointSizeF(f.pointSizeF() * 1.4);
+    f.setPointSizeF(f.pointSizeF() * 1.6);
     nameLabel->setFont(f);
     m_layout->addWidget(nameLabel, headerRow, 1, 1, 1, Qt::AlignBottom | Qt::AlignLeft);
 
