@@ -27,62 +27,44 @@
 **
 **************************************************************************/
 
-#include "thermaltask.h"
-#include "thermalmodel.h"
+#include "frequencytask.h"
 #include "../localcommserver.h"
 #include "../nokiaqtframework.h"
 
 // for demarshalling communication with The Probe (FIXME!)
 #include "../../../../../share/qtcreator/gdbmacros/perfunction.h"
+#include "../../../../../share/qtcreator/gdbmacros/probedata.h"
 
 using namespace Inspector::Internal;
 
-ThermalTask::ThermalTask(NokiaQtFramework *framework, ThermalModel *model,
-                         const QVariantList &options, const QString &testTitle, QObject *parent)
+FrequencyTask::FrequencyTask(NokiaQtFramework *framework, QObject *parent)
   : IFrameworkTask(framework, parent)
   , m_framework(framework)
-  , m_model(model)
-  , m_options(options)
-  , m_testTitle(testTitle)
 {
     emit requestActivation();
 }
 
-QString ThermalTask::displayName() const
+QString FrequencyTask::displayName() const
 {
-    return tr("Thermal");
+    return tr("Paint Frequency");
 }
 
-void ThermalTask::activateTask()
+void FrequencyTask::activateTask()
 {
     connect(m_framework->commServer(), SIGNAL(incomingData(quint32,quint32,QByteArray*)),
             this, SLOT(slotProcessIncomingData(quint32,quint32,QByteArray*)));
 
-    m_optionsString = tr("parameters: ");
-    bool skipFirstComma = true;
-    foreach (const QVariant &option, m_options) {
-        QString s = option.toString();
-        if (s.isEmpty())
-            continue;
-        if (skipFirstComma)
-            skipFirstComma = false;
-        else
-            m_optionsString += ", ";
-        m_optionsString += s;
-    }
-    m_startDate = QDateTime::currentDateTime();
-
-    m_framework->callProbeFunction("qPaintingThermalAnalysis", m_options);
+    m_framework->callProbeFunction("qPaintingFrequencyAnalysis", QVariantList() << true);
 }
 
-void ThermalTask::deactivateTask()
+void FrequencyTask::deactivateTask()
 {
     disconnect(m_framework->commServer(), 0, this, 0);
-    m_model->setPtProgress(100);
+    m_framework->callProbeFunction("qPaintingFrequencyAnalysis", QVariantList() << false);
     emit finished();
 }
 
-void ThermalTask::slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data)
+void FrequencyTask::slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data)
 {
     // only filter comm by this Uid (NOTE: sync the probe impl)
     if (channel != Inspector::Probe::Channel_Painting)
@@ -94,22 +76,16 @@ void ThermalTask::slotProcessIncomingData(quint32 channel, quint32 code1, QByteA
     case 2:     // end
         deactivateTask();
         break;
-    case 3: {   // percent
-        int percent = qBound(0, QString(*data).toInt(), 100);
-        m_model->setPtProgress(percent);
-        setProgress(percent);
+    case 6: {   // area
+        Inspector::Probe::AreaData area;
+        LocalCommServer::decodeArea(data, &area);
+        qWarning() << "got area" << area.absoluteRect;
         } break;
-    case 4:     // base image
-        LocalCommServer::decodeImage(data, &m_lastImage);
-        break;
-    case 5: {   // mesh data
-        Inspector::Probe::RegularMeshRealData mesh;
-        LocalCommServer::decodeMesh(data, &mesh);
-        int duration = m_startDate.secsTo(QDateTime::currentDateTime());
-        m_model->addResult(m_startDate, duration, m_testTitle, m_optionsString, m_lastImage, mesh);
+    case 7: {   // area clear
+        qWarning("area clear");
         } break;
     default:
-        qWarning("ThermalTask::slotProcessIncomingData: unhandled code1 %d", code1);
+        qWarning("FrequencyTask::slotProcessIncomingData: unhandled code1 %d", code1);
         break;
     }
 }

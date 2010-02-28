@@ -27,50 +27,38 @@
 **
 **************************************************************************/
 
-#ifndef PAINTINGMODULE_H
-#define PAINTINGMODULE_H
+#ifndef FREQUENCYPANEL_H
+#define FREQUENCYPANEL_H
 
-#include "iframeworkmodule.h"
-#include <QtCore/QVariantList>
-#include <QtGui/QImage>
+#include "abstractpanel.h"
+#include "ui_frequencypanel.h"
 
 namespace Inspector {
 namespace Internal {
 
-// constants
-const int UID_MODULE_PAINTING = 2;
+class PaintingModule;
 
-class NokiaQtFramework;
-class SetDebugPaintingTask;
-class ThermalModel;
-
-class PaintingModule : public IFrameworkModule
+class FrequencyPanel : public AbstractPanel, public Ui::FrequencyPanel
 {
     Q_OBJECT
 
 public:
-    PaintingModule(NokiaQtFramework *, QObject *parent = 0);
-    ~PaintingModule();
+    FrequencyPanel(PaintingModule *);
 
-    ThermalModel *thermalModel() const;
+private slots:
+    void slotStartTestClicked();
 
-    // ::IFrameworkModule
-    int uid() const { return UID_MODULE_PAINTING; }
-    QString name() const;
-    ModuleMenuEntries menuEntries() const;
-    AbstractPanel *createPanel(int panelId);
-
-    void startFrequencyTest();
-    void startThermalTest(const QString &testTitle, const QVariantList &options);
-    void setShowExposedAreas(bool);
+    void slotDisplayClicked();
+    void slotRemoveClicked();
+    void slotClearClicked();
+    void slotExportClicked();
+    void slotImportClicked();
 
 private:
-    NokiaQtFramework *m_framework;
-    ThermalModel *m_thermalModel;
-    bool m_showExposedAreas;
+    PaintingModule *m_paintingModule;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // PAINTINGMODULE_H
+#endif // FREQUENCYPANEL_H

@@ -49,6 +49,8 @@ enum CommChannel {
       3: progress           int
       4: original image     image
       5: temperature        meshdata
+      6: exposedarea        area
+      7: exposedclear       bool
     */
     Channel_Events      = 0x0003  /*
       0: elapsed millisec,  double

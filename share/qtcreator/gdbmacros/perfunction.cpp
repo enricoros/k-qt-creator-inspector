@@ -187,6 +187,14 @@ public:
         return sendMarshalled(channel, code1, imageData);
     }
 
+    bool sendArea(quint32 channel, quint32 code1, const AreaData &area)
+    {
+        QByteArray areaData;
+        QDataStream dataWriter(&areaData, QIODevice::WriteOnly);
+        dataWriter << area.absoluteRect;
+        return sendMarshalled(channel, code1, areaData);
+    }
+
     bool sendMesh(quint32 channel, quint32 code1, const RegularMeshRealData &mesh)
     {
         QByteArray meshData;
@@ -251,11 +259,13 @@ extern "C" {
 static Inspector::Probe::CommClient * ipCommClient = 0;
 static bool ipDebugPainting = false;
 static bool ipThermalAnalysis = false;
+static bool ipFrequencyAnalysis = false;
 }
 
 static bool eventInterceptorCallback(void **data)
 {
     QEvent *event = reinterpret_cast<QEvent*>(data[1]);
+    //CONSOLE_PRINT("type %d", event->type());
     if (ipCommClient && !ipCommClient->fencing()
         && event->type() >= QEvent::Timer && event->type() <= QEvent::User
         && !ipThermalAnalysis) {
@@ -265,6 +275,8 @@ static bool eventInterceptorCallback(void **data)
         quint32 localE = ++numE;
         QObject *receiver = reinterpret_cast<QObject*>(data[0]);
         bool *resultValue = reinterpret_cast<bool*>(data[2]);
+
+        const QEvent::Type eventType = event->type();
 
         // invoke function and measure time
 #if 0
@@ -291,26 +303,52 @@ static bool eventInterceptorCallback(void **data)
             QByteArray eventData;
             QDataStream dataWriter(&eventData, QIODevice::WriteOnly);
             dataWriter << localE;
-            dataWriter << (quint32)event->type();
+            dataWriter << (quint32)eventType;
             dataWriter << elapsedMs;
             dataWriter << (receiver->metaObject()->className() ? receiver->metaObject()->className() : "null");
             ipCommClient->sendCustom(Inspector::Probe::Channel_Events, 1, eventData);
         }
 
-        // show painting, if
-        if (ipDebugPainting && event->type() == QEvent::Paint) {
-            if (QWidget * widget = dynamic_cast<QWidget *>(receiver)) {
-                static int paintOpNumber = 0;
-                QPainter p(widget);
-                int hue = qrand() % 360;
-                p.setBrush(QColor::fromHsv(hue, 255, 255, 128));
-                p.drawRect(static_cast<QPaintEvent *>(event)->rect().adjusted(0, 0, -1, -1));
-                p.setFont(QFont("Arial",8));
-                p.drawText(static_cast<QPaintEvent *>(event)->rect().topLeft() + QPoint(2,10), QString::number(++paintOpNumber));
+        if (ipFrequencyAnalysis) {
+            // painting: send out exposed area
+            if (eventType == QEvent::UpdateRequest) {
+                if (QWidget *widget = dynamic_cast<QWidget *>(receiver)) {
+                    Inspector::Probe::AreaData area;
+                    if (widget->isWindow()) {
+                        area.absoluteRect = widget->rect();
+                    } else {
+                        QPoint topLeft = widget->mapTo(widget->window(), QPoint(0, 0));
+                        area.absoluteRect = QRect(topLeft, widget->size());
+                    }
+                    ipCommClient->sendArea(Inspector::Probe::Channel_Painting, 6, area);
+                }
+            }
+
+            // resizing: send out clearance
+            if (eventType == QEvent::Resize) {
+                if (QWidget *widget = dynamic_cast<QWidget *>(receiver)) {
+                    if (widget->isWindow())
+                        ipCommClient->sendInteger(Inspector::Probe::Channel_Painting, 7, 1);
+                }
             }
         }
 
-        // TODO: measure send+painting overhead
+        // Painting Events
+        if (eventType == QEvent::Resize) {
+
+            // show painting, if enabled
+            if (!ipFrequencyAnalysis && ipDebugPainting) {
+                if (QWidget * widget = dynamic_cast<QWidget *>(receiver)) {
+                    static int paintOpNumber = 0;
+                    QPainter p(widget);
+                    int hue = qrand() % 360;
+                    p.setBrush(QColor::fromHsv(hue, 255, 255, 128));
+                    p.drawRect(static_cast<QPaintEvent *>(event)->rect().adjusted(0, 0, -1, -1));
+                    p.setFont(QFont("Arial",8));
+                    p.drawText(static_cast<QPaintEvent *>(event)->rect().topLeft() + QPoint(2,10), QString::number(++paintOpNumber));
+                }
+            }
+        }
 
         --stackDepth;
         return true;
@@ -379,6 +417,14 @@ Q_DECL_EXPORT void qInspectorDeactivate()
     ipCommClient = 0;
 }
 
+
+extern "C"
+Q_DECL_EXPORT void qPaintingShowExposedAreas(bool on)
+{
+    ipDebugPainting = on;
+}
+
+
 struct __TimedRect {
     QRect rect;
     QList<double> times;
@@ -386,13 +432,7 @@ struct __TimedRect {
 };
 
 extern "C"
-Q_DECL_EXPORT void qPaintingSetDebug(bool on)
-{
-    ipDebugPainting = on;
-}
-
-extern "C"
-Q_DECL_EXPORT void qThermalAnalysis(int passes, int headDrops, int tailDrops,
+Q_DECL_EXPORT void qPaintingThermalAnalysis(int passes, int headDrops, int tailDrops,
     int innerPasses, int chunkWidth, int chunkHeight, bool consoleDebug)
 {
     // sanity check
@@ -550,4 +590,12 @@ Q_DECL_EXPORT void qThermalAnalysis(int passes, int headDrops, int tailDrops,
 
     // run event loop, to flush out the localsocket - FIXME - avoid this - DOESN'T WORK ANYWAY
     //app->processEvents();
+}
+
+
+extern "C"
+Q_DECL_EXPORT void qPaintingFrequencyAnalysis(bool on)
+{
+    ipFrequencyAnalysis = on;
+    // reset stats here too
 }

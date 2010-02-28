@@ -29,6 +29,8 @@
 
 #include "paintingmodule.h"
 #include "paintingpanel.h"
+#include "frequencypanel.h"
+#include "frequencytask.h"
 #include "thermalmodel.h"
 #include "thermalpanel.h"
 #include "thermaltask.h"
@@ -66,7 +68,8 @@ ModuleMenuEntries PaintingModule::menuEntries() const
 {
     ModuleMenuEntries entries;
     entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Thermal Analysis"), UID_MODULE_PAINTING, 1, QIcon(":/inspector/painting/menu-thermal.png")));
-    entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Debugging Tools"), UID_MODULE_PAINTING, 2));
+    entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Frequency Analysis"), UID_MODULE_PAINTING, 2));
+    entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Debugging Tools"), UID_MODULE_PAINTING, 3));
     return entries;
 }
 
@@ -75,9 +78,16 @@ AbstractPanel *PaintingModule::createPanel(int panelId)
     if (panelId == 1)
         return new ThermalPanel(this);
     else if (panelId == 2)
+        return new FrequencyPanel(this);
+    else if (panelId == 3)
         return new PaintingPanel(this);
     qWarning("PaintingModule::createPanel: unknown panel %d", panelId);
     return 0;
+}
+
+void PaintingModule::startFrequencyTest()
+{
+    new FrequencyTask(m_framework);
 }
 
 void PaintingModule::startThermalTest(const QString &title, const QVariantList &options)
@@ -103,7 +113,7 @@ public:
     }
     void activateTask()
     {
-        m_framework->callProbeFunction("qPaintingSetDebug", QVariantList() << (bool)m_enable);
+        m_framework->callProbeFunction("qPaintingShowExposedAreas", QVariantList() << (bool)m_enable);
         deactivateTask();
     }
 
