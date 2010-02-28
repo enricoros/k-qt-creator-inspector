@@ -117,6 +117,7 @@ public:
     }
 };
 
+
 //
 // ThermalPanel
 //
@@ -127,10 +128,8 @@ ThermalPanel::ThermalPanel(PaintingModule *module)
 {
     setupUi(this);
 
-#if defined(INSPECTOR_PAINTING_VTK)
-    Thermal3DAnalysis *tView = new Thermal3DAnalysis(m_paintingModule, false /*TODO: use Settings*/);
-    resultsTabWidget->addTab(tView, tr("Surface Analysis"));
-#endif
+    Thermal3DOnDemand *onDemand = new Thermal3DOnDemand(m_paintingModule, false /*TODO: use Settings*/);
+    resultsTabWidget->addTab(onDemand, tr("Surface Analysis"));
 
     // wire-up controls
     connect(presetCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(slotActivatePreset(int)));
@@ -369,4 +368,36 @@ void ThermalPanel::slotDisplayResultImage(const QModelIndex &index)
     imageLabel->setPixmap(pixmap);
     resultsTabWidget->setCurrentIndex(1);
     imageScrollArea->setFocus();
+}
+
+
+//
+// Thermal3DOnDemand
+//
+Thermal3DOnDemand::Thermal3DOnDemand(PaintingModule *module, bool useDepthPeeling, QWidget *parent)
+  : QWidget(parent)
+  , m_paintingModule(module)
+  , m_useDepthPeeling(useDepthPeeling)
+  , m_created(false)
+{
+    QVBoxLayout *lay = new QVBoxLayout;
+    lay->setMargin(0);
+    lay->setSpacing(0);
+    setLayout(lay);
+}
+
+void Thermal3DOnDemand::showEvent(QShowEvent *event)
+{
+    if (!m_created) {
+        m_created = true;
+#if defined(INSPECTOR_PAINTING_VTK)
+        Thermal3DAnalysis *widget = new Thermal3DAnalysis(m_paintingModule, m_useDepthPeeling, this);
+        layout()->addWidget(widget);
+#else
+        QLabel *widget = new QLabel(tr("Qt Creator was build without QTCREATOR_WITH_INSPECTOR_VTK"));
+        layout()->addWidget(widget);
+        layout()->setAlignment(widget, Qt::AlignCenter);
+#endif
+    }
+    QWidget::showEvent(event);
 }
