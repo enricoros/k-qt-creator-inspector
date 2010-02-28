@@ -6,6 +6,8 @@ HEADERS += \
     $$PWD/blueprint/blueprintmodule.h \
     $$PWD/info/infomodule.h \
     $$PWD/info/infopanel.h \
+    $$PWD/painting/frequencypanel.h \
+    $$PWD/painting/frequencytask.h \
     $$PWD/painting/paintingmodule.h \
     $$PWD/painting/paintingpanel.h \
     $$PWD/painting/thermalmodel.h \
@@ -22,6 +24,8 @@ SOURCES += \
     $$PWD/blueprint/blueprintmodule.cpp \
     $$PWD/info/infomodule.cpp \
     $$PWD/info/infopanel.cpp \
+    $$PWD/painting/frequencypanel.cpp \
+    $$PWD/painting/frequencytask.cpp \
     $$PWD/painting/paintingmodule.cpp \
     $$PWD/painting/paintingpanel.cpp \
     $$PWD/painting/thermalmodel.cpp \
@@ -32,6 +36,7 @@ SOURCES += \
 
 FORMS += \
     $$PWD/info/infopanel.ui \
+    $$PWD/painting/frequencypanel.ui \
     $$PWD/painting/paintingpanel.ui \
     $$PWD/painting/thermalpanel.ui
 

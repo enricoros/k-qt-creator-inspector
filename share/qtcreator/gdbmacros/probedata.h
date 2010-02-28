@@ -46,6 +46,10 @@ struct RegularMeshRealData {
     QVector<qreal> data;
 };
 
+struct AreaData {
+    QRect absoluteRect;
+};
+
 } // namespace Probe
 } // namespace Inspector
 

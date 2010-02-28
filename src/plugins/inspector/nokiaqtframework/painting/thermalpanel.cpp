@@ -28,12 +28,8 @@
 **************************************************************************/
 
 #include "thermalpanel.h"
-#include "iframework.h"
-#include "iinspectionmodel.h"
 #include "paintingmodule.h"
 #include "thermalmodel.h"
-
-#include "../datautils.h"
 
 #include <QtGui/QFileDialog>
 #include <QtGui/QPainter>

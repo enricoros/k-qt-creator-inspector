@@ -39,6 +39,7 @@ class QLocalServer;
 namespace Inspector {
 
 namespace Probe {
+struct AreaData;
 struct RegularMeshRealData;
 }
 
@@ -55,6 +56,7 @@ public:
     ~LocalCommServer();
 
     static bool decodeImage(QByteArray *data, QImage *image);
+    static bool decodeArea(QByteArray *data, Inspector::Probe::AreaData *area);
     static bool decodeMesh(QByteArray *data, Inspector::Probe::RegularMeshRealData *mesh);
 
 signals:

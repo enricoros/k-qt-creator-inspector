@@ -96,6 +96,13 @@ bool LocalCommServer::decodeImage(QByteArray *data, QImage *image)
     return !image->isNull();
 }
 
+bool LocalCommServer::decodeArea(QByteArray *data, Inspector::Probe::AreaData *area)
+{
+    QDataStream dataReader(data, QIODevice::ReadOnly);
+    dataReader >> area->absoluteRect;
+    return true;
+}
+
 bool LocalCommServer::decodeMesh(QByteArray *data, Inspector::Probe::RegularMeshRealData *mesh)
 {
     QDataStream dataReader(data, QIODevice::ReadOnly);
