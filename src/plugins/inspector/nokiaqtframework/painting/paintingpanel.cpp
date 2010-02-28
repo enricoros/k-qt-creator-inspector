@@ -38,12 +38,7 @@ PaintingPanel::PaintingPanel(PaintingModule *module)
   : AbstractPanel(module)
   , m_paintingModule(module)
 {
-    QVBoxLayout *lay = new QVBoxLayout(this);
-
-    QCheckBox *debugBox = new QCheckBox(tr("Visually Debug Painted Areas"));
-    debugBox->setCheckable(true);
-    debugBox->setChecked(false);
-    lay->addWidget(debugBox);
+    setupUi(this);
 
     connect(debugBox, SIGNAL(toggled(bool)),
             this, SLOT(slotDebugPaintingToggled(bool)));
@@ -51,6 +46,5 @@ PaintingPanel::PaintingPanel(PaintingModule *module)
 
 void PaintingPanel::slotDebugPaintingToggled(bool enabled)
 {
-    m_paintingModule->setDebugPainting(enabled);
+    m_paintingModule->setShowExposedAreas(enabled);
 }
-

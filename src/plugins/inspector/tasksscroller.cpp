@@ -347,7 +347,7 @@ void TaskRectangle::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     Q_UNUSED(option);
     Q_UNUSED(widget);
     QRect rect = boundingRect().toRect();
-    if (rect.width() < 2)
+    if (rect.width() < 1)
         return;
 
     // draw the task rectangle

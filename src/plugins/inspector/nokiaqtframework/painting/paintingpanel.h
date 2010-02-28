@@ -31,13 +31,14 @@
 #define PAINTINGPANEL_H
 
 #include "abstractpanel.h"
+#include "ui_paintingpanel.h"
 
 namespace Inspector {
 namespace Internal {
 
 class PaintingModule;
 
-class PaintingPanel : public AbstractPanel
+class PaintingPanel : public AbstractPanel, public Ui::PaintingPanel
 {
     Q_OBJECT
 
