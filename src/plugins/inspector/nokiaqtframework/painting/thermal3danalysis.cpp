@@ -79,10 +79,10 @@ public:
     void disposePipeline();
 
     void setBackground(const QColor &backColor);
-    void toggleStereo();
+    void setStereoMode(int mode);
     void refresh();
 
-    void clearContents();
+    void clearContents(bool emptyScene);
     void addRegularMesh(const Inspector::Probe::RegularMeshRealData &, const QColor &,
                         int colorMode, bool zeroPlane, bool translucent, bool smoothNormals,
                         double filterRadius, const QImage &texture, bool smoothTexture);
@@ -95,6 +95,7 @@ private:
     vtkEventQtSlotConnect *m_connections;
     QList<vtkActor *> m_addedActors;
     bool m_depthPeeling;
+    bool m_cameraDirty;
 };
 
 VtkPrivate::VtkPrivate()
@@ -102,6 +103,7 @@ VtkPrivate::VtkPrivate()
   , m_renderer(0)
   , m_connections(0)
   , m_depthPeeling(false)
+  , m_cameraDirty(true)
 {
     m_widget = new QVTKWidget;
     m_widget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
@@ -151,7 +153,7 @@ void VtkPrivate::initPipeline(QObject *connTarget, bool useDepthPeeling)
 void VtkPrivate::disposePipeline()
 {
     if (m_renderer) {
-        clearContents();
+        clearContents(true);
         m_renderer->Delete();
         m_renderer = 0;
     }
@@ -169,31 +171,39 @@ void VtkPrivate::setBackground(const QColor &color)
     refresh();
 }
 
-void VtkPrivate::toggleStereo()
+void VtkPrivate::setStereoMode(int mode)
 {
-    m_renderer->GetRenderWindow()->SetStereoRender(!m_renderer->GetRenderWindow()->GetStereoRender());
+    if (mode) {
+        m_renderer->GetRenderWindow()->SetStereoRender(1);
+        m_renderer->GetRenderWindow()->SetStereoType(mode);
+    } else {
+        m_renderer->GetRenderWindow()->SetStereoRender(0);
+    }
     refresh();
 }
 
 void VtkPrivate::refresh()
 {
-    if (m_addedActors.size() < 2) {
+    if (m_cameraDirty) {
         m_renderer->ResetCamera();
         vtkCamera *camera = m_renderer->GetActiveCamera();
         camera->SetFocalPoint(0, 0, 0);
         m_renderer->SetActiveCamera(camera);
+        m_cameraDirty = false;
     }
     m_renderer->Render();
     m_widget->update();
 }
 
-void VtkPrivate::clearContents()
+void VtkPrivate::clearContents(bool emptyScene)
 {
+    bool wasEmpty = m_addedActors.isEmpty();
     foreach (vtkActor *actor, m_addedActors) {
         m_renderer->RemoveActor(actor);
         actor->Delete();
     }
     m_addedActors.clear();
+    m_cameraDirty |= !emptyScene && wasEmpty;
 }
 
 void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mesh,
@@ -468,6 +478,17 @@ void Thermal3DAnalysis::slotRefreshRendering()
     m_dataSetWidget->render(v, useTextures, smoothTextures, zeroPlane, colorMode, smoothNormals);
 }
 
+static QAction *createOption(QActionGroup *group, const QString &name, int id, bool checked)
+{
+    QAction *act = new QAction(group);
+    act->setText(name);
+    act->setCheckable(true);
+    act->setChecked(checked);
+    act->setActionGroup(group);
+    act->setProperty("id", id);
+    return act;
+}
+
 void Thermal3DAnalysis::slotContextMenu(vtkObject *, unsigned long, void *, void *, vtkCommand *command)
 {
     // consume event so the interactor style doesn't get it
@@ -478,7 +499,16 @@ void Thermal3DAnalysis::slotContextMenu(vtkObject *, unsigned long, void *, void
     contextMenu->setAttribute(Qt::WA_DeleteOnClose);
     contextMenu->addAction(tr("Background White"))->setProperty("id", (int)1);
     contextMenu->addAction(tr("Background Black"))->setProperty("id", (int)2);
-    contextMenu->addAction(tr("Stereo Rendering"))->setProperty("id", (int)3);
+    contextMenu->addSeparator()->setText(tr("Stereo Mode"));
+    QActionGroup *stereo = new QActionGroup(contextMenu);
+    contextMenu->addAction(createOption(stereo, tr("No Stereo Rendering"), 3, false));
+    contextMenu->addAction(createOption(stereo, tr("Stereo Crystal Eyes"), 4, false));
+    contextMenu->addAction(createOption(stereo, tr("Stereo Red Blue"), 5, false));
+    contextMenu->addAction(createOption(stereo, tr("Stereo Interlaced"), 6, false));
+    contextMenu->addAction(createOption(stereo, tr("Stereo Left"), 7, false));
+    contextMenu->addAction(createOption(stereo, tr("Stereo Right"), 8, false));
+    contextMenu->addAction(createOption(stereo, tr("Stereo Dresden"), 9, false));
+    contextMenu->addAction(createOption(stereo, tr("Stereo Checkerboard"), 10, false));
     connect(contextMenu, SIGNAL(triggered(QAction*)),
             this, SLOT(slotContextAction(QAction*)));
     contextMenu->popup(QCursor::pos());
@@ -490,7 +520,14 @@ void Thermal3DAnalysis::slotContextAction(QAction *action)
     switch (id) {
     case 1: v->setBackground(Qt::white); break;
     case 2: v->setBackground(Qt::black); break;
-    case 3: v->toggleStereo(); break;
+    case 3: v->setStereoMode(0); break;
+    case 4: v->setStereoMode(VTK_STEREO_CRYSTAL_EYES); break;
+    case 5: v->setStereoMode(VTK_STEREO_RED_BLUE); break;
+    case 6: v->setStereoMode(VTK_STEREO_INTERLACED); break;
+    case 7: v->setStereoMode(VTK_STEREO_LEFT); break;
+    case 8: v->setStereoMode(VTK_STEREO_RIGHT); break;
+    case 9: v->setStereoMode(VTK_STEREO_DRESDEN); break;
+    case 10: v->setStereoMode(VTK_STEREO_CHECKERBOARD); break;
     }
 }
 
@@ -653,12 +690,13 @@ static QList<DataSetTreeItem *> s_checkedItems(QTreeWidgetItem *root)
 void DataSetTreeWidget::render(VtkPrivate *v, bool useTextures, bool smoothTextures,
                                bool zeroPlane, int colorMode, bool smoothNormals) const
 {
-    v->clearContents();
-
     QList<DataSetTreeItem *> checkedItems = s_checkedItems(invisibleRootItem());
     bool translucentDrawing = checkedItems.count() > 1;
     if (translucentDrawing)
         zeroPlane = false;
+
+    v->clearContents(checkedItems.isEmpty());
+
     foreach (DataSetTreeItem *item, checkedItems)
         v->addRegularMesh(item->mesh(), item->surfaceColor(), colorMode, zeroPlane,
                           translucentDrawing, smoothNormals, item->filterRadius(),
