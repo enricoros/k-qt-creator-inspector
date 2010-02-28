@@ -41,6 +41,7 @@ namespace Internal {
 const int UID_MODULE_PAINTING = 2;
 
 class NokiaQtFramework;
+class SetDebugPaintingTask;
 class ThermalModel;
 
 class PaintingModule : public IFrameworkModule
@@ -60,12 +61,12 @@ public:
     AbstractPanel *createPanel(int panelId);
 
     void startThermalTest(const QString &testTitle, const QVariantList &options);
-    void setDebugPainting(bool enable);
+    void setShowExposedAreas(bool);
 
 private:
     NokiaQtFramework *m_framework;
     ThermalModel *m_thermalModel;
-    bool m_debugPainting;
+    bool m_showExposedAreas;
 };
 
 } // namespace Internal

@@ -42,7 +42,7 @@ using namespace Inspector::Internal;
 PaintingModule::PaintingModule(NokiaQtFramework *framework, QObject *parent)
   : IFrameworkModule(framework, parent)
   , m_framework(framework)
-  , m_debugPainting(false) // mirror initial state in perfunction.cpp
+  , m_showExposedAreas(false) // mirror initial state in perfunction.cpp
 {
     m_thermalModel = new ThermalModel;
 }
@@ -85,9 +85,7 @@ void PaintingModule::startThermalTest(const QString &title, const QVariantList &
     new ThermalTask(m_framework, m_thermalModel, options, title);
 }
 
-namespace Inspector {
-namespace Internal {
-class SetDebugPaintingTask : public IFrameworkTask
+class Inspector::Internal::SetDebugPaintingTask : public IFrameworkTask
 {
 public:
     SetDebugPaintingTask(bool on, NokiaQtFramework *framework)
@@ -113,13 +111,11 @@ private:
     NokiaQtFramework *m_framework;
     bool m_enable;
 };
-}
-}
 
-void PaintingModule::setDebugPainting(bool enable)
+void PaintingModule::setShowExposedAreas(bool show)
 {
-    if (enable != m_debugPainting) {
-        m_debugPainting = enable;
-        new SetDebugPaintingTask(m_debugPainting, m_framework);
+    if (show != m_showExposedAreas) {
+        m_showExposedAreas = show;
+        new SetDebugPaintingTask(m_showExposedAreas, m_framework);
     }
 }

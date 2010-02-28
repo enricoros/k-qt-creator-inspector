@@ -32,6 +32,7 @@ SOURCES += \
 
 FORMS += \
     $$PWD/info/infopanel.ui \
+    $$PWD/painting/paintingpanel.ui \
     $$PWD/painting/thermalpanel.ui
 
 RESOURCES += \
