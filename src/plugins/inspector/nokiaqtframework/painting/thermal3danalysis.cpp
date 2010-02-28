@@ -510,7 +510,9 @@ void Thermal3DAnalysis::slotContextMenu(vtkObject *, unsigned long, void *, void
     contextMenu->addAction(createOption(stereo, tr("Stereo Left"), 7, false));
     contextMenu->addAction(createOption(stereo, tr("Stereo Right"), 8, false));
     contextMenu->addAction(createOption(stereo, tr("Stereo Dresden"), 9, false));
+#if (VTK_MAJOR_VERSION >= 5) && (VTK_MINOR_VERSION >= 4)
     contextMenu->addAction(createOption(stereo, tr("Stereo Checkerboard"), 10, false));
+#endif
     connect(contextMenu, SIGNAL(triggered(QAction*)),
             this, SLOT(slotContextAction(QAction*)));
     contextMenu->popup(QCursor::pos());
@@ -529,7 +531,9 @@ void Thermal3DAnalysis::slotContextAction(QAction *action)
     case 7: v->setStereoMode(VTK_STEREO_LEFT); break;
     case 8: v->setStereoMode(VTK_STEREO_RIGHT); break;
     case 9: v->setStereoMode(VTK_STEREO_DRESDEN); break;
+#if (VTK_MAJOR_VERSION >= 5) && (VTK_MINOR_VERSION >= 4)
     case 10: v->setStereoMode(VTK_STEREO_CHECKERBOARD); break;
+#endif
     }
 }
 
