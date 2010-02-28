@@ -28,6 +28,7 @@
 **************************************************************************/
 
 #include "paintingmodule.h"
+#include "paintingpanel.h"
 #include "thermalmodel.h"
 #include "thermalpanel.h"
 #include "thermaltask.h"
@@ -41,6 +42,7 @@ using namespace Inspector::Internal;
 PaintingModule::PaintingModule(NokiaQtFramework *framework, QObject *parent)
   : IFrameworkModule(framework, parent)
   , m_framework(framework)
+  , m_debugPainting(false) // mirror initial state in perfunction.cpp
 {
     m_thermalModel = new ThermalModel;
 }
@@ -64,7 +66,7 @@ ModuleMenuEntries PaintingModule::menuEntries() const
 {
     ModuleMenuEntries entries;
     entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Thermal Analysis"), UID_MODULE_PAINTING, 1, QIcon(":/inspector/painting/menu-thermal.png")));
-    entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Debugging Tools"), UID_MODULE_PAINTING, 2, QIcon(":/inspector/painting/menu-energy.png")));
+    entries.append(ModuleMenuEntry(QStringList() << tr("Painting") << tr("Debugging Tools"), UID_MODULE_PAINTING, 2));
     return entries;
 }
 
@@ -72,6 +74,8 @@ AbstractPanel *PaintingModule::createPanel(int panelId)
 {
     if (panelId == 1)
         return new ThermalPanel(this);
+    else if (panelId == 2)
+        return new PaintingPanel(this);
     qWarning("PaintingModule::createPanel: unknown panel %d", panelId);
     return 0;
 }
@@ -79,4 +83,43 @@ AbstractPanel *PaintingModule::createPanel(int panelId)
 void PaintingModule::startThermalTest(const QString &title, const QVariantList &options)
 {
     new ThermalTask(m_framework, m_thermalModel, options, title);
+}
+
+namespace Inspector {
+namespace Internal {
+class SetDebugPaintingTask : public IFrameworkTask
+{
+public:
+    SetDebugPaintingTask(bool on, NokiaQtFramework *framework)
+      : IFrameworkTask(framework)
+      , m_framework(framework)
+      , m_enable(on)
+    {
+        emit requestActivation();
+    }
+
+    // ::IFrameworkTask
+    QString displayName() const
+    {
+        return m_enable ? tr("Enabling Debug") : tr("Disabling Debug");
+    }
+    void activateTask()
+    {
+        m_framework->callProbeFunction("qPaintingSetDebug", QVariantList() << (bool)m_enable);
+        emit finished();
+    }
+
+private:
+    NokiaQtFramework *m_framework;
+    bool m_enable;
+};
+}
+}
+
+void PaintingModule::setDebugPainting(bool enable)
+{
+    if (enable != m_debugPainting) {
+        m_debugPainting = enable;
+        new SetDebugPaintingTask(m_debugPainting, m_framework);
+    }
 }

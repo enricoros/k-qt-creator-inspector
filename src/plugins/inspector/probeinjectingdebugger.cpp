@@ -89,7 +89,7 @@ bool ProbeInjectingDebugger::setInspectionTarget(const InspectionTarget &target,
     m_target = target;
 
     QTC_ASSERT(!localServerName.isNull(), return false);
-    m_inspectorRunControl->setInspectorParams(localServerName, 0);
+    m_inspectorRunControl->setInspectorServerName(localServerName);
 
     initInspection();
     return true;

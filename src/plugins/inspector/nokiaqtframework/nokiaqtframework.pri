@@ -7,6 +7,7 @@ HEADERS += \
     $$PWD/info/infomodule.h \
     $$PWD/info/infopanel.h \
     $$PWD/painting/paintingmodule.h \
+    $$PWD/painting/paintingpanel.h \
     $$PWD/painting/thermalmodel.h \
     $$PWD/painting/thermalpanel.h \
     $$PWD/painting/thermaltask.h \
@@ -22,6 +23,7 @@ SOURCES += \
     $$PWD/info/infomodule.cpp \
     $$PWD/info/infopanel.cpp \
     $$PWD/painting/paintingmodule.cpp \
+    $$PWD/painting/paintingpanel.cpp \
     $$PWD/painting/thermalmodel.cpp \
     $$PWD/painting/thermalpanel.cpp \
     $$PWD/painting/thermaltask.cpp \

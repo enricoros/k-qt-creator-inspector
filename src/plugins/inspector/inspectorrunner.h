@@ -49,7 +49,7 @@ public:
     InspectorRunControl(Debugger::DebuggerManager *manager,
                         const Debugger::DebuggerStartParametersPtr &startParameters);
 
-    void setInspectorParams(const QString &serverName, int activationFlags);
+    void setInspectorServerName(const QString &serverName);
 
     // ProjectExplorer::RunControl
     virtual void start();

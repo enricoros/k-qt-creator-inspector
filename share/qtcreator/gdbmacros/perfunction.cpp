@@ -341,7 +341,7 @@ static void slotEndCallback(QObject *caller, int method_index)
 
 // Entry Points of the Shared Library (loaded by the GDB plugin)
 extern "C"
-Q_DECL_EXPORT bool qInspectorActivate(const char * serverName, int activationFlags)
+Q_DECL_EXPORT bool qInspectorActivate(const char * serverName)
 {
     // 1. comm client
     if (ipCommClient) {
@@ -350,14 +350,11 @@ Q_DECL_EXPORT bool qInspectorActivate(const char * serverName, int activationFla
     } else
         ipCommClient = new Inspector::Probe::CommClient(serverName);
 
-    // 2. activation flags
-    ipDebugPainting = activationFlags & Inspector::Probe::AF_PaintDebug;
-
-    // 3. signal spy callback
+    // 2. signal spy callback
     QSignalSpyCallbackSet set = {0, 0/*slotBeginCallback*/, 0, 0/*slotEndCallback*/};
     qt_register_signal_spy_callbacks(set);
 
-    // 4. events callback
+    // 3. events callback
     QInternal::registerCallback(QInternal::EventNotifyCallback, eventInterceptorCallback);
 
     CONSOLE_PRINT(IP_NAME": Activated");
@@ -387,6 +384,12 @@ struct __TimedRect {
     QList<double> times;
     double totalTime;
 };
+
+extern "C"
+Q_DECL_EXPORT void qPaintingSetDebug(bool on)
+{
+    ipDebugPainting = on;
+}
 
 extern "C"
 Q_DECL_EXPORT void qThermalAnalysis(int passes, int headDrops, int tailDrops,
@@ -471,7 +474,8 @@ Q_DECL_EXPORT void qThermalAnalysis(int passes, int headDrops, int tailDrops,
         int percCycle = 0;
         int percProgress = 0;
         for (int pass = 0; pass < passes; pass++) {
-            CONSOLE_PRINT("pass %d", pass);
+            if (consoleDebug)
+                CONSOLE_PRINT("pass %d", pass);
             for (int i = 0; i < wRects; i++) {
 
                 //QImage testImage(testRect.size(), QImage::Format_ARGB32);
