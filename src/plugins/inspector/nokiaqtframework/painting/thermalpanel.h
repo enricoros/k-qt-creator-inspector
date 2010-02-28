@@ -75,6 +75,22 @@ private:
     ThermalModel *m_thermalModel;
 };
 
+
+class Thermal3DOnDemand : public QWidget
+{
+public:
+    Thermal3DOnDemand(PaintingModule *, bool useDepthPeeling, QWidget *parent = 0);
+
+protected:
+    void showEvent(QShowEvent *);
+
+private:
+    PaintingModule *m_paintingModule;
+    bool m_useDepthPeeling;
+    bool m_created;
+};
+
+
 } // namespace Internal
 } // namespace Inspector
 

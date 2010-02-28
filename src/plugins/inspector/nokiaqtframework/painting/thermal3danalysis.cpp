@@ -66,6 +66,7 @@
 
 using namespace Inspector::Internal;
 
+
 //
 // VtkPrivate
 //
@@ -380,6 +381,7 @@ void VtkPrivate::addRegularMesh(const Inspector::Probe::RegularMeshRealData &mes
     imageData->Delete();
 }
 
+
 //
 // Thermal3DAnalysis
 //
@@ -531,6 +533,7 @@ void Thermal3DAnalysis::slotContextAction(QAction *action)
     }
 }
 
+
 //
 // DataSetTreeItem
 //
@@ -641,6 +644,7 @@ QColor DataSetTreeItem::surfaceColor() const
 {
     return m_surfaceColor;
 }
+
 
 //
 // DataSetTreeWidget
