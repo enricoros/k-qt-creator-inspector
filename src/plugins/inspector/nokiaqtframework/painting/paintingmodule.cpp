@@ -104,7 +104,7 @@ public:
     void activateTask()
     {
         m_framework->callProbeFunction("qPaintingSetDebug", QVariantList() << (bool)m_enable);
-        emit finished();
+        deactivateTask();
     }
 
 private:
