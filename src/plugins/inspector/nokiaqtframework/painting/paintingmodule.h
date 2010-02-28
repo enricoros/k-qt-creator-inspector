@@ -60,10 +60,12 @@ public:
     AbstractPanel *createPanel(int panelId);
 
     void startThermalTest(const QString &testTitle, const QVariantList &options);
+    void setDebugPainting(bool enable);
 
 private:
     NokiaQtFramework *m_framework;
     ThermalModel *m_thermalModel;
+    bool m_debugPainting;
 };
 
 } // namespace Internal

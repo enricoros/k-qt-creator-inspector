@@ -108,26 +108,3 @@ QString NokiaQtInspectionModel::localServerName() const
 {
     return itemValue(CommServer_Row, 1).toString();
 }
-
-int NokiaQtInspectionModel::probeActivationFlags() const
-{
-    // flags are in perfunction.h
-    int flags = Inspector::Probe::AF_None;
-    if (debugPaint())
-        flags |= Inspector::Probe::AF_PaintDebug;
-    return flags;
-}
-
-bool NokiaQtInspectionModel::debugPaint() const
-{
-    qWarning("NokiaQtInspectionModel::debugPaint: not implemented");
-    //return itemValue(InspectionStatus_Row, 4).toBool();
-    return false;
-}
-
-void NokiaQtInspectionModel::setDebugPaint(bool value)
-{
-    qWarning("NokiaQtInspectionModel::setDebugPaint: not implemented");
-    Q_UNUSED(value);
-    //setItemValue(InspectionStatus_Row, 4, value);
-}

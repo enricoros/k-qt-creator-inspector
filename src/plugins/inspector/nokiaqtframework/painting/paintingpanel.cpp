@@ -27,36 +27,30 @@
 **
 **************************************************************************/
 
-#ifndef NOKIAQTINSPECTIONMODEL_H
-#define NOKIAQTINSPECTIONMODEL_H
+#include "paintingpanel.h"
+#include "paintingmodule.h"
+#include <QtGui/QCheckBox>
+#include <QtGui/QVBoxLayout>
 
-#include "iinspectionmodel.h"
+using namespace Inspector::Internal;
 
-namespace Inspector {
-namespace Internal {
-
-class NokiaQtInspectionModel : public IInspectionModel
+PaintingPanel::PaintingPanel(PaintingModule *module)
+  : AbstractPanel(module)
+  , m_paintingModule(module)
 {
-    Q_OBJECT
+    QVBoxLayout *lay = new QVBoxLayout(this);
 
-public:
-    NokiaQtInspectionModel(QObject *parent = 0);
+    QCheckBox *debugBox = new QCheckBox(tr("Visually Debug Painted Areas"));
+    debugBox->setCheckable(true);
+    debugBox->setChecked(false);
+    lay->addWidget(debugBox);
 
-    enum {
-        ProbeStatus_Row = 1,
-        CommServer_Row = 2      // this is managed by the LocalCommServer
-    };
+    connect(debugBox, SIGNAL(toggled(bool)),
+            this, SLOT(slotDebugPaintingToggled(bool)));
+}
 
-    void setDebugEnabled(bool);
-    void setDebugStopped(bool);
-    void setProbePresent(bool);
-    void setProbeInjected(bool);
-    void setProbeActive(bool);
+void PaintingPanel::slotDebugPaintingToggled(bool enabled)
+{
+    m_paintingModule->setDebugPainting(enabled);
+}
 
-    QString localServerName() const;
-};
-
-} // namespace Internal
-} // namespace Inspector
-
-#endif // NOKIAQTINSPECTIONMODEL_H

@@ -567,8 +567,7 @@ void GdbEngine::tryActivateInspectorHelpersClassic()
     //postCommand(_("p qInspectorActivate"), CB(handleDebuggingHelperInspector));
 
     QString serverName = startParameters().inspectorServerName;
-    int activationFlags = startParameters().inspectorActivationFlags;
-    callFunction(_("qInspectorActivate"), QVariantList() << serverName << activationFlags);
+    callFunction(_("qInspectorActivate"), QVariantList() << serverName);
 }
 
 void GdbEngine::recheckDebuggingHelperAvailabilityClassic()

@@ -37,11 +37,6 @@ namespace Inspector {
 namespace Probe {
 
 // -- communication
-enum ActivationFlags {
-    AF_None             = 0x0000,
-    AF_PaintDebug       = 0x0001,
-};
-
 enum CommChannel {
     Channel_General     = 0x0001, /*
       0: startup

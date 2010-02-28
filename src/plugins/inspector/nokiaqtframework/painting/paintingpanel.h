@@ -27,36 +27,31 @@
 **
 **************************************************************************/
 
-#ifndef NOKIAQTINSPECTIONMODEL_H
-#define NOKIAQTINSPECTIONMODEL_H
+#ifndef PAINTINGPANEL_H
+#define PAINTINGPANEL_H
 
-#include "iinspectionmodel.h"
+#include "abstractpanel.h"
 
 namespace Inspector {
 namespace Internal {
 
-class NokiaQtInspectionModel : public IInspectionModel
+class PaintingModule;
+
+class PaintingPanel : public AbstractPanel
 {
     Q_OBJECT
 
 public:
-    NokiaQtInspectionModel(QObject *parent = 0);
+    PaintingPanel(PaintingModule *);
 
-    enum {
-        ProbeStatus_Row = 1,
-        CommServer_Row = 2      // this is managed by the LocalCommServer
-    };
+private slots:
+    void slotDebugPaintingToggled(bool);
 
-    void setDebugEnabled(bool);
-    void setDebugStopped(bool);
-    void setProbePresent(bool);
-    void setProbeInjected(bool);
-    void setProbeActive(bool);
-
-    QString localServerName() const;
+private:
+    PaintingModule *m_paintingModule;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // NOKIAQTINSPECTIONMODEL_H
+#endif // PAINTINGPANEL_H

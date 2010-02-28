@@ -128,7 +128,6 @@ public:
     //BEGIN added for Inspector
     bool inspectorHelpersEnabled;
     QString inspectorServerName;
-    int inspectorActivationFlags;
     //END added for Inspector
 
     QString dumperLibrary;

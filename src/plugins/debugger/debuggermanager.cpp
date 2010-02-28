@@ -228,7 +228,6 @@ DebuggerStartParameters::DebuggerStartParameters()
     useTerminal(false),
     toolChainType(ProjectExplorer::ToolChain::UNKNOWN),
     inspectorHelpersEnabled(false),
-    inspectorActivationFlags(0),
     startMode(NoStartMode)
 {}
 
