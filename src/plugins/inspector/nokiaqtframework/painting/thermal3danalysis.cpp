@@ -421,31 +421,17 @@ Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *module, bool useDepthPeelin
     QGroupBox *styleGroup = new QGroupBox(tr("Drawing Options"));
     QVBoxLayout *styleLay = new QVBoxLayout(styleGroup);
     m_texturesCheck = new QCheckBox(tr("Overlay Source Image"));
-    connect(m_texturesCheck, SIGNAL(toggled(bool)),
-            this, SLOT(slotRefreshRendering()));
-    styleLay->addWidget(m_texturesCheck);
+     styleLay->addWidget(m_texturesCheck);
     m_textureSmoothCheck = new QCheckBox(tr("Smooth Image"));
-    connect(m_textureSmoothCheck, SIGNAL(toggled(bool)),
-            this, SLOT(slotRefreshRendering()));
-    styleLay->addWidget(m_textureSmoothCheck);
-    connect(m_texturesCheck, SIGNAL(toggled(bool)),
-            m_textureSmoothCheck, SLOT(setEnabled(bool)));
-    m_textureSmoothCheck->setEnabled(false);
+     styleLay->addWidget(m_textureSmoothCheck);
+     m_textureSmoothCheck->setEnabled(false);
     m_zeroPlanesCheck = new QCheckBox(tr("Show Zero Plane"));
-    styleLay->addWidget(m_zeroPlanesCheck);
-    connect(m_zeroPlanesCheck, SIGNAL(toggled(bool)),
-            this, SLOT(slotRefreshRendering()));
-    m_zeroPlanesCheck->setChecked(true);
+     styleLay->addWidget(m_zeroPlanesCheck);
+     m_zeroPlanesCheck->setChecked(true);
     m_altColorsCheck = new QCheckBox(tr("Alternate Colors"));
-    connect(m_altColorsCheck, SIGNAL(toggled(bool)),
-            this, SLOT(slotRefreshRendering()));
-    connect(m_texturesCheck, SIGNAL(toggled(bool)),
-            m_altColorsCheck, SLOT(setDisabled(bool)));
-    styleLay->addWidget(m_altColorsCheck);
+     styleLay->addWidget(m_altColorsCheck);
     m_smoothCheck = new QCheckBox(tr("Smooth Colors"));
-    connect(m_smoothCheck, SIGNAL(toggled(bool)),
-            this, SLOT(slotRefreshRendering()));
-    styleLay->addWidget(m_smoothCheck);
+     styleLay->addWidget(m_smoothCheck);
     oLay->addWidget(styleGroup);
 
     oLay->addStretch(1);
@@ -456,6 +442,14 @@ Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *module, bool useDepthPeelin
     v->setBackground(QApplication::palette().color(QPalette::Window));
 
     connect(m_dataSetWidget, SIGNAL(changed()), this, SLOT(slotRefreshRendering()));
+    connect(m_texturesCheck, SIGNAL(toggled(bool)), this, SLOT(slotRefreshRendering()));
+    connect(m_textureSmoothCheck, SIGNAL(toggled(bool)), this, SLOT(slotRefreshRendering()));
+    connect(m_texturesCheck, SIGNAL(toggled(bool)), m_textureSmoothCheck, SLOT(setEnabled(bool)));
+    connect(m_zeroPlanesCheck, SIGNAL(toggled(bool)), this, SLOT(slotRefreshRendering()));
+    connect(m_altColorsCheck, SIGNAL(toggled(bool)), this, SLOT(slotRefreshRendering()));
+    connect(m_texturesCheck, SIGNAL(toggled(bool)), m_altColorsCheck, SLOT(setDisabled(bool)));
+    connect(m_smoothCheck, SIGNAL(toggled(bool)), this, SLOT(slotRefreshRendering()));
+
     slotRefreshRendering();
 }
 
