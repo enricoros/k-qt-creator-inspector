@@ -42,11 +42,10 @@
 #include <QtGui/QPaintEvent>
 #include <QtGui/QWidget>
 
-#if 0
-#include <QtCore/QTime>
-#else
-#include <sys/time.h>
-#endif
+// time measurement type
+//#define TIMING_USE_QTIME
+#define TIMING_USE_CLOCK
+// for more timing sources, see precisetiming.cpp (not available everywhere)
 
 #define IP_NAME "QtCreator Inspector Plugin"
 
@@ -136,6 +135,12 @@ EventNotify Activation, qcoreapplication.cpp:
 #define PF_PRETTY_FUNCTION __FUNCTION__
 #endif
 #define CONSOLE_PRINT(...) do {fprintf(stderr, "%s:%d %s: ", __FILE__, __LINE__, PF_PRETTY_FUNCTION); fprintf(stderr, __VA_ARGS__); fprintf(stderr,"\n");} while(0)
+
+#if defined(TIMING_USE_QTIME)
+ #include <QtCore/QTime>
+#elif defined(TIMING_USE_CLOCK)
+ #include <sys/time.h>
+#endif
 
 namespace Inspector {
 namespace Probe {
@@ -395,6 +400,9 @@ Q_DECL_EXPORT bool qInspectorActivate(const char * serverName)
     // 3. events callback
     QInternal::registerCallback(QInternal::EventNotifyCallback, eventInterceptorCallback);
 
+    // 4. timer
+    //Inspector::Probe::PreciseTiming::init();
+
     CONSOLE_PRINT(IP_NAME": Activated");
     ipCommClient->sendCustom(Inspector::Probe::Channel_General, 0x00);
     return true;
@@ -411,6 +419,9 @@ Q_DECL_EXPORT void qInspectorDeactivate()
     // 3. signal spy callback
     QSignalSpyCallbackSet set = {0, 0, 0, 0};
     qt_register_signal_spy_callbacks(set);
+
+    // 4. timer
+    //Inspector::Probe::PreciseTiming::close();
 
     // 1. comm client
     delete ipCommClient;
@@ -518,19 +529,15 @@ Q_DECL_EXPORT void qPaintingThermalAnalysis(int passes, int headDrops, int tailD
                 CONSOLE_PRINT("pass %d", pass);
             for (int i = 0; i < wRects; i++) {
 
-                //QImage testImage(testRect.size(), QImage::Format_ARGB32);
-                //usleep(1000);
-
-                //if (consoleDebug)
-                //    CONSOLE_PRINT("rect %d of %d", i + 1, wRects);
-
                 // timed rendering
+                //Inspector::Probe::PreciseTiming::startTimer();
                 gettimeofday(&tv1, 0);
                 for (int rep = 0; rep < innerPasses; ++rep)
                     widget->render(&testImage, QPoint() /*wTimedRects[i].rect.topLeft()*/, wTimedRects[i].rect, QWidget::DrawChildren /*| DrawWindowBackground*/);
                 gettimeofday(&tv2, 0);
 
                 // accumulate time
+                //const double elapsedMs = (double)Inspector::Probe::PreciseTiming::elapsedMs();
                 const double elapsedMs = (double)(tv2.tv_sec - tv1.tv_sec) * 1000.0 + (double)(tv2.tv_usec - tv1.tv_usec) / 1000.0;
                 wTimedRects[i].times.append(elapsedMs);
 

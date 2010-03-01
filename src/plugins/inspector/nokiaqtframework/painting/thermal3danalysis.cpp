@@ -770,7 +770,7 @@ void DataSetTreeWidget::slotColorizeSelected()
 
 void DataSetTreeWidget::slotSourceRowsAdded(const QModelIndex &parent, int start, int end)
 {
-    for (int row = start; row <= end; ++row) {
+    for (int row = end; row >= start; --row) {
         QModelIndex index = m_sourceModel->index(row, 0, parent);
         if (!index.isValid())
             continue;
