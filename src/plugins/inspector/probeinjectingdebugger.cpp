@@ -169,7 +169,7 @@ void ProbeInjectingDebugger::slotDebuggerStateChanged(int nextState)
         if (m_state == InferiorStopped && m_prevState == InferiorStarting) {
             m_sQuirkDone = true;
             // TODO: find a more predictable way to start the inferior
-            QTimer::singleShot(500, this, SLOT(slotDebuggerStartInferior()));
+            QTimer::singleShot(1000, this, SLOT(slotDebuggerStartInferior()));
             return;
         }
     }
@@ -191,7 +191,7 @@ void ProbeInjectingDebugger::slotDebuggerStateChanged(int nextState)
                 m_runDelayTimer->setSingleShot(true);
                 connect(m_runDelayTimer, SIGNAL(timeout()), this, SLOT(slotDebuggerRestartInferior()));
             }
-            m_runDelayTimer->start(1000);
+            m_runDelayTimer->start(2000);
         }
         if (m_sManuallyStopped && m_state == InferiorStopped) {
             m_sQuirkDone = true;
