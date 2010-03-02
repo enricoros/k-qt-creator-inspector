@@ -177,6 +177,10 @@ void VtkPrivate::setStereoMode(int mode)
     if (mode) {
         m_renderer->GetRenderWindow()->SetStereoRender(1);
         m_renderer->GetRenderWindow()->SetStereoType(mode);
+        if (mode == VTK_STEREO_ANAGLYPH) {
+            m_renderer->GetRenderWindow()->SetAnaglyphColorMask(4, 3);
+            m_renderer->GetRenderWindow()->SetAnaglyphColorSaturation(0.5);
+        }
     } else {
         m_renderer->GetRenderWindow()->SetStereoRender(0);
     }
@@ -506,12 +510,13 @@ void Thermal3DAnalysis::slotContextMenu(vtkObject *, unsigned long, void *, void
     contextMenu->addAction(createOption(stereo, tr("No Stereo Rendering"), 3, false));
     contextMenu->addAction(createOption(stereo, tr("Stereo Crystal Eyes"), 4, false));
     contextMenu->addAction(createOption(stereo, tr("Stereo Red Blue"), 5, false));
-    contextMenu->addAction(createOption(stereo, tr("Stereo Interlaced"), 6, false));
-    contextMenu->addAction(createOption(stereo, tr("Stereo Left"), 7, false));
-    contextMenu->addAction(createOption(stereo, tr("Stereo Right"), 8, false));
-    contextMenu->addAction(createOption(stereo, tr("Stereo Dresden"), 9, false));
+    contextMenu->addAction(createOption(stereo, tr("Stereo Red Cyan"), 6, false));
+    contextMenu->addAction(createOption(stereo, tr("Stereo Interlaced"), 7, false));
+    contextMenu->addAction(createOption(stereo, tr("Stereo Left"), 8, false));
+    contextMenu->addAction(createOption(stereo, tr("Stereo Right"), 9, false));
+    contextMenu->addAction(createOption(stereo, tr("Stereo Dresden"), 10, false));
 #if (VTK_MAJOR_VERSION >= 5) && (VTK_MINOR_VERSION >= 4)
-    contextMenu->addAction(createOption(stereo, tr("Stereo Checkerboard"), 10, false));
+    contextMenu->addAction(createOption(stereo, tr("Stereo Checkerboard"), 11, false));
 #endif
     connect(contextMenu, SIGNAL(triggered(QAction*)),
             this, SLOT(slotContextAction(QAction*)));
@@ -527,12 +532,13 @@ void Thermal3DAnalysis::slotContextAction(QAction *action)
     case 3: v->setStereoMode(0); break;
     case 4: v->setStereoMode(VTK_STEREO_CRYSTAL_EYES); break;
     case 5: v->setStereoMode(VTK_STEREO_RED_BLUE); break;
-    case 6: v->setStereoMode(VTK_STEREO_INTERLACED); break;
-    case 7: v->setStereoMode(VTK_STEREO_LEFT); break;
-    case 8: v->setStereoMode(VTK_STEREO_RIGHT); break;
-    case 9: v->setStereoMode(VTK_STEREO_DRESDEN); break;
+    case 6: v->setStereoMode(VTK_STEREO_ANAGLYPH); break;
+    case 7: v->setStereoMode(VTK_STEREO_INTERLACED); break;
+    case 8: v->setStereoMode(VTK_STEREO_LEFT); break;
+    case 9: v->setStereoMode(VTK_STEREO_RIGHT); break;
+    case 10: v->setStereoMode(VTK_STEREO_DRESDEN); break;
 #if (VTK_MAJOR_VERSION >= 5) && (VTK_MINOR_VERSION >= 4)
-    case 10: v->setStereoMode(VTK_STEREO_CHECKERBOARD); break;
+    case 11: v->setStereoMode(VTK_STEREO_CHECKERBOARD); break;
 #endif
     }
 }
