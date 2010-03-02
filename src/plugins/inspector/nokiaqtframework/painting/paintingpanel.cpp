@@ -30,6 +30,7 @@
 #include "paintingpanel.h"
 #include "paintingmodule.h"
 #include <QtGui/QCheckBox>
+#include <QtGui/QStyleFactory>
 #include <QtGui/QVBoxLayout>
 
 using namespace Inspector::Internal;
@@ -42,9 +43,32 @@ PaintingPanel::PaintingPanel(PaintingModule *module)
 
     connect(debugBox, SIGNAL(toggled(bool)),
             this, SLOT(slotDebugPaintingToggled(bool)));
+
+    foreach (const QString &styleName, QStyleFactory::keys()) {
+        QListWidgetItem *styleItem = new QListWidgetItem(styleListWidget);
+        styleItem->setText(styleName);
+    }
+
+    connect(styleListWidget, SIGNAL(itemSelectionChanged()),
+            this, SLOT(slotStyleSelectionChanged()));
+    slotStyleSelectionChanged();
+
+    connect(styleBox, SIGNAL(clicked(QAbstractButton*)),
+            this, SLOT(slotApplyStyle()));
 }
 
 void PaintingPanel::slotDebugPaintingToggled(bool enabled)
 {
     m_paintingModule->setShowExposedAreas(enabled);
+}
+
+void PaintingPanel::slotStyleSelectionChanged()
+{
+    styleBox->setEnabled(!styleListWidget->selectedItems().isEmpty());
+}
+
+void PaintingPanel::slotApplyStyle()
+{
+    if (QListWidgetItem *item = styleListWidget->currentItem())
+        m_paintingModule->setGuiStyle(item->text());
 }

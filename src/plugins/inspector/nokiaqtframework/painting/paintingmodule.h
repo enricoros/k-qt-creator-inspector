@@ -41,7 +41,6 @@ namespace Internal {
 const int UID_MODULE_PAINTING = 2;
 
 class NokiaQtFramework;
-class SetDebugPaintingTask;
 class ThermalModel;
 
 class PaintingModule : public IFrameworkModule
@@ -63,6 +62,7 @@ public:
     void startFrequencyTest();
     void startThermalTest(const QString &testTitle, const QVariantList &options);
     void setShowExposedAreas(bool);
+    void setGuiStyle(const QString &);
 
 private:
     NokiaQtFramework *m_framework;

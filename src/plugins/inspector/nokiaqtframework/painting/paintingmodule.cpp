@@ -95,37 +95,19 @@ void PaintingModule::startThermalTest(const QString &title, const QVariantList &
     new ThermalTask(m_framework, m_thermalModel, options, title);
 }
 
-class Inspector::Internal::SetDebugPaintingTask : public IFrameworkTask
-{
-public:
-    SetDebugPaintingTask(bool on, NokiaQtFramework *framework)
-      : IFrameworkTask(framework)
-      , m_framework(framework)
-      , m_enable(on)
-    {
-        emit requestActivation();
-    }
-
-    // ::IFrameworkTask
-    QString displayName() const
-    {
-        return m_enable ? tr("Enabling Debug") : tr("Disabling Debug");
-    }
-    void activateTask()
-    {
-        m_framework->callProbeFunction("qPaintingShowExposedAreas", QVariantList() << (bool)m_enable);
-        deactivateTask();
-    }
-
-private:
-    NokiaQtFramework *m_framework;
-    bool m_enable;
-};
-
 void PaintingModule::setShowExposedAreas(bool show)
 {
     if (show != m_showExposedAreas) {
         m_showExposedAreas = show;
-        new SetDebugPaintingTask(m_showExposedAreas, m_framework);
+        QString name = m_showExposedAreas ? tr("Enabling Debug") : tr("Disabling Debug");
+        new NokiaQtSimpleCallTask(name, "qPaintingShowExposedAreas",
+                                  QVariantList() << (bool)m_showExposedAreas, m_framework);
     }
+}
+
+void PaintingModule::setGuiStyle(const QString &styleName)
+{
+    QString name = tr("Setting style %1").arg(styleName);
+    new NokiaQtSimpleCallTask(name, "qPaintingSetGuiStyle",
+                              QVariantList() << styleName, m_framework);
 }
