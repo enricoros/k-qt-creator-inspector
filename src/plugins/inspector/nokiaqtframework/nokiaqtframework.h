@@ -31,6 +31,7 @@
 #define NOKIAQTFRAMEWORK_H
 
 #include "iframework.h"
+#include "iframeworktask.h"
 #include <QtCore/QVariantList>
 
 namespace Inspector {
@@ -85,6 +86,25 @@ public:
 
     bool available(const InspectionTarget &) const;
     IFramework *createFramework(const InspectionTarget &);
+};
+
+
+class NokiaQtSimpleCallTask : public IFrameworkTask
+{
+public:
+    NokiaQtSimpleCallTask(const QString &displayName, const QString &functionName,
+                          const QVariantList &functionArgs, NokiaQtFramework *);
+
+    QString displayName() const;
+
+protected:
+    void activateTask();
+
+private:
+    NokiaQtFramework *m_framework;
+    QString m_displayName;
+    QString m_functionName;
+    QVariantList m_functionArgs;
 };
 
 } // namespace Internal

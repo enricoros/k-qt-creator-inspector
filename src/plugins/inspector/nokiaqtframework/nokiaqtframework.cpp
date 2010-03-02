@@ -162,3 +162,29 @@ IFramework *NokiaQtFrameworkFactory::createFramework(const InspectionTarget &tar
 
     return new NokiaQtFramework(model, debugger);
 }
+
+
+//
+// NokiaQtSimpleCallTask
+//
+NokiaQtSimpleCallTask::NokiaQtSimpleCallTask(const QString &name, const QString &func,
+                                             const QVariantList &args, NokiaQtFramework *f)
+  : IFrameworkTask(f)
+  , m_framework(f)
+  , m_displayName(name)
+  , m_functionName(func)
+  , m_functionArgs(args)
+{
+    emit requestActivation();
+}
+
+QString NokiaQtSimpleCallTask::displayName() const
+{
+    return m_displayName;
+}
+
+void NokiaQtSimpleCallTask::activateTask()
+{
+    m_framework->callProbeFunction(m_functionName, m_functionArgs);
+    deactivateTask();
+}

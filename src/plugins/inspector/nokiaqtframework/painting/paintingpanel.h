@@ -47,6 +47,8 @@ public:
 
 private slots:
     void slotDebugPaintingToggled(bool);
+    void slotStyleSelectionChanged();
+    void slotApplyStyle();
 
 private:
     PaintingModule *m_paintingModule;
