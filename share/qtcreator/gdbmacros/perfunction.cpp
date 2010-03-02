@@ -263,6 +263,7 @@ private:
 extern "C" {
 static Inspector::Probe::CommClient * ipCommClient = 0;
 static bool ipDebugPainting = false;
+static quint32 ipDebugPaintingCounter = 0;
 static bool ipThermalAnalysis = false;
 static bool ipFrequencyAnalysis = false;
 }
@@ -338,20 +339,15 @@ static bool eventInterceptorCallback(void **data)
             }
         }
 
-        // Painting Events
-        if (eventType == QEvent::Resize) {
-
-            // show painting, if enabled
-            if (!ipFrequencyAnalysis && ipDebugPainting) {
-                if (QWidget * widget = dynamic_cast<QWidget *>(receiver)) {
-                    static int paintOpNumber = 0;
-                    QPainter p(widget);
-                    int hue = qrand() % 360;
-                    p.setBrush(QColor::fromHsv(hue, 255, 255, 128));
-                    p.drawRect(static_cast<QPaintEvent *>(event)->rect().adjusted(0, 0, -1, -1));
-                    p.setFont(QFont("Arial",8));
-                    p.drawText(static_cast<QPaintEvent *>(event)->rect().topLeft() + QPoint(2,10), QString::number(++paintOpNumber));
-                }
+        // show painting, if enabled
+        if (ipDebugPainting && eventType == QEvent::Paint && !ipFrequencyAnalysis) {
+            if (QWidget * widget = dynamic_cast<QWidget *>(receiver)) {
+                QPainter p(widget);
+                int hue = qrand() % 360;
+                p.setBrush(QColor::fromHsv(hue, 255, 255, 128));
+                p.drawRect(static_cast<QPaintEvent *>(event)->rect().adjusted(0, 0, -1, -1));
+                p.setFont(QFont("Arial",8));
+                p.drawText(static_cast<QPaintEvent *>(event)->rect().topLeft() + QPoint(2,10), QString::number(++ipDebugPaintingCounter));
             }
         }
 
@@ -432,7 +428,22 @@ Q_DECL_EXPORT void qInspectorDeactivate()
 extern "C"
 Q_DECL_EXPORT void qPaintingShowExposedAreas(bool on)
 {
-    ipDebugPainting = on;
+    if (on != ipDebugPainting) {
+        ipDebugPainting = on;
+        ipDebugPaintingCounter = 0;
+        if (qApp) {
+            foreach (QWidget *window, qApp->topLevelWidgets())
+                window->update();
+        }
+    }
+}
+
+
+extern "C"
+Q_DECL_EXPORT void qPaintingSetGuiStyle(const char *styleName)
+{
+    if (!qApp || !qApp->setStyle(QString(styleName)))
+        CONSOLE_PRINT("can't create style '%s'", styleName);
 }
 
 
