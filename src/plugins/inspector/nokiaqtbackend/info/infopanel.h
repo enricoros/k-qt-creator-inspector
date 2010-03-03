@@ -43,6 +43,8 @@ class InfoPanel : public AbstractPanel, public Ui::InfoPanel
 public:
     InfoPanel(IBackendModule *parentModule);
 
+    QString helpHtml() const;
+
 private slots:
     void slotRefreshInspectionData();
     void slotRowsInserted(const QModelIndex &parent, int start, int end);

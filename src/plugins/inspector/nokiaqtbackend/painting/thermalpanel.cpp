@@ -187,6 +187,11 @@ ThermalPanel::ThermalPanel(PaintingModule *module)
         slotRegenLabel();
 }
 
+QString ThermalPanel::helpHtml() const
+{
+    return tr("From this panel you can start data acquisition from the target.<br/>From the <i>Options</i> combo choose a trade-off between performance and precision, then set a title in the <i>Label</i> field and run the test by pressing the <i>Test</i>button.<br/><br/>The results will appear when the test is done and can be viewed as a colored map or as a 3D surface.<br/><br/>The more the 'heat' or 'height' of the pixel, the more heavy and energy consumptive the operation is.");
+}
+
 void ThermalPanel::slotActivatePreset(int comboIndex)
 {
     groupBox->setVisible(comboIndex >= 4);

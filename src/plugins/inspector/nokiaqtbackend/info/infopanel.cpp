@@ -31,7 +31,8 @@
 #include "ibackend.h"
 #include "ibackendmodule.h"
 #include "../nokiaqtinspectionmodel.h"
-#include <QFont>
+#include <QtGui/QCheckBox>
+#include <QtGui/QFont>
 
 using namespace Inspector;
 using namespace Inspector::Internal;
@@ -63,6 +64,11 @@ InfoPanel::InfoPanel(IBackendModule *parentModule)
     slotRefreshInspectionData();
 }
 
+QString InfoPanel::helpHtml() const
+{
+    return tr("<b>Welcome</b>. You just started a new Inspection.<br/><br/>You can now operate with the connected Target by using the <i>Panels</i> in the above list.");
+}
+
 void InfoPanel::slotRefreshInspectionData()
 {
     NokiaQtInspectionModel *model = static_cast<NokiaQtInspectionModel *>(parentBackend()->inspectionModel());
@@ -83,8 +89,8 @@ void InfoPanel::slotRefreshInspectionData()
     setFieldState(probeConnected,   _probeConnected);
     clientInfo->setText(            model->itemValue(NokiaQtInspectionModel::CommServer_Row, 4).toString());
 
-    bool works = _debugEnabled == 1 && _connEnabled && _probeConnected;
-    setFieldState(workLabel,        works);
+    //bool works = _debugEnabled == 1 && _connEnabled && _probeConnected;
+    //setFieldState(workLabel,        works);
 }
 
 void InfoPanel::slotRowsInserted(const QModelIndex &parent, int start, int end)
