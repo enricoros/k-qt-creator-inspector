@@ -47,6 +47,8 @@ class ThermalPanel : public AbstractPanel, public Ui::ThermalPanel
 public:
     ThermalPanel(PaintingModule *);
 
+    QString helpHtml() const;
+
 private slots:
     void slotActivatePreset(int comboIndex);
     void slotValidateTestLabel();

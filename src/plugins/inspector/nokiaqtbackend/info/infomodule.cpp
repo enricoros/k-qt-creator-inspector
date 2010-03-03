@@ -40,7 +40,7 @@ InfoModule::InfoModule(NokiaQtBackend *backend, QObject *parent)
 
 QString InfoModule::name() const
 {
-    return tr("Information (0.8)");
+    return tr("Info (0.6)");
 }
 
 ModuleMenuEntries InfoModule::menuEntries() const

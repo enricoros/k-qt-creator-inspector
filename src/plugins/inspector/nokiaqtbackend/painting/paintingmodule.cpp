@@ -61,7 +61,7 @@ ThermalModel *PaintingModule::thermalModel() const
 
 QString PaintingModule::name() const
 {
-    return tr("Painting Measures (0.6)");
+    return tr("Painting Metrics (0.7)");
 }
 
 ModuleMenuEntries PaintingModule::menuEntries() const
