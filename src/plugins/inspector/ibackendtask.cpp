@@ -94,7 +94,7 @@ public:
 
 /**
   Note about software's workflow:
-    new WarningsTask()
+    new AnomalyTask()
      1. ::IBackendTask()
       * creates ans starts Task StateMachine
       * registers the task in the Backend
@@ -105,7 +105,7 @@ public:
       * updates TaskModel
       * upadtes task state (likely an Activation)
 
-    WarningsTask::slotActivate()
+    AnomalyTask::slotActivate()
      slotActivate gets called
 */
 
