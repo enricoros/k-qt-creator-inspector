@@ -143,7 +143,7 @@ ThermalModel::~ThermalModel()
     if (!itemValue(Results_Row, 2).toBool()) {
         QModelIndexList itemsList;
         QStandardItem *itemsRoot = item(Results_Row, 1);
-        for (int row = 0; row < itemsRoot->rowCount(); ++row)
+        for (int row = itemsRoot->rowCount() - 1; row >= 0; --row)
             itemsList.append(itemsRoot->child(row, 0)->index());
 
         exportToFile(storageFileName(), itemsList);
