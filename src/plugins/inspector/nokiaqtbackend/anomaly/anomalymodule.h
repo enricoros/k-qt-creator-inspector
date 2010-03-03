@@ -27,8 +27,8 @@
 **
 **************************************************************************/
 
-#ifndef WARNINGSMODULE_H
-#define WARNINGSMODULE_H
+#ifndef ANOMALYMODULE_H
+#define ANOMALYMODULE_H
 
 #include "ibackendmodule.h"
 #include "ibackendtask.h"
@@ -37,26 +37,26 @@ namespace Inspector {
 namespace Internal {
 
 // constants
-const int UID_MODULE_WARNINGS = 3;
+const int UID_MODULE_ANOMALY = 3;
 
 class LocalCommServer;
 class NokiaQtBackend;
 class NotificationWidget;
-class WarningsTask;
+class AnomalyTask;
 
 /**
   \brief Automatic/Manual warnings on certain events
 */
-class WarningsModule : public IBackendModule
+class AnomalyModule : public IBackendModule
 {
     Q_OBJECT
 
 public:
-    WarningsModule(NokiaQtBackend *, QObject *parent = 0);
-    ~WarningsModule();
+    AnomalyModule(NokiaQtBackend *, QObject *parent = 0);
+    ~AnomalyModule();
 
     // ::IBackendModule
-    int uid() const { return UID_MODULE_WARNINGS; }
+    int uid() const { return UID_MODULE_ANOMALY; }
     QString name() const;
     ModuleMenuEntries menuEntries() const;
 
@@ -71,14 +71,14 @@ private:
 };
 
 /**
-  \brief Filters add incoming communication for warnings
+  \brief Filters all incoming communication to check for bad behaviors
 */
-class WarningsTask : public IBackendTask
+class AnomalyTask : public IBackendTask
 {
     Q_OBJECT
 
 public:
-    WarningsTask(NokiaQtBackend *, QObject *parent = 0);
+    AnomalyTask(NokiaQtBackend *, QObject *parent = 0);
 
     // ::IBackendTask
     QString displayName() const;
@@ -98,4 +98,4 @@ private:
 } // namespace Internal
 } // namespace Inspector
 
-#endif // WARNINGSMODULE_H
+#endif // ANOMALYMODULE_H

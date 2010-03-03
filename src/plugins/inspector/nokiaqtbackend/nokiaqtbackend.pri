@@ -3,6 +3,8 @@ HEADERS += \
     $$PWD/localcommserver.h \
     $$PWD/nokiaqtbackend.h \
     $$PWD/nokiaqtinspectionmodel.h \
+    $$PWD/anomaly/notificationwidget.h \
+    $$PWD/anomaly/anomalymodule.h \
     $$PWD/blueprint/blueprintmodule.h \
     $$PWD/info/infomodule.h \
     $$PWD/info/infopanel.h \
@@ -12,15 +14,15 @@ HEADERS += \
     $$PWD/painting/paintingpanel.h \
     $$PWD/painting/thermalmodel.h \
     $$PWD/painting/thermalpanel.h \
-    $$PWD/painting/thermaltask.h \
-    $$PWD/warnings/notificationwidget.h \
-    $$PWD/warnings/warningsmodule.h
+    $$PWD/painting/thermaltask.h
 
 SOURCES += \
     $$PWD/datautils.cpp \
     $$PWD/localcommserver.cpp \
     $$PWD/nokiaqtbackend.cpp \
     $$PWD/nokiaqtinspectionmodel.cpp \
+    $$PWD/anomaly/notificationwidget.cpp \
+    $$PWD/anomaly/anomalymodule.cpp \
     $$PWD/blueprint/blueprintmodule.cpp \
     $$PWD/info/infomodule.cpp \
     $$PWD/info/infopanel.cpp \
@@ -30,9 +32,7 @@ SOURCES += \
     $$PWD/painting/paintingpanel.cpp \
     $$PWD/painting/thermalmodel.cpp \
     $$PWD/painting/thermalpanel.cpp \
-    $$PWD/painting/thermaltask.cpp \
-    $$PWD/warnings/notificationwidget.cpp \
-    $$PWD/warnings/warningsmodule.cpp
+    $$PWD/painting/thermaltask.cpp
 
 FORMS += \
     $$PWD/info/infopanel.ui \

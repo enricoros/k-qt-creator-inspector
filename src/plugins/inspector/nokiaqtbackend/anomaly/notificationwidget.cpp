@@ -38,7 +38,7 @@ using namespace Inspector::Internal;
 NotificationWidget::NotificationWidget(QWidget * parent)
   : QWidget(parent)
   , m_signOpacity(1.0)
-  , m_pixmap(":/inspector/warnings/mark-32.png")
+  , m_pixmap(":/inspector/anomaly/mark-32.png")
   , m_cWarnings(0)
 {
     setMinimumSize(60, 50);

@@ -1,11 +1,11 @@
 <RCC>
     <qresource prefix="/inspector">
+        <file>anomaly/mark-32.png</file>
+        <file>anomaly/menu-anomaly.png</file>
         <file>blueprint/blueprint.png</file>
         <file>info/menu-status.png</file>
         <file>nokiaqtbackend.png</file>
         <file>painting/menu-energy.png</file>
         <file>painting/menu-thermal.png</file>
-        <file>warnings/mark-32.png</file>
-        <file>warnings/menu-warning.png</file>
     </qresource>
 </RCC>

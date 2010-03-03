@@ -34,10 +34,10 @@
 #include "probeinjectingdebugger.h"
 #include "shareddebugger.h"
 
+#include "anomaly/anomalymodule.h"
 #include "blueprint/blueprintmodule.h"
 #include "info/infomodule.h"
 #include "painting/paintingmodule.h"
-#include "warnings/warningsmodule.h"
 
 #include <QtGui/QMessageBox>
 
@@ -60,7 +60,7 @@ NokiaQtBackend::NokiaQtBackend(NokiaQtInspectionModel *model, ProbeInjectingDebu
 
     addModule(new InfoModule(this));
     addModule(new PaintingModule(this));
-    addModule(new WarningsModule(this));
+    addModule(new AnomalyModule(this));
     addModule(new BlueprintModule(this));
 }
 

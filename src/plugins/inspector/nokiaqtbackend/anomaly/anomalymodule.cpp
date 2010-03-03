@@ -27,7 +27,7 @@
 **
 **************************************************************************/
 
-#include "warningsmodule.h"
+#include "anomalymodule.h"
 #include "notificationwidget.h"
 
 #include "../localcommserver.h"
@@ -39,9 +39,9 @@
 using namespace Inspector::Internal;
 
 //
-// WarningsModule
+// AnomalyModule
 //
-WarningsModule::WarningsModule(NokiaQtBackend *backend, QObject *parent)
+AnomalyModule::AnomalyModule(NokiaQtBackend *backend, QObject *parent)
   : IBackendModule(backend, parent)
   , m_nqBackend(backend)
 {
@@ -56,32 +56,32 @@ WarningsModule::WarningsModule(NokiaQtBackend *backend, QObject *parent)
             this, SLOT(slotBackendConnected(bool)));
 }
 
-WarningsModule::~WarningsModule()
+AnomalyModule::~AnomalyModule()
 {
     delete m_notification;
 }
 
-QString WarningsModule::name() const
+QString AnomalyModule::name() const
 {
-    return tr("Auto-Warnings (0.2)");
+    return tr("Anomaly (0.2)");
 }
 
-ModuleMenuEntries WarningsModule::menuEntries() const
+ModuleMenuEntries AnomalyModule::menuEntries() const
 {
     ModuleMenuEntries entries;
-    entries.append(ModuleMenuEntry(QStringList() << tr("Automatic") << tr("Warnings"), UID_MODULE_WARNINGS, 0, QIcon(":/inspector/warnings/menu-warning.png")));
+    entries.append(ModuleMenuEntry(QStringList() << tr("Automatic") << tr("Warnings"), UID_MODULE_ANOMALY, 0, QIcon(":/inspector/anomaly/menu-anomaly.png")));
     return entries;
 }
 
-void WarningsModule::slotBackendConnected(bool connected)
+void AnomalyModule::slotBackendConnected(bool connected)
 {
     if (connected) {
-        WarningsTask *wt = new WarningsTask(m_nqBackend);
+        AnomalyTask *wt = new AnomalyTask(m_nqBackend);
         connect(wt, SIGNAL(addWarning()), this, SLOT(slotTaskAddWarning()));
     }
 }
 
-void WarningsModule::slotNotificationClicked()
+void AnomalyModule::slotNotificationClicked()
 {
     // hide the Notification first
     m_notification->clearWarnings();
@@ -91,7 +91,7 @@ void WarningsModule::slotNotificationClicked()
     emit requestPanelDisplay(0);
 }
 
-void WarningsModule::slotTaskAddWarning()
+void AnomalyModule::slotTaskAddWarning()
 {
     m_notification->addWarning();
     m_notification->show();
@@ -100,31 +100,31 @@ void WarningsModule::slotTaskAddWarning()
 //
 // WarningsTask
 //
-WarningsTask::WarningsTask(NokiaQtBackend *backend, QObject *parent)
+AnomalyTask::AnomalyTask(NokiaQtBackend *backend, QObject *parent)
   : IBackendTask(backend, parent)
   , m_commServer(backend->commServer())
 {
     emit requestActivation();
 }
 
-QString WarningsTask::displayName() const
+QString AnomalyTask::displayName() const
 {
     return tr("Auto-Warnings");
 }
 
-void WarningsTask::activateTask()
+void AnomalyTask::activateTask()
 {
     connect(m_commServer, SIGNAL(incomingData(quint32,quint32,QByteArray*)),
             this, SLOT(slotProcessIncomingData(quint32,quint32,QByteArray*)));
 }
 
-void WarningsTask::deactivateTask()
+void AnomalyTask::deactivateTask()
 {
     disconnect(m_commServer, 0, this, 0);
     emit finished();
 }
 
-void WarningsTask::slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data)
+void AnomalyTask::slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data)
 {
     Q_UNUSED(data);
     if (channel == 0x03 && code1 == 0x01)
