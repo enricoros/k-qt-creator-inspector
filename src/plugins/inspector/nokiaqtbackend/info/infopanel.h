@@ -27,41 +27,33 @@
 **
 **************************************************************************/
 
-#ifndef ABSTRACTPANEL_H
-#define ABSTRACTPANEL_H
+#ifndef INFOPANEL_H
+#define INFOPANEL_H
 
-#include <QtGui/QWidget>
-#include <QtCore/QString>
+#include "abstractpanel.h"
+#include "ui_infopanel.h"
 
 namespace Inspector {
 namespace Internal {
 
-class IBackend;
-class IBackendModule;
-
-/**
-  \brief A QWidget subclass created by IBackendModules
-*/
-class AbstractPanel : public QWidget
+class InfoPanel : public AbstractPanel, public Ui::InfoPanel
 {
     Q_OBJECT
 
 public:
-    AbstractPanel(IBackendModule *parentModule);
-    virtual ~AbstractPanel();
+    InfoPanel(IBackendModule *parentModule);
 
-    virtual QString helpHtml() const;
-
-protected:
-    IBackend *parentBackend() const;
-    IBackendModule *parentModule() const;
+private slots:
+    void slotRefreshInspectionData();
+    void slotRowsInserted(const QModelIndex &parent, int start, int end);
 
 private:
-    AbstractPanel();
-    IBackendModule *m_parentModule;
+    void setFieldState(QWidget *field, int state);
+    QPixmap m_okPixmap;
+    QPixmap m_errorPixmap;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // ABSTRACTPANEL_H
+#endif // INFOPANEL_H

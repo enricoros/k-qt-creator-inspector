@@ -27,41 +27,45 @@
 **
 **************************************************************************/
 
-#ifndef ABSTRACTPANEL_H
-#define ABSTRACTPANEL_H
+#ifndef NVIDIACUDABACKEND_H
+#define NVIDIACUDABACKEND_H
 
-#include <QtGui/QWidget>
-#include <QtCore/QString>
+#include "ibackend.h"
 
 namespace Inspector {
 namespace Internal {
 
-class IBackend;
-class IBackendModule;
+class NvidiaCudaBackendFactory;
 
-/**
-  \brief A QWidget subclass created by IBackendModules
-*/
-class AbstractPanel : public QWidget
+
+class NvidiaCudaBackend : public IBackend
 {
     Q_OBJECT
 
 public:
-    AbstractPanel(IBackendModule *parentModule);
-    virtual ~AbstractPanel();
-
-    virtual QString helpHtml() const;
-
-protected:
-    IBackend *parentBackend() const;
-    IBackendModule *parentModule() const;
+    // ::IBackend
+    bool startInspection(const InspectionTarget &);
+    bool isTargetConnected() const;
+    int defaultModuleUid() const;
 
 private:
-    AbstractPanel();
-    IBackendModule *m_parentModule;
+    friend class NvidiaCudaBackendFactory;
+    NvidiaCudaBackend(IInspectionModel *, QObject *parent = 0);
+};
+
+
+class NvidiaCudaBackendFactory : public IBackendFactory
+{
+    Q_OBJECT
+
+public:
+    // ::IBackendFactory
+    QString displayName() const;
+    QIcon icon() const;
+    IBackend *createBackend(const InspectionTarget &);
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // ABSTRACTPANEL_H
+#endif // NVIDIACUDABACKEND_H

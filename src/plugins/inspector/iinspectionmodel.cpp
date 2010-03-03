@@ -36,7 +36,7 @@ using namespace Inspector::Internal;
 /* == InspectionModel Usage ==
 Row 'InspectionStatus_Row': Inspection Status
   0: targetName             string
-  1: frameworkName          string
+  1: backendName          string
   2: monotonicId            int
 */
 
@@ -45,14 +45,14 @@ IInspectionModel::IInspectionModel(QObject *parent)
 {
     // init model
     setItemValue(InspectionStatus_Row, 0, QString("no target"));
-    setItemValue(InspectionStatus_Row, 1, QString("no framework"));
+    setItemValue(InspectionStatus_Row, 1, QString("no backend"));
     static int s_monotonicId = 0;
     setItemValue(InspectionStatus_Row, 2, (++s_monotonicId));
 }
 
 QString IInspectionModel::displayName() const
 {
-    return tr("%1 [%2]").arg(targetName()).arg(frameworkName());
+    return tr("%1 [%2]").arg(targetName()).arg(backendName());
 }
 
 QString IInspectionModel::targetName() const
@@ -60,7 +60,7 @@ QString IInspectionModel::targetName() const
     return itemValue(InspectionStatus_Row, 0).toString();
 }
 
-QString IInspectionModel::frameworkName() const
+QString IInspectionModel::backendName() const
 {
     return itemValue(InspectionStatus_Row, 1).toString();
 }
@@ -75,7 +75,7 @@ void IInspectionModel::setTargetName(const QString &name)
     setItemValue(InspectionStatus_Row, 0, name);
 }
 
-void IInspectionModel::setFrameworkName(const QString &name)
+void IInspectionModel::setBackendName(const QString &name)
 {
     setItemValue(InspectionStatus_Row, 1, name);
 }

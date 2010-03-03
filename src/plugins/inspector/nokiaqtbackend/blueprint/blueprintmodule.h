@@ -27,41 +27,34 @@
 **
 **************************************************************************/
 
-#ifndef ABSTRACTPANEL_H
-#define ABSTRACTPANEL_H
+#ifndef BLUEPRINTMODULE_H
+#define BLUEPRINTMODULE_H
 
-#include <QtGui/QWidget>
-#include <QtCore/QString>
+#include "ibackendmodule.h"
 
 namespace Inspector {
 namespace Internal {
 
-class IBackend;
-class IBackendModule;
+// constants
+const int UID_MODULE_BLUEPRINT = 4;
 
-/**
-  \brief A QWidget subclass created by IBackendModules
-*/
-class AbstractPanel : public QWidget
+class NokiaQtBackend;
+
+class BlueprintModule : public IBackendModule
 {
     Q_OBJECT
 
 public:
-    AbstractPanel(IBackendModule *parentModule);
-    virtual ~AbstractPanel();
+    BlueprintModule(NokiaQtBackend *, QObject *parent = 0);
 
-    virtual QString helpHtml() const;
-
-protected:
-    IBackend *parentBackend() const;
-    IBackendModule *parentModule() const;
-
-private:
-    AbstractPanel();
-    IBackendModule *m_parentModule;
+    // ::IBackendModule
+    int uid() const { return UID_MODULE_BLUEPRINT; }
+    QString name() const;
+    ModuleMenuEntries menuEntries() const;
+    AbstractPanel *createPanel(int panelId);
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // ABSTRACTPANEL_H
+#endif // BLUEPRINTMODULE_H

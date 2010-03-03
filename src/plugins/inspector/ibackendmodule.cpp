@@ -27,41 +27,42 @@
 **
 **************************************************************************/
 
-#ifndef ABSTRACTPANEL_H
-#define ABSTRACTPANEL_H
+#include "ibackendmodule.h"
 
-#include <QtGui/QWidget>
-#include <QtCore/QString>
+using namespace Inspector::Internal;
 
-namespace Inspector {
-namespace Internal {
-
-class IBackend;
-class IBackendModule;
-
-/**
-  \brief A QWidget subclass created by IBackendModules
-*/
-class AbstractPanel : public QWidget
+//
+// ModuleMenuEntry
+//
+ModuleMenuEntry::ModuleMenuEntry(const QStringList &path, int moduleUid, int panelId, const QIcon &icon)
+  : path(path)
+  , icon(icon)
+  , moduleUid(moduleUid)
+  , panelId(panelId)
 {
-    Q_OBJECT
+}
 
-public:
-    AbstractPanel(IBackendModule *parentModule);
-    virtual ~AbstractPanel();
+//
+// IBackendModule
+//
+IBackendModule::IBackendModule(IBackend *backend, QObject *parent)
+  : QObject(parent)
+  , m_backend(backend)
+{
+}
 
-    virtual QString helpHtml() const;
+ModuleMenuEntries IBackendModule::menuEntries() const
+{
+    return ModuleMenuEntries();
+}
 
-protected:
-    IBackend *parentBackend() const;
-    IBackendModule *parentModule() const;
+AbstractPanel *IBackendModule::createPanel(int panelId)
+{
+    qWarning("IBackendModule::createPanel: module '%s' doesn't create panel %d", qPrintable(name()), panelId);
+    return 0;
+}
 
-private:
-    AbstractPanel();
-    IBackendModule *m_parentModule;
-};
-
-} // namespace Internal
-} // namespace Inspector
-
-#endif // ABSTRACTPANEL_H
+IBackend *IBackendModule::parentBackend() const
+{
+    return m_backend;
+}

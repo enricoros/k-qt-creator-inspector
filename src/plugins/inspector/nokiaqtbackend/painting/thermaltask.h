@@ -27,41 +27,51 @@
 **
 **************************************************************************/
 
-#ifndef ABSTRACTPANEL_H
-#define ABSTRACTPANEL_H
+#ifndef THERMALTASK_H
+#define THERMALTASK_H
 
-#include <QtGui/QWidget>
-#include <QtCore/QString>
+#include "ibackendtask.h"
+#include <QtCore/QDateTime>
+#include <QtCore/QVariantList>
+#include <QtGui/QImage>
 
 namespace Inspector {
 namespace Internal {
 
-class IBackend;
-class IBackendModule;
+class NokiaQtBackend;
+class ThermalModel;
 
 /**
-  \brief A QWidget subclass created by IBackendModules
+  \brief Handles a Thermal test
 */
-class AbstractPanel : public QWidget
+class ThermalTask : public IBackendTask
 {
     Q_OBJECT
 
 public:
-    AbstractPanel(IBackendModule *parentModule);
-    virtual ~AbstractPanel();
+    ThermalTask(NokiaQtBackend *, ThermalModel *, const QVariantList &options,
+                const QString &testTitle, QObject *parent = 0);
 
-    virtual QString helpHtml() const;
+    // ::IBackendTask
+    QString displayName() const;
+    void activateTask();
+    void deactivateTask();
 
-protected:
-    IBackend *parentBackend() const;
-    IBackendModule *parentModule() const;
+private slots:
+    void slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data);
 
 private:
-    AbstractPanel();
-    IBackendModule *m_parentModule;
+    NokiaQtBackend *m_nqBackend;
+    ThermalModel *m_model;
+    QVariantList m_options;
+    QString m_testTitle;
+
+    QString m_optionsString;
+    QDateTime m_startDate;
+    QImage m_lastImage;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // ABSTRACTPANEL_H
+#endif // THERMALTASK_H

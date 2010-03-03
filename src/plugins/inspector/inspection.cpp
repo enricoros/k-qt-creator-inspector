@@ -28,32 +28,32 @@
 **************************************************************************/
 
 #include "inspection.h"
-#include "iframework.h"
+#include "ibackend.h"
 
 using namespace Inspector::Internal;
 
-Inspection::Inspection(IFramework *framework, QObject *parent)
+Inspection::Inspection(IBackend *backend, QObject *parent)
   : QObject(parent)
-  , m_framework(framework)
+  , m_backend(backend)
 {
 }
 
 Inspection::~Inspection()
 {
-    delete m_framework;
+    delete m_backend;
 }
 
-IFramework *Inspection::framework() const
+IBackend *Inspection::backend() const
 {
-    return m_framework;
+    return m_backend;
 }
 
 IInspectionModel *Inspection::inspectionModel() const
 {
-    return m_framework->inspectionModel();
+    return m_backend->inspectionModel();
 }
 
 TasksModel *Inspection::tasksModel() const
 {
-    return m_framework->tasksModel();
+    return m_backend->tasksModel();
 }

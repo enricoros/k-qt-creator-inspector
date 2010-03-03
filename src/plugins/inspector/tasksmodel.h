@@ -37,7 +37,7 @@
 namespace Inspector {
 namespace Internal {
 
-class IFramework;
+class IBackend;
 class TaskItem;
 class TasksScene;
 
@@ -59,7 +59,7 @@ public:
     bool requestStopTask(quint32 tid);
 
 private:
-    friend class IFramework;
+    friend class IBackend;
     bool addTask(quint32 tid, const QString &name, const QColor &color,
                  const QString &description = QString());
     bool startTask(quint32 tid);

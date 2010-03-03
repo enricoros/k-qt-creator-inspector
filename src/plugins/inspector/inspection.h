@@ -40,28 +40,28 @@
 namespace Inspector {
 namespace Internal {
 
-class IFramework;
+class IBackend;
 
 /**
-  \brief A thin wrapper over a Framework (already attached to a Target)
+  \brief A thin wrapper over a Backend (already attached to a Target)
 */
 class Inspection : public QObject
 {
     Q_OBJECT
 
 public:
-    Inspection(IFramework *, QObject *parent = 0);
+    Inspection(IBackend *, QObject *parent = 0);
     ~Inspection();
 
-    // the framework
-    IFramework *framework() const;
+    // the Backend
+    IBackend *backend() const;
 
-    // (framework) data models
+    // (Backend's) data models
     IInspectionModel *inspectionModel() const;
     TasksModel *tasksModel() const;
 
 private:
-    IFramework *m_framework;
+    IBackend *m_backend;
 };
 
 } // namespace Internal

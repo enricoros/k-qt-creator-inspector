@@ -27,41 +27,62 @@
 **
 **************************************************************************/
 
-#ifndef ABSTRACTPANEL_H
-#define ABSTRACTPANEL_H
+#ifndef IBACKENDMODULE_H
+#define IBACKENDMODULE_H
 
-#include <QtGui/QWidget>
-#include <QtCore/QString>
+#include <QtCore/QObject>
+#include <QtCore/QList>
+#include <QtGui/QIcon>
 
 namespace Inspector {
 namespace Internal {
 
+class AbstractPanel;
 class IBackend;
-class IBackendModule;
 
 /**
-  \brief A QWidget subclass created by IBackendModules
+  \brief Describes the items to put in the menus by one module
 */
-class AbstractPanel : public QWidget
+struct ModuleMenuEntry {
+    QStringList path;
+    QIcon icon;
+    int moduleUid;
+    int panelId;
+
+    ModuleMenuEntry(const QStringList &path, int moduleUid, int panelId, const QIcon &icon = QIcon());
+};
+
+typedef QList<ModuleMenuEntry> ModuleMenuEntries;
+
+/**
+  \brief Encapsulates functionalities relative to a probing context
+
+  Handles a certain type of tests, encapsulates communication, data (models) and panels
+*/
+class IBackendModule : public QObject
 {
     Q_OBJECT
 
 public:
-    AbstractPanel(IBackendModule *parentModule);
-    virtual ~AbstractPanel();
+    IBackendModule(IBackend *, QObject *parent = 0);
 
-    virtual QString helpHtml() const;
+    // describe the module
+    virtual int uid() const = 0;
+    virtual QString name() const = 0;
+    virtual ModuleMenuEntries menuEntries() const;
+    virtual AbstractPanel *createPanel(int panelId);
 
-protected:
+    // TODO: make this protected?
     IBackend *parentBackend() const;
-    IBackendModule *parentModule() const;
+
+signals:
+    void requestPanelDisplay(int panelId);
 
 private:
-    AbstractPanel();
-    IBackendModule *m_parentModule;
+    IBackend *m_backend;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // ABSTRACTPANEL_H
+#endif // IBACKENDMODULE_H

@@ -27,41 +27,75 @@
 **
 **************************************************************************/
 
-#ifndef ABSTRACTPANEL_H
-#define ABSTRACTPANEL_H
+#ifndef WARNINGSMODULE_H
+#define WARNINGSMODULE_H
 
-#include <QtGui/QWidget>
-#include <QtCore/QString>
+#include "ibackendmodule.h"
+#include "ibackendtask.h"
 
 namespace Inspector {
 namespace Internal {
 
-class IBackend;
-class IBackendModule;
+// constants
+const int UID_MODULE_WARNINGS = 3;
+
+class LocalCommServer;
+class NokiaQtBackend;
+class NotificationWidget;
+class WarningsTask;
 
 /**
-  \brief A QWidget subclass created by IBackendModules
+  \brief Automatic/Manual warnings on certain events
 */
-class AbstractPanel : public QWidget
+class WarningsModule : public IBackendModule
 {
     Q_OBJECT
 
 public:
-    AbstractPanel(IBackendModule *parentModule);
-    virtual ~AbstractPanel();
+    WarningsModule(NokiaQtBackend *, QObject *parent = 0);
+    ~WarningsModule();
 
-    virtual QString helpHtml() const;
+    // ::IBackendModule
+    int uid() const { return UID_MODULE_WARNINGS; }
+    QString name() const;
+    ModuleMenuEntries menuEntries() const;
 
-protected:
-    IBackend *parentBackend() const;
-    IBackendModule *parentModule() const;
+private slots:
+    void slotBackendConnected(bool connected);
+    void slotNotificationClicked();
+    void slotTaskAddWarning();
 
 private:
-    AbstractPanel();
-    IBackendModule *m_parentModule;
+    NokiaQtBackend *m_nqBackend;
+    NotificationWidget *m_notification;
+};
+
+/**
+  \brief Filters add incoming communication for warnings
+*/
+class WarningsTask : public IBackendTask
+{
+    Q_OBJECT
+
+public:
+    WarningsTask(NokiaQtBackend *, QObject *parent = 0);
+
+    // ::IBackendTask
+    QString displayName() const;
+    void activateTask();
+    void deactivateTask();
+
+signals:
+    void addWarning();
+
+private slots:
+    void slotProcessIncomingData(quint32 channel, quint32 code1, QByteArray *data);
+
+private:
+    LocalCommServer *m_commServer;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // ABSTRACTPANEL_H
+#endif // WARNINGSMODULE_H

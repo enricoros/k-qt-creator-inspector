@@ -28,7 +28,7 @@
 **************************************************************************/
 
 #include "dashboardwindow.h"
-#include "iframework.h"
+#include "ibackend.h"
 #include "inspection.h"
 #include "inspectorplugin.h"
 #include "inspectorstyle.h"
@@ -122,9 +122,9 @@ DashboardWindow::DashboardWindow(QWidget *parent)
         m_runconfsCombo = new RunconfComboBox;
          runLayout->addWidget(m_runconfsCombo);
          runLayout->addWidget(new QLabel(tr("with")));
-        m_frameworksCombo = new FrameworksComboBox;
-         runLayout->addWidget(m_frameworksCombo);
-         runLayout->addWidget(new QLabel(tr("framework")));
+        m_backendsCombo = new BackendsComboBox;
+         runLayout->addWidget(m_backendsCombo);
+         runLayout->addWidget(new QLabel(tr("backend")));
          runLayout->addStretch();
         m_newRunButton = new QPushButton;
         m_newRunButton->setMaximumHeight(InspectorStyle::defaultComboHeight());
@@ -142,7 +142,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
                 this, SLOT(slotDeviceChanged()));
         connect(m_runconfsCombo, SIGNAL(currentRunconfChanged()),
                 this, SLOT(slotRunconfChanged()));
-        connect(m_frameworksCombo, SIGNAL(currentFrameworkChanged()),
+        connect(m_backendsCombo, SIGNAL(currentBackendChanged()),
                 this, SLOT(slotEvaluateNewTarget()));
         slotProjectChanged();
         slotDeviceChanged();
@@ -162,9 +162,9 @@ DashboardWindow::DashboardWindow(QWidget *parent)
         QHBoxLayout *acLayout = new QHBoxLayout(acPanel);
          acLayout->setMargin(0);
          acLayout->addWidget(new QLabel(tr("With")));
-        m_attFrameworks = new FrameworksComboBox;
-         acLayout->addWidget(m_attFrameworks);
-         acLayout->addWidget(new QLabel(tr("framework")));
+        m_attBackends = new BackendsComboBox;
+         acLayout->addWidget(m_attBackends);
+         acLayout->addWidget(new QLabel(tr("backend")));
          acLayout->addStretch();
         m_attButton = new QPushButton;
         m_attButton->setMaximumHeight(InspectorStyle::defaultComboHeight());
@@ -184,7 +184,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
                             QIcon(":/inspector/images/icon-newinspection.png"),
                             panel);
 
-        connect(m_attFrameworks, SIGNAL(currentFrameworkChanged()),
+        connect(m_attBackends, SIGNAL(currentBackendChanged()),
                 this, SLOT(slotEvaluateExistingTarget()));
 
         // monitor shareddebugger state changes for changing the gui
@@ -193,7 +193,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
         slotUpdateActionStatus();
     }
 
-    // create the Configure Frameworks widget
+    // create the Configure Backends widget
     {
         QWidget *widget = new QWidget;
         QGridLayout *grid = new QGridLayout(widget);
@@ -201,7 +201,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
         grid->setSpacing(0);
         grid->setColumnMinimumWidth(0, LEFT_MARGIN);
 
-        foreach (IFrameworkFactory *factory, FrameworksComboBox::allFactories()) {
+        foreach (IBackendFactory *factory, BackendsComboBox::allFactories()) {
             QWidget *rowWidget = new QWidget;
             QHBoxLayout *rowLay = new QHBoxLayout(rowWidget);
             rowLay->setMargin(0);
@@ -231,7 +231,7 @@ DashboardWindow::DashboardWindow(QWidget *parent)
             appendSubWidget(grid, rowWidget, factory->displayName());
         }
 
-        appendWrappedWidget(tr("Configure Frameworks"),
+        appendWrappedWidget(tr("Configure Backends"),
                             QIcon(":/inspector/images/icon-configure.png"),
                             widget);
     }
@@ -244,24 +244,24 @@ DashboardWindow::DashboardWindow(QWidget *parent)
             this, SLOT(slotInspectionRemoved(Inspection*)));
 }
 
-void DashboardWindow::newInspection(const InspectionTarget &target, IFrameworkFactory *factory)
+void DashboardWindow::newInspection(const InspectionTarget &target, IBackendFactory *factory)
 {
     QTC_ASSERT(target.type != InspectionTarget::Undefined, return);
     QTC_ASSERT(factory, return);
 
-    IFramework *framework = factory->createFramework(target);
-    if (!framework) {
+    IBackend *backend = factory->createBackend(target);
+    if (!backend) {
         qWarning("DashboardWindow::newInspection: factory refusal");
         return;
     }
 
-    if (!framework->startInspection(target)) {
+    if (!backend->startInspection(target)) {
         qWarning("DashboardWindow::newInspection: can't start the target. inspection canceled");
-        delete framework;
+        delete backend;
         return;
     }
 
-    Inspection *inspection = new Inspection(framework);
+    Inspection *inspection = new Inspection(backend);
     InspectorPlugin::instance()->addInspection(inspection);
 }
 
@@ -286,7 +286,7 @@ void DashboardWindow::slotDeviceChanged()
 void DashboardWindow::slotRunconfChanged()
 {
     ProjectExplorer::RunConfiguration *runconf = m_runconfsCombo->currentRunConfiguration();
-    m_frameworksCombo->setEnabled(runconf);
+    m_backendsCombo->setEnabled(runconf);
     slotEvaluateNewTarget();
 }
 
@@ -298,13 +298,13 @@ void DashboardWindow::slotEvaluateNewTarget()
     if (m_runTarget.runConfiguration)
         m_runTarget.displayName = m_runTarget.runConfiguration->displayName();
 
-    IFrameworkFactory *factory = m_frameworksCombo->currentFactory();
+    IBackendFactory *factory = m_backendsCombo->currentFactory();
     m_newRunButton->setEnabled(factory && factory->available(m_runTarget));
 }
 
 void DashboardWindow::slotStartNewTarget()
 {
-    newInspection(m_runTarget, m_frameworksCombo->currentFactory());
+    newInspection(m_runTarget, m_backendsCombo->currentFactory());
 }
 
 void DashboardWindow::slotExistingTargetSelected(const InspectionTarget &target)
@@ -315,13 +315,13 @@ void DashboardWindow::slotExistingTargetSelected(const InspectionTarget &target)
 
 void DashboardWindow::slotEvaluateExistingTarget()
 {
-    IFrameworkFactory *attFactory = m_attFrameworks->currentFactory();
+    IBackendFactory *attFactory = m_attBackends->currentFactory();
     m_attButton->setEnabled(attFactory && attFactory->available(m_attTarget));
 }
 
 void DashboardWindow::slotStartExistingTarget()
 {
-    newInspection(m_attTarget, m_attFrameworks->currentFactory());
+    newInspection(m_attTarget, m_attBackends->currentFactory());
 }
 
 void DashboardWindow::slotUpdateActionStatus()
@@ -653,30 +653,30 @@ void RunconfComboBox::updateDisplayName()
 }
 
 //
-// FrameworksComboBox
+// BackendsComboBox
 //
-FrameworksComboBox::FrameworksComboBox(QWidget *parent)
+BackendsComboBox::BackendsComboBox(QWidget *parent)
   : QComboBox(parent)
 {
     setMaximumHeight(InspectorStyle::defaultComboHeight());
-    foreach (IFrameworkFactory *factory, allFactories())
+    foreach (IBackendFactory *factory, allFactories())
         addItem(factory->displayName());
     connect(this, SIGNAL(currentIndexChanged(int)),
-            this, SIGNAL(currentFrameworkChanged()));
+            this, SIGNAL(currentBackendChanged()));
 }
 
-IFrameworkFactory *FrameworksComboBox::currentFactory() const
+IBackendFactory *BackendsComboBox::currentFactory() const
 {
     int index = currentIndex();
-    QList<IFrameworkFactory *> factories = allFactories();
+    QList<IBackendFactory *> factories = allFactories();
     if (index < 0 || index >= factories.size())
         return 0;
     return factories.at(index);
 }
 
-QList<IFrameworkFactory *> FrameworksComboBox::allFactories()
+QList<IBackendFactory *> BackendsComboBox::allFactories()
 {
-    return ExtensionSystem::PluginManager::instance()->getObjects<IFrameworkFactory>();
+    return ExtensionSystem::PluginManager::instance()->getObjects<IBackendFactory>();
 }
 
 //
@@ -720,9 +720,9 @@ RunningInspectionWidget::RunningInspectionWidget(Inspection *inspection, QWidget
             this, SLOT(slotCloseClicked()));
     lay->addWidget(b);
 
-    connect(inspection->framework(), SIGNAL(targetConnected(bool)),
-            this, SLOT(slotFrameworkConnected(bool)));
-    slotFrameworkConnected(inspection->framework()->isTargetConnected());
+    connect(inspection->backend(), SIGNAL(targetConnected(bool)),
+            this, SLOT(slotBackendConnected(bool)));
+    slotBackendConnected(inspection->backend()->isTargetConnected());
 }
 
 void RunningInspectionWidget::enterEvent(QEvent *)
@@ -759,7 +759,7 @@ void RunningInspectionWidget::paintEvent(QPaintEvent *)
     }
 }
 
-void RunningInspectionWidget::slotFrameworkConnected(bool connected)
+void RunningInspectionWidget::slotBackendConnected(bool connected)
 {
     if (connected)
         m_connLabel->setPixmap(QPixmap(":/projectexplorer/images/ConnectionOn.png"));

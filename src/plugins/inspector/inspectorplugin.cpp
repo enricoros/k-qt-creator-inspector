@@ -31,8 +31,8 @@
 #include "inspectorcontainer.h"
 #include "inspection.h"
 #include "shareddebugger.h"
-#include "nokiaqtframework/nokiaqtframework.h"
-#include "nvidiacudaframework/nvidiacudaframework.h"
+#include "nokiaqtbackend/nokiaqtbackend.h"
+#include "nvidiacudabackend/nvidiacudabackend.h"
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/basemode.h>
 #include <coreplugin/coreconstants.h>
@@ -178,8 +178,8 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     ourContext << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::C_GDBDEBUGGER);
     m_runningContextId = core->uniqueIDManager()->uniqueIdentifier(C_INSPECTOR_RUNNING);
 
-    addAutoReleasedObject(new NokiaQtFrameworkFactory());
-    addAutoReleasedObject(new NvidiaCudaFrameworkFactory());
+    addAutoReleasedObject(new NokiaQtBackendFactory());
+    addAutoReleasedObject(new NvidiaCudaBackendFactory());
 
     m_sharedDebugger = new SharedDebugger;
 

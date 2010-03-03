@@ -27,41 +27,55 @@
 **
 **************************************************************************/
 
-#ifndef ABSTRACTPANEL_H
-#define ABSTRACTPANEL_H
+#include "nvidiacudabackend.h"
+#include "iinspectionmodel.h"
 
-#include <QtGui/QWidget>
-#include <QtCore/QString>
+using namespace Inspector::Internal;
 
-namespace Inspector {
-namespace Internal {
-
-class IBackend;
-class IBackendModule;
-
-/**
-  \brief A QWidget subclass created by IBackendModules
-*/
-class AbstractPanel : public QWidget
+//
+// NvidiaCudaBackend
+//
+NvidiaCudaBackend::NvidiaCudaBackend(IInspectionModel *inspectionModel, QObject *parent)
+  : IBackend(inspectionModel, parent)
 {
-    Q_OBJECT
+    //addModule(0);
+}
 
-public:
-    AbstractPanel(IBackendModule *parentModule);
-    virtual ~AbstractPanel();
+bool NvidiaCudaBackend::startInspection(const InspectionTarget &target)
+{
+    Q_UNUSED(target);
+    qWarning("NvidiaCudaBackend::startRunConfiguration: TODO");
+    return true;
+}
 
-    virtual QString helpHtml() const;
+bool NvidiaCudaBackend::isTargetConnected() const
+{
+    return false;
+}
 
-protected:
-    IBackend *parentBackend() const;
-    IBackendModule *parentModule() const;
+int NvidiaCudaBackend::defaultModuleUid() const
+{
+    return 0;
+}
 
-private:
-    AbstractPanel();
-    IBackendModule *m_parentModule;
-};
+//
+// NvidiaCudaBackendFactory
+//
+QString NvidiaCudaBackendFactory::displayName() const
+{
+    return tr("NVIDIA CUDA");
+}
 
-} // namespace Internal
-} // namespace Inspector
+QIcon NvidiaCudaBackendFactory::icon() const
+{
+    return QIcon(":/inspector/nvidiacudabackend.png");
+}
 
-#endif // ABSTRACTPANEL_H
+IBackend *NvidiaCudaBackendFactory::createBackend(const InspectionTarget &target)
+{
+    IInspectionModel *model = new IInspectionModel;
+    model->setTargetName(target.displayName);
+    model->setBackendName(displayName());
+
+    return new NvidiaCudaBackend(model);
+}

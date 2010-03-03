@@ -27,41 +27,34 @@
 **
 **************************************************************************/
 
-#ifndef ABSTRACTPANEL_H
-#define ABSTRACTPANEL_H
+#ifndef INFOMODULE_H
+#define INFOMODULE_H
 
-#include <QtGui/QWidget>
-#include <QtCore/QString>
+#include "ibackendmodule.h"
 
 namespace Inspector {
 namespace Internal {
 
-class IBackend;
-class IBackendModule;
+// constants
+const int UID_MODULE_INFO = 1;
 
-/**
-  \brief A QWidget subclass created by IBackendModules
-*/
-class AbstractPanel : public QWidget
+class NokiaQtBackend;
+
+class InfoModule : public IBackendModule
 {
     Q_OBJECT
 
 public:
-    AbstractPanel(IBackendModule *parentModule);
-    virtual ~AbstractPanel();
+    InfoModule(NokiaQtBackend *, QObject *parent = 0);
 
-    virtual QString helpHtml() const;
-
-protected:
-    IBackend *parentBackend() const;
-    IBackendModule *parentModule() const;
-
-private:
-    AbstractPanel();
-    IBackendModule *m_parentModule;
+    // ::IBackendModule
+    int uid() const { return UID_MODULE_INFO; }
+    QString name() const;
+    ModuleMenuEntries menuEntries() const;
+    AbstractPanel *createPanel(int panelId);
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // ABSTRACTPANEL_H
+#endif // INFOMODULE_H

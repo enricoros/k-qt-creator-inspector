@@ -49,12 +49,12 @@ public:
     // inspection status
     QString displayName() const;
     QString targetName() const;
-    QString frameworkName() const;
+    QString backendName() const;
     int monotonicId() const;
 
 public slots:
     void setTargetName(const QString &);
-    void setFrameworkName(const QString &);
+    void setBackendName(const QString &);
 };
 
 } // namespace Internal

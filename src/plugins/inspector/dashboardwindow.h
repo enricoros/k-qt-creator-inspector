@@ -48,10 +48,10 @@ class Target;
 namespace Inspector {
 namespace Internal {
 
-class IFrameworkFactory;
+class IBackendFactory;
 class Inspection;
 class DevicesComboBox;
-class FrameworksComboBox;
+class BackendsComboBox;
 class ProjectsComboBox;
 class RunconfComboBox;
 class TasksScroller;
@@ -66,7 +66,7 @@ class DashboardWindow : public QScrollArea
 public:
     DashboardWindow(QWidget *parent = 0);
 
-    void newInspection(const InspectionTarget &, IFrameworkFactory *);
+    void newInspection(const InspectionTarget &, IBackendFactory *);
 
 signals:
     void requestInspectionDisplay(Inspection *);
@@ -103,13 +103,13 @@ private:
     QLabel *m_runconfLabel;
     DevicesComboBox *m_devicesCombo;
     RunconfComboBox *m_runconfsCombo;
-    FrameworksComboBox *m_frameworksCombo;
+    BackendsComboBox *m_backendsCombo;
     InspectionTarget m_runTarget;
     QAbstractButton *m_newRunButton;
 
     // attach to running
     InspectionTarget m_attTarget;
-    FrameworksComboBox *m_attFrameworks;
+    BackendsComboBox *m_attBackends;
     QAbstractButton *m_attButton;
 
     // running Inspections
@@ -199,20 +199,20 @@ private:
 };
 
 /**
-  \brief A QComboBox synced with the current IFrameworkFactories
+  \brief A QComboBox synced with the current IBackendFactories
 */
-class FrameworksComboBox : public QComboBox
+class BackendsComboBox : public QComboBox
 {
     Q_OBJECT
 
 public:
-    FrameworksComboBox(QWidget *parent = 0);
+    BackendsComboBox(QWidget *parent = 0);
 
-    IFrameworkFactory *currentFactory() const;
-    static QList<IFrameworkFactory *> allFactories();
+    IBackendFactory *currentFactory() const;
+    static QList<IBackendFactory *> allFactories();
 
 signals:
-    void currentFrameworkChanged();
+    void currentBackendChanged();
 };
 
 /**
@@ -236,7 +236,7 @@ protected:
     void paintEvent(QPaintEvent *);
 
 private slots:
-    void slotFrameworkConnected(bool connected);
+    void slotBackendConnected(bool connected);
     void slotDisplayClicked();
     void slotCloseClicked();
 

@@ -28,11 +28,11 @@
 **************************************************************************/
 
 #include "abstractpanel.h"
-#include "iframeworkmodule.h"
+#include "ibackendmodule.h"
 
 using namespace Inspector::Internal;
 
-AbstractPanel::AbstractPanel(IFrameworkModule *parentModule)
+AbstractPanel::AbstractPanel(IBackendModule *parentModule)
   : QWidget(0)
   , m_parentModule(parentModule)
 {
@@ -48,12 +48,12 @@ QString AbstractPanel::helpHtml() const
     return tr("No help is provided for this panel.");
 }
 
-IFramework *AbstractPanel::parentFramework() const
+IBackend *AbstractPanel::parentBackend() const
 {
-    return m_parentModule->parentFramework();
+    return m_parentModule->parentBackend();
 }
 
-IFrameworkModule *AbstractPanel::parentModule() const
+IBackendModule *AbstractPanel::parentModule() const
 {
     return m_parentModule;
 }
