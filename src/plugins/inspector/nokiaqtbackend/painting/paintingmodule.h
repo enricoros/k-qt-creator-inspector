@@ -27,41 +27,50 @@
 **
 **************************************************************************/
 
-#ifndef ABSTRACTPANEL_H
-#define ABSTRACTPANEL_H
+#ifndef PAINTINGMODULE_H
+#define PAINTINGMODULE_H
 
-#include <QtGui/QWidget>
-#include <QtCore/QString>
+#include "ibackendmodule.h"
+#include <QtCore/QVariantList>
+#include <QtGui/QImage>
 
 namespace Inspector {
 namespace Internal {
 
-class IBackend;
-class IBackendModule;
+// constants
+const int UID_MODULE_PAINTING = 2;
 
-/**
-  \brief A QWidget subclass created by IBackendModules
-*/
-class AbstractPanel : public QWidget
+class NokiaQtBackend;
+class ThermalModel;
+
+class PaintingModule : public IBackendModule
 {
     Q_OBJECT
 
 public:
-    AbstractPanel(IBackendModule *parentModule);
-    virtual ~AbstractPanel();
+    PaintingModule(NokiaQtBackend *, QObject *parent = 0);
+    ~PaintingModule();
 
-    virtual QString helpHtml() const;
+    ThermalModel *thermalModel() const;
 
-protected:
-    IBackend *parentBackend() const;
-    IBackendModule *parentModule() const;
+    // ::IBackendModule
+    int uid() const { return UID_MODULE_PAINTING; }
+    QString name() const;
+    ModuleMenuEntries menuEntries() const;
+    AbstractPanel *createPanel(int panelId);
+
+    void startFrequencyTest();
+    void startThermalTest(const QString &testTitle, const QVariantList &options);
+    void setShowExposedAreas(bool);
+    void setGuiStyle(const QString &);
 
 private:
-    AbstractPanel();
-    IBackendModule *m_parentModule;
+    NokiaQtBackend *m_nqBackend;
+    ThermalModel *m_thermalModel;
+    bool m_showExposedAreas;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // ABSTRACTPANEL_H
+#endif // PAINTINGMODULE_H

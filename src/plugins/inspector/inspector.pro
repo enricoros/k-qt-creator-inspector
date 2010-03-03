@@ -12,9 +12,9 @@ HEADERS += \
     abstracteasymodel.h \
     abstractpanel.h \
     dashboardwindow.h \
-    iframework.h \
-    iframeworkmodule.h \
-    iframeworktask.h \
+    ibackend.h \
+    ibackendmodule.h \
+    ibackendtask.h \
     iinspectionmodel.h \
     inspection.h \
     inspectiontarget.h \
@@ -33,15 +33,15 @@ HEADERS += \
     statusbarwidget.h \
     tasksmodel.h \
     tasksscroller.h \
-    nvidiacudaframework/nvidiacudaframework.h
+    nvidiacudabackend/nvidiacudabackend.h
 
 SOURCES += \
     abstracteasymodel.cpp \
     abstractpanel.cpp \
     dashboardwindow.cpp \
-    iframework.cpp \
-    iframeworkmodule.cpp \
-    iframeworktask.cpp \
+    ibackend.cpp \
+    ibackendmodule.cpp \
+    ibackendtask.cpp \
     iinspectionmodel.cpp \
     inspection.cpp \
     inspectiontarget.cpp \
@@ -60,13 +60,13 @@ SOURCES += \
     statusbarwidget.cpp \
     tasksmodel.cpp \
     tasksscroller.cpp \
-    nvidiacudaframework/nvidiacudaframework.cpp
+    nvidiacudabackend/nvidiacudabackend.cpp
 
 RESOURCES += \
     inspector.qrc \
-    nvidiacudaframework/nvidiacudaframework.qrc
+    nvidiacudabackend/nvidiacudabackend.qrc
 
-include(nokiaqtframework/nokiaqtframework.pri)
+include(nokiaqtbackend/nokiaqtbackend.pri)
 
 OTHER_FILES += \
     Inspector.pluginspec

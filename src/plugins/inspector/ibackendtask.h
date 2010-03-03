@@ -27,41 +27,58 @@
 **
 **************************************************************************/
 
-#ifndef ABSTRACTPANEL_H
-#define ABSTRACTPANEL_H
+#ifndef IBACKENDTASK_H
+#define IBACKENDTASK_H
 
-#include <QtGui/QWidget>
+#include <QtCore/QObject>
 #include <QtCore/QString>
 
 namespace Inspector {
 namespace Internal {
 
 class IBackend;
-class IBackendModule;
 
 /**
-  \brief A QWidget subclass created by IBackendModules
+  \brief An asynchronous/denyable/interruptible/finite time operation within a Backend
+
+  How to implement a task:
+   * upon start emit 'requestActivation' and be ready to receive an
+     activation signal
+   * when it's done, emit 'finished' and the task will be deleted at
+     some point
 */
-class AbstractPanel : public QWidget
+class IBackendTask : public QObject
 {
     Q_OBJECT
 
 public:
-    AbstractPanel(IBackendModule *parentModule);
-    virtual ~AbstractPanel();
+    IBackendTask(IBackend *, QObject *parent = 0);
+    virtual ~IBackendTask();
 
-    virtual QString helpHtml() const;
+    virtual QString displayName() const = 0;
+    quint32 taskUid() const;
 
-protected:
-    IBackend *parentBackend() const;
-    IBackendModule *parentModule() const;
+protected slots:
+    virtual void activateTask() { }
+    virtual void deactivateTask() { emit finished(); }
+    virtual void lockTask() { }
+    virtual void unlockTask() { }
+
+signals:
+    void requestActivation();
+    void setProgress(int percent);
+    void finished();
 
 private:
-    AbstractPanel();
-    IBackendModule *m_parentModule;
+    friend class IBackend;
+    void controlActivate();
+    void controlDeactivate();
+    void controlRefuse();
+    void controlWait();
+    class IBackendTaskPrivate *d;
 };
 
 } // namespace Internal
 } // namespace Inspector
 
-#endif // ABSTRACTPANEL_H
+#endif // IBACKENDTASK_H

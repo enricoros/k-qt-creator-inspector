@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/inspector">
+        <file>nvidiacudabackend.png</file>
+    </qresource>
+</RCC>

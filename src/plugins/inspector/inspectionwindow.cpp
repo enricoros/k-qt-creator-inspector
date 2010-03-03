@@ -29,7 +29,7 @@
 
 #include "inspectionwindow.h"
 #include "abstractpanel.h"
-#include "iframework.h"
+#include "ibackend.h"
 #include "inspection.h"
 #include "inspectorplugin.h"
 #include "inspectorstyle.h"
@@ -161,7 +161,7 @@ void InspectionWindow::slotSetCurrentPanel(int moduleUid, int panelId)
     emit requestInspectionDisplay();
 }
 
-void InspectionWindow::slotFrameworkConnected(bool connected)
+void InspectionWindow::slotBackendConnected(bool connected)
 {
     if (connected) {
         m_panelInfoLabel->setContents(tr("Connected"), false);
@@ -174,7 +174,7 @@ void InspectionWindow::setInspection(Inspection *inspection)
 {
     // remove previous references
     if (m_inspection) {
-        disconnect(m_inspection->framework(), 0, this, 0);
+        disconnect(m_inspection->backend(), 0, this, 0);
         m_modulesMenu->clear();
         m_panelContainer->setPanel(new QWidget);
         m_statusbarWidget->setInspection(0);
@@ -185,17 +185,17 @@ void InspectionWindow::setInspection(Inspection *inspection)
 
     if (m_inspection) {
         // connect it
-        connect(m_inspection->framework(), SIGNAL(requestPanelDisplay(int,int)),
+        connect(m_inspection->backend(), SIGNAL(requestPanelDisplay(int,int)),
                 this, SLOT(slotSetCurrentPanel(int,int)));
-        connect(m_inspection->framework(), SIGNAL(targetConnected(bool)),
-                this, SLOT(slotFrameworkConnected(bool)));
-        if (!m_inspection->framework()->isTargetConnected())
+        connect(m_inspection->backend(), SIGNAL(targetConnected(bool)),
+                this, SLOT(slotBackendConnected(bool)));
+        if (!m_inspection->backend()->isTargetConnected())
             m_panelInfoLabel->setContents(tr("Waiting for connection..."), false);
         else
-            slotFrameworkConnected(true);
+            slotBackendConnected(true);
 
         // menu: add all entries by the plugged modules
-        ModuleMenuEntries entries = m_inspection->framework()->menuItems();
+        ModuleMenuEntries entries = m_inspection->backend()->menuItems();
         foreach (const ModuleMenuEntry &entry, entries) {
             if ((entry.moduleUid & 0xFF000000) || (entry.panelId & 0xFFFFFF00)) {
                 qWarning("InspectionWindow::setInspection: moduleUid (%d) or panelId (%d) not valid", entry.moduleUid, entry.panelId);
@@ -209,7 +209,7 @@ void InspectionWindow::setInspection(Inspection *inspection)
         m_statusbarWidget->setInspection(m_inspection);
 
         // show default panel (by selecting the Menu entry)
-        quint32 defaultId = m_inspection->framework()->defaultModuleUid() << 8;
+        quint32 defaultId = m_inspection->backend()->defaultModuleUid() << 8;
         m_modulesMenu->setCurrentItem(defaultId);
     }
 }
@@ -223,7 +223,7 @@ void InspectionWindow::showPanel(int moduleUid, int panelId)
     }
 
     // ask for panel creation
-    AbstractPanel *panel = m_inspection->framework()->createPanel(moduleUid, panelId);
+    AbstractPanel *panel = m_inspection->backend()->createPanel(moduleUid, panelId);
     if (!panel) {
         qWarning("InspectionWindow::showPanel: can't create panel %d for module %d", panelId, moduleUid);
         m_panelContainer->setPanel(new QWidget);

@@ -27,41 +27,34 @@
 **
 **************************************************************************/
 
-#ifndef ABSTRACTPANEL_H
-#define ABSTRACTPANEL_H
+#include "infomodule.h"
+#include "infopanel.h"
+#include "../nokiaqtbackend.h"
 
-#include <QtGui/QWidget>
-#include <QtCore/QString>
+using namespace Inspector::Internal;
 
-namespace Inspector {
-namespace Internal {
-
-class IBackend;
-class IBackendModule;
-
-/**
-  \brief A QWidget subclass created by IBackendModules
-*/
-class AbstractPanel : public QWidget
+InfoModule::InfoModule(NokiaQtBackend *backend, QObject *parent)
+  : IBackendModule(backend, parent)
 {
-    Q_OBJECT
+}
 
-public:
-    AbstractPanel(IBackendModule *parentModule);
-    virtual ~AbstractPanel();
+QString InfoModule::name() const
+{
+    return tr("Information (0.8)");
+}
 
-    virtual QString helpHtml() const;
+ModuleMenuEntries InfoModule::menuEntries() const
+{
+    ModuleMenuEntries entries;
+    entries.append(ModuleMenuEntry(QStringList() << tr("Status"), UID_MODULE_INFO, 0, QIcon(":/inspector/info/menu-status.png")));
+    return entries;
+}
 
-protected:
-    IBackend *parentBackend() const;
-    IBackendModule *parentModule() const;
-
-private:
-    AbstractPanel();
-    IBackendModule *m_parentModule;
-};
-
-} // namespace Internal
-} // namespace Inspector
-
-#endif // ABSTRACTPANEL_H
+AbstractPanel *InfoModule::createPanel(int panelId)
+{
+    if (panelId != 0) {
+        qWarning("InfoModule::createPanel: unhandled panel %d", panelId);
+        return 0;
+    }
+    return new InfoPanel(this);
+}

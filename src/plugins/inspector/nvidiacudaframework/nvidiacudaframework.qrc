@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/inspector">
-        <file>nvidiacudaframework.png</file>
-    </qresource>
-</RCC>

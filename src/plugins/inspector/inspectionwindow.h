@@ -69,7 +69,7 @@ private slots:
     void slotCloseInspection();
     void slotShowPanel(quint32 compoId);
     void slotSetCurrentPanel(int moduleUid, int panelId);
-    void slotFrameworkConnected(bool connected);
+    void slotBackendConnected(bool connected);
 
 private:
     void setInspection(Inspection *inspection);
