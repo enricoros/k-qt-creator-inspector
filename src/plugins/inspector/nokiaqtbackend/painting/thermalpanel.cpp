@@ -189,7 +189,7 @@ ThermalPanel::ThermalPanel(PaintingModule *module)
 
 void ThermalPanel::slotActivatePreset(int comboIndex)
 {
-    groupBox->setVisible(comboIndex == 4);
+    groupBox->setVisible(comboIndex >= 4);
     switch (comboIndex) {
     case 0: // fast
         passesBox->setValue(4);
@@ -224,6 +224,7 @@ void ThermalPanel::slotActivatePreset(int comboIndex)
         heightBox->setValue(1);
         break;
     case 4: // custom
+    case 5: // [DEV debug]
         // keep the actual values
         break;
     }
@@ -291,8 +292,9 @@ void ThermalPanel::slotRunThermalClicked()
     slotRegenLabel();
 
     // Build the options list: passes, headDrops, tailDrops, innerPasses, chunkWidth, chunkHeight, consoleDebug
+    bool consoleDebug = presetCombo->currentIndex() == 5;
     QVariantList options;
-    options << passesBox->value() << lowBox->value() << highBox->value() << innerBox->value() << widthBox->value() << heightBox->value() << false;
+    options << passesBox->value() << lowBox->value() << highBox->value() << innerBox->value() << widthBox->value() << heightBox->value() << consoleDebug;
 
     // start the test, we'll watch the results in the model
     m_paintingModule->startThermalTest(testNameLabel->text(), options);
