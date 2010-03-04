@@ -113,7 +113,7 @@ void NokiaQtBackend::slotTargetConnectedChanged(bool connected)
 //
 QString NokiaQtBackendFactory::displayName() const
 {
-    return tr("Qt by Nokia");
+    return tr("Nokia Qt");
 }
 
 QIcon NokiaQtBackendFactory::icon() const
