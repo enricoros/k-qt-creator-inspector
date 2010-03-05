@@ -118,6 +118,7 @@ void ModuleMenuWidget::recursiveInsertion(QTreeWidgetItem *parent, QStringList r
         item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         item->setIcon(0, iconOverlay(QStyle::SP_FileIcon, icon));
         item->setSizeHint(0, iconSize());
+        item->setExpanded(true);
         return;
     }
 
@@ -136,5 +137,6 @@ void ModuleMenuWidget::recursiveInsertion(QTreeWidgetItem *parent, QStringList r
     item->setFlags(Qt::ItemIsEnabled);
     item->setIcon(0, iconOverlay(QStyle::SP_DirIcon, QIcon(":/inspector/images/folder_overlay.png")));
     item->setSizeHint(0, iconSize());
+    item->setExpanded(true);
     recursiveInsertion(item, remainingPath, id, icon);
 }
