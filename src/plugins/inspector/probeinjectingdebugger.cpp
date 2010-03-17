@@ -223,7 +223,7 @@ void ProbeInjectingDebugger::slotDebuggerStartInferior()
 {
     if (m_sQuirkDone)
         m_sEmitNextRunning = true;
-    m_debuggerManager->continueExec();
+    m_debuggerManager->executeContinue();
 }
 
 void ProbeInjectingDebugger::initInspection()

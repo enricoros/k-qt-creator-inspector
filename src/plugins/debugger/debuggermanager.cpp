@@ -1500,7 +1500,7 @@ void DebuggerManager::gotoLocation(const StackFrame &frame, bool setMarker)
         // enrico - inspector - disable activation of the Edit mode when Inspecting
         if (!d->m_startParameters->inspectorHelpersEnabled) {
             // Connected to the plugin.
-            emit gotoLocationRequested(frame.file, frame.line, setMarker);
+            d->m_plugin->gotoLocation(frame.file, frame.line, setMarker);
         }
     }
 }
