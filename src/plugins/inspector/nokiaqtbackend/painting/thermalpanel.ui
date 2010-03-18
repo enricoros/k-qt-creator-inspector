@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>780</width>
-    <height>400</height>
+    <width>784</width>
+    <height>398</height>
    </rect>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
@@ -292,24 +292,31 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
-          <widget class="QPushButton" name="viewButton">
+          <widget class="QToolButton" name="viewButton">
            <property name="text">
             <string>View</string>
-           </property>
-           <property name="default">
-            <bool>true</bool>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="removeButton">
+          <widget class="QToolButton" name="resultButton">
+           <property name="text">
+            <string>Result</string>
+           </property>
+           <property name="popupMode">
+            <enum>QToolButton::MenuButtonPopup</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="removeButton">
            <property name="text">
             <string>Remove</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="clearButton">
+          <widget class="QToolButton" name="clearButton">
            <property name="text">
             <string>Clear</string>
            </property>
@@ -329,14 +336,14 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="exportButton">
+          <widget class="QToolButton" name="exportButton">
            <property name="text">
             <string>Export</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="importButton">
+          <widget class="QToolButton" name="importButton">
            <property name="text">
             <string>Import</string>
            </property>
@@ -367,8 +374,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>481</width>
-            <height>301</height>
+            <width>464</width>
+            <height>296</height>
            </rect>
           </property>
          </widget>

@@ -57,7 +57,9 @@ public:
     QModelIndex resultsTableIndex() const;
     void clearResults();
 
-    QPixmap originalPixmap(const QModelIndex &) const;
+    QString resultName(const QModelIndex &) const;
+    void setResultName(const QString &, const QModelIndex &);
+    QPixmap resultOriginalPixmap(const QModelIndex &) const;
     QPixmap resultColoredPixmap(const QModelIndex &) const;
     int resultsCount() const;
 
@@ -80,6 +82,8 @@ class ThermalItem : public QStandardItem
 public:
     ThermalItem(const QDateTime &dt, qreal duration, const QString &label, const QString &options,
                 const QImage &image, const Probe::RegularMeshRealData &mesh);
+
+    void setLabel(const QString &);
 
     QDateTime startDate() const;
     qreal duration() const;

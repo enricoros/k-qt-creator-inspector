@@ -71,6 +71,14 @@ ThermalItem::ThermalItem(const QDateTime &dt, qreal duration, const QString &lab
                                                   Qt::KeepAspectRatio, Qt::SmoothTransformation);
 }
 
+void ThermalItem::setLabel(const QString &label)
+{
+    if (m_label != label) {
+        m_label = label;
+        emitDataChanged();
+    }
+}
+
 QDateTime ThermalItem::startDate() const
 {
     return m_dateTime;
@@ -179,7 +187,19 @@ void ThermalModel::clearResults()
     setItemValue(Results_Row, 2, false);
 }
 
-QPixmap ThermalModel::originalPixmap(const QModelIndex &index) const
+QString ThermalModel::resultName(const QModelIndex &index) const
+{
+    const ThermalItem *item = result(index.row());
+    return item ? item->label() : QString();
+}
+
+void ThermalModel::setResultName(const QString &label, const QModelIndex &index)
+{
+    if (ThermalItem *item = const_cast<ThermalItem *>(result(index.row())))
+        item->setLabel(label);
+}
+
+QPixmap ThermalModel::resultOriginalPixmap(const QModelIndex &index) const
 {
     const ThermalItem *item = result(index.row());
     return item ? QPixmap::fromImage(item->originalImage()) : QPixmap();

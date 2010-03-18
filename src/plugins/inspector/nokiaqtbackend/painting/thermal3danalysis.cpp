@@ -437,9 +437,6 @@ Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *module, bool useDepthPeelin
     oLay->addWidget(colorButton);
 
     QPushButton *screenshotButton = new QPushButton(tr("Save Screenshot..."));
-    screenshotButton->setEnabled(false);
-    connect(m_dataSetWidget, SIGNAL(itemSelected(bool)),
-            screenshotButton, SLOT(setEnabled(bool)));
     connect(screenshotButton, SIGNAL(clicked()),
             this, SLOT(slotSaveScreenshot()));
     oLay->addWidget(screenshotButton);

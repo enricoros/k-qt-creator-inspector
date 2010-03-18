@@ -33,6 +33,7 @@
 
 #include <QtGui/QAction>
 #include <QtGui/QFileDialog>
+#include <QtGui/QInputDialog>
 #include <QtGui/QMenu>
 #include <QtGui/QPainter>
 #include <QtGui/QPalette>
@@ -145,6 +146,7 @@ ThermalPanel::ThermalPanel(PaintingModule *module)
     connect(runButton, SIGNAL(clicked()), this, SLOT(slotRunThermalClicked()));
     connect(viewButton, SIGNAL(clicked()), this, SLOT(slotDisplayClicked()));
     connect(removeButton, SIGNAL(clicked()), this, SLOT(slotRemoveClicked()));
+    connect(resultButton, SIGNAL(clicked()), this, SLOT(slotResultButtonClicked()));
     connect(clearButton, SIGNAL(clicked()), this, SLOT(slotClearClicked()));
     connect(exportButton, SIGNAL(clicked()), this, SLOT(slotExportClicked()));
     connect(importButton, SIGNAL(clicked()), this, SLOT(slotImportClicked()));
@@ -299,8 +301,6 @@ void ThermalPanel::slotCheckWeight()
 
 void ThermalPanel::slotRunThermalClicked()
 {
-    slotRegenLabel();
-
     // Build the options list: passes, headDrops, tailDrops, innerPasses, chunkWidth, chunkHeight, consoleDebug
     bool consoleDebug = presetCombo->currentIndex() == 5;
     QVariantList options;
@@ -308,6 +308,8 @@ void ThermalPanel::slotRunThermalClicked()
 
     // start the test, we'll watch the results in the model
     m_paintingModule->startThermalTest(testNameLabel->text(), options);
+
+    slotRegenLabel();
 }
 
 void ThermalPanel::slotDisplayClicked()
@@ -324,6 +326,11 @@ void ThermalPanel::slotRemoveClicked()
         QModelIndex index = resultsView->selectionModel()->selectedRows().first();
         resultsView->model()->removeRow(index.row(), index.parent());
     }
+}
+
+void ThermalPanel::slotResultButtonClicked()
+{
+    slotViewContextMenuRequested(resultButton->pos());
 }
 
 void ThermalPanel::slotClearClicked()
@@ -365,6 +372,7 @@ void ThermalPanel::slotViewSelectionChanged()
     bool single = selection.size() == 1;
     viewButton->setEnabled(single);
     exportButton->setEnabled(!empty);
+    resultButton->setEnabled(single);
     removeButton->setEnabled(!empty);
     clearButton->setEnabled(m_thermalModel->resultsCount());
 }
@@ -372,15 +380,28 @@ void ThermalPanel::slotViewSelectionChanged()
 void ThermalPanel::slotViewContextMenuRequested(const QPoint &point)
 {
     QMenu menu;
-    menu.setTitle("Export Test Data");
+    menu.setTitle("Test Result");
+    QAction *aRename = menu.addAction(tr("Rename..."));
     QAction *aSaveImage = menu.addAction(tr("Save Image..."));
     QAction *aSaveCm = menu.addAction(tr("Save Color Map..."));
     if (QAction *choice = menu.exec(resultsView->mapToGlobal(point))) {
+        QModelIndex resultIndex = resultsView->currentIndex();
+
+        // rename action
+        if (choice == aRename) {
+            QString name = QInputDialog::getText(this, tr("Rename Test Result"),
+                tr("Enter the new name"), QLineEdit::Normal, m_thermalModel->resultName(resultIndex));
+            if (!name.isEmpty())
+                m_thermalModel->setResultName(name, resultIndex);
+            return;
+        }
+
+        // export pixmap actions
         QPixmap pixmap;
         if (choice == aSaveImage)
-            pixmap = m_thermalModel->originalPixmap(resultsView->currentIndex());
+            pixmap = m_thermalModel->resultOriginalPixmap(resultIndex);
         else if (choice == aSaveCm)
-            pixmap = m_thermalModel->resultColoredPixmap(resultsView->currentIndex());
+            pixmap = m_thermalModel->resultColoredPixmap(resultIndex);
         if (!pixmap.isNull()) {
             const QString fileName = QFileDialog::getSaveFileName(this, tr("Export Image File"),
                 "untitled.png", tr("Images (*.png *.jpg *.bmp)"));
