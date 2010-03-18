@@ -174,6 +174,7 @@ ThermalPanel::ThermalPanel(PaintingModule *module)
     QPalette transPal;
     transPal.setColor(QPalette::Base, Qt::transparent);
     resultsView->setPalette(transPal);
+    splitter->setSizes(QList<int>() << 100 << 700);
 
     // listen for model changes
     connect(m_thermalModel, SIGNAL(itemChanged(QStandardItem*)),
