@@ -57,7 +57,8 @@ public:
     QModelIndex resultsTableIndex() const;
     void clearResults();
 
-    QPixmap resultColoredPixmap(const QModelIndex &);
+    QPixmap originalPixmap(const QModelIndex &) const;
+    QPixmap resultColoredPixmap(const QModelIndex &) const;
     int resultsCount() const;
 
     bool containsResultLabel(const QString &) const;

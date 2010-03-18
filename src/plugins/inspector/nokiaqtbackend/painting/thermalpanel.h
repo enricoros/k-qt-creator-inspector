@@ -70,6 +70,7 @@ private slots:
 
     // view slots
     void slotViewSelectionChanged();
+    void slotViewContextMenuRequested(const QPoint &);
     void slotDisplayResultImage(const QModelIndex &index);
 
 private:

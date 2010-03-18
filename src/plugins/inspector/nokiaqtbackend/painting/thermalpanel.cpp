@@ -31,7 +31,9 @@
 #include "paintingmodule.h"
 #include "thermalmodel.h"
 
+#include <QtGui/QAction>
 #include <QtGui/QFileDialog>
+#include <QtGui/QMenu>
 #include <QtGui/QPainter>
 #include <QtGui/QPalette>
 #include <QtGui/QStyledItemDelegate>
@@ -152,6 +154,7 @@ ThermalPanel::ThermalPanel(PaintingModule *module)
     resultsView->setItemDelegate(new ThermalItemDelegate(resultsView));
     resultsView->setModel(m_thermalModel);
     resultsView->setRootIndex(m_thermalModel->resultsTableIndex());
+    resultsView->setContextMenuPolicy(Qt::CustomContextMenu);
 
     // change looks
     QFont smallerFont = samplesLabel->font();
@@ -175,6 +178,8 @@ ThermalPanel::ThermalPanel(PaintingModule *module)
             this, SLOT(slotModelItemChanged()));
     connect(resultsView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
             this, SLOT(slotViewSelectionChanged()));
+    connect(resultsView, SIGNAL(customContextMenuRequested(QPoint)),
+            this, SLOT(slotViewContextMenuRequested(QPoint)));
     connect(resultsView, SIGNAL(doubleClicked(QModelIndex)),
             this, SLOT(slotDisplayResultImage(QModelIndex)));
     slotModelItemChanged();
@@ -362,6 +367,27 @@ void ThermalPanel::slotViewSelectionChanged()
     exportButton->setEnabled(!empty);
     removeButton->setEnabled(!empty);
     clearButton->setEnabled(m_thermalModel->resultsCount());
+}
+
+void ThermalPanel::slotViewContextMenuRequested(const QPoint &point)
+{
+    QMenu menu;
+    menu.setTitle("Export Test Data");
+    QAction *aSaveImage = menu.addAction(tr("Save Image..."));
+    QAction *aSaveCm = menu.addAction(tr("Save Color Map..."));
+    if (QAction *choice = menu.exec(resultsView->mapToGlobal(point))) {
+        QPixmap pixmap;
+        if (choice == aSaveImage)
+            pixmap = m_thermalModel->originalPixmap(resultsView->currentIndex());
+        else if (choice == aSaveCm)
+            pixmap = m_thermalModel->resultColoredPixmap(resultsView->currentIndex());
+        if (!pixmap.isNull()) {
+            const QString fileName = QFileDialog::getSaveFileName(this, tr("Export Image File"),
+                "untitled.png", tr("Images (*.png *.jpg *.bmp)"));
+            if (!fileName.isEmpty())
+                pixmap.save(fileName);
+        }
+    }
 }
 
 void ThermalPanel::slotDisplayResultImage(const QModelIndex &index)
