@@ -35,10 +35,12 @@
 #include <QtGui/QCheckBox>
 #include <QtGui/QColorDialog>
 #include <QtGui/QCursor>
+#include <QtGui/QFileDialog>
 #include <QtGui/QGroupBox>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QInputDialog>
 #include <QtGui/QMenu>
+#include <QtGui/QPixmap>
 #include <QtGui/QPushButton>
 #include <QtGui/QSplitter>
 #include <QtGui/QVBoxLayout>
@@ -434,6 +436,14 @@ Thermal3DAnalysis::Thermal3DAnalysis(PaintingModule *module, bool useDepthPeelin
             m_dataSetWidget, SLOT(slotColorizeSelected()));
     oLay->addWidget(colorButton);
 
+    QPushButton *screenshotButton = new QPushButton(tr("Save Screenshot..."));
+    screenshotButton->setEnabled(false);
+    connect(m_dataSetWidget, SIGNAL(itemSelected(bool)),
+            screenshotButton, SLOT(setEnabled(bool)));
+    connect(screenshotButton, SIGNAL(clicked()),
+            this, SLOT(slotSaveScreenshot()));
+    oLay->addWidget(screenshotButton);
+
     QGroupBox *styleGroup = new QGroupBox(tr("Drawing Options"));
     QVBoxLayout *styleLay = new QVBoxLayout(styleGroup);
     m_texturesCheck = new QCheckBox(tr("Overlay Source Image"));
@@ -482,6 +492,20 @@ void Thermal3DAnalysis::slotRefreshRendering()
     int colorMode = m_altColorsCheck->isChecked() ? 1 : 0;
     bool smoothNormals = m_smoothCheck->isChecked();
     m_dataSetWidget->render(v, useTextures, smoothTextures, zeroPlane, colorMode, smoothNormals);
+}
+
+void Thermal3DAnalysis::slotSaveScreenshot()
+{
+    QWidget *renderWidget = v->widget();
+    if (!renderWidget || renderWidget->width() < 10 || renderWidget->height() < 10)
+        return;
+    QPixmap pixmap = QPixmap::grabWidget(renderWidget);
+    if (!pixmap.isNull()) {
+        const QString fileName = QFileDialog::getSaveFileName(this, tr("Export Image File"),
+            "untitled.png", tr("Images (*.png *.jpg *.bmp)"));
+        if (!fileName.isEmpty())
+            pixmap.save(fileName);
+    }
 }
 
 static QAction *createOption(QActionGroup *group, const QString &name, int id, bool checked)

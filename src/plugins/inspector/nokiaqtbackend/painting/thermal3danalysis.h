@@ -57,6 +57,7 @@ public:
 
 private slots:
     void slotRefreshRendering();
+    void slotSaveScreenshot();
     void slotContextMenu(vtkObject *obj, unsigned long, void *client_data, void *, vtkCommand *command);
     void slotContextAction(QAction *);
 

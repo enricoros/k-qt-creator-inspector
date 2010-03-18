@@ -179,7 +179,13 @@ void ThermalModel::clearResults()
     setItemValue(Results_Row, 2, false);
 }
 
-QPixmap ThermalModel::resultColoredPixmap(const QModelIndex &index)
+QPixmap ThermalModel::originalPixmap(const QModelIndex &index) const
+{
+    const ThermalItem *item = result(index.row());
+    return item ? QPixmap::fromImage(item->originalImage()) : QPixmap();
+}
+
+QPixmap ThermalModel::resultColoredPixmap(const QModelIndex &index) const
 {
     const ThermalItem *item = result(index.row());
     if (!item || item->originalImage().isNull())
