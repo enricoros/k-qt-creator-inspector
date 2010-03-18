@@ -61,6 +61,7 @@ private slots:
 
     void slotDisplayClicked();
     void slotRemoveClicked();
+    void slotResultButtonClicked();
     void slotClearClicked();
     void slotExportClicked();
     void slotImportClicked();
