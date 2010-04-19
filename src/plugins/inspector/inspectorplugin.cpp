@@ -139,7 +139,7 @@ void InspectorPlugin::addInspection(Inspection * inspection)
     emit inspectionAdded(inspection);
 
     if (m_inspections.count() == 1)
-        Core::ICore::instance()->addAdditionalContext(m_runningContextId);
+        Core::ICore::instance()->updateAdditionalContexts(QList<int>(), QList<int>() << m_runningContextId);
 }
 
 void InspectorPlugin::deleteInspection(Inspection * inspection)
@@ -154,7 +154,7 @@ void InspectorPlugin::deleteInspection(Inspection * inspection)
     delete inspection;
 
     if (m_inspections.isEmpty())
-        Core::ICore::instance()->removeAdditionalContext(m_runningContextId);
+        Core::ICore::instance()->updateAdditionalContexts(QList<int>() << m_runningContextId, QList<int>());
 }
 
 void InspectorPlugin::deleteInspections()
@@ -175,7 +175,7 @@ bool InspectorPlugin::initialize(const QStringList &arguments, QString *error_me
     QList<int> ourContext;
     ourContext << Core::Constants::C_GLOBAL_ID;
     ourContext << core->uniqueIDManager()->uniqueIdentifier(C_INSPECTOR);
-    ourContext << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::C_GDBDEBUGGER);
+    ourContext << core->uniqueIDManager()->uniqueIdentifier(Debugger::Constants::C_CPPDEBUGGER);
     m_runningContextId = core->uniqueIDManager()->uniqueIdentifier(C_INSPECTOR_RUNNING);
 
     addAutoReleasedObject(new NokiaQtBackendFactory());

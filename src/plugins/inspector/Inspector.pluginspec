@@ -1,4 +1,4 @@
-<plugin name="Inspector" version="1.3.82" compatVersion="1.3.82">
+<plugin name="Inspector" version="1.3.84" compatVersion="1.3.84">
     <vendor>Enrico Ros</vendor>
     <copyright>(C) 2009-2010 Enrico Ros</copyright>
     <license>
@@ -13,9 +13,9 @@ Alternatively, this plugin may be used under the terms of the GNU Lesser General
     <description>Runtime Probing plugin.</description>
     <url>http://www.enricoros.com</url>
     <dependencyList>
-        <dependency name="Debugger" version="1.3.82"/>
-        <dependency name="ProjectExplorer" version="1.3.82"/>
-        <dependency name="Core" version="1.3.82"/>
+        <dependency name="Debugger" version="1.3.84"/>
+        <dependency name="ProjectExplorer" version="1.3.84"/>
+        <dependency name="Core" version="1.3.84"/>
     </dependencyList>
     <argumentList>
     </argumentList>

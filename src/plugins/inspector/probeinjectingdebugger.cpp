@@ -160,6 +160,8 @@ void ProbeInjectingDebugger::slotDebuggerStateChanged(int nextState)
     if (!m_sHaveInferior)
         return;
 
+    qWarning("%d %d %d", m_state, m_prevState, m_sHaveInferior);
+
     /* In case of 'Attach to PID', the debugger loads the inferior (InferiorStarting)
        and immediately stops it, injecting the code too.
 
@@ -185,7 +187,9 @@ void ProbeInjectingDebugger::slotDebuggerStateChanged(int nextState)
         Here we detect the case, issue a real stop and then a real start.
     */
     if (m_target.type == InspectionTarget::StartLocalRunConfiguration && !m_sQuirkDone) {
+        qWarning("A");
         if (m_state == InferiorRunning) {
+            qWarning("B");
             if (!m_runDelayTimer) {
                 m_runDelayTimer = new QTimer(this);
                 m_runDelayTimer->setSingleShot(true);
@@ -194,6 +198,7 @@ void ProbeInjectingDebugger::slotDebuggerStateChanged(int nextState)
             m_runDelayTimer->start(2000);
         }
         if (m_sManuallyStopped && m_state == InferiorStopped) {
+            qWarning("C");
             m_sQuirkDone = true;
             QTimer::singleShot(500, this, SLOT(slotDebuggerStartInferior()));
         }
@@ -201,6 +206,7 @@ void ProbeInjectingDebugger::slotDebuggerStateChanged(int nextState)
 
     // Connected notification
     if (m_state == InferiorRunning && m_sEmitNextRunning && !m_targetConnected) {
+        qWarning("D");
         m_debuggerManager->setGotoLocationEnabled(true);
         m_sEmitNextRunning = false;
         m_targetConnected = true;

@@ -1868,6 +1868,9 @@ void DebuggerManager::setState(DebuggerState state, bool forced)
         || state == DebuggerNotReady
         || state == InferiorUnrunnable;
     setBusyCursor(!notbusy);
+
+    // inspector: enrico: add the signal emission back, for external listeners
+    emit stateChanged(d->m_state);
 }
 
 bool DebuggerManager::debuggerActionsEnabled() const
