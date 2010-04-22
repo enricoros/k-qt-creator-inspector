@@ -59,6 +59,8 @@ SUPPORT_VTK = $$(QTCREATOR_WITH_INSPECTOR_VTK)
 
     INCLUDEPATH += /usr/include/vtk-5.4 /usr/include/vtk-5.2 /usr/include/vtk
     LIBS += -lQVTK
+    # on ubuntu
+    LIBS += -lvtkCommon -lvtkRendering -lvtkFiltering -lvtkGenericFiltering -lvtkGraphics -lvtkImaging
 } else {
     message("If you want to try Surface Visualization please set the QTCREATOR_WITH_INSPECTOR_VTK environment variable.")
 }

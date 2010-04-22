@@ -80,7 +80,6 @@ signals:
     void inspectionRemoved(Inspection *);
 
 private slots:
-    void slotSetPluginEnabled(bool enabled);
     void slotDisplayWindow();
 
 private:

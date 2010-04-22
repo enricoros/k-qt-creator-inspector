@@ -143,7 +143,7 @@ void InspectorRunControl::start()
         m_manager->startNewDebugger(m_startParameters);
         emit started();
     } else {
-        error(this, errorMessage);
+        appendMessage(this, errorMessage, true);
         emit finished();
         Core::ICore::instance()->showWarningWithOptions(tr("Inspector"), errorMessage,
                                                         QString(),
@@ -153,7 +153,7 @@ void InspectorRunControl::start()
 
 void InspectorRunControl::slotAddToOutputWindowInline(const QString &data)
 {
-    emit addToOutputWindowInline(this, data);
+    emit addToOutputWindowInline(this, data, false);
 }
 
 void InspectorRunControl::stop()
